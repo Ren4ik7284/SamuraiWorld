@@ -264,7 +264,11 @@
 
 @media (max-width: 900px) {
   .contacts-grid { grid-template-columns: 1fr; }
-  .ip-banner__inner { flex-direction: column; align-items: flex-start; }
+  .contact-card { padding: 24px 20px; }
+  .ip-banner__inner { flex-direction: column; align-items: flex-start; padding: 28px 20px; gap: 24px; }
   .ip-banner__right { text-align: left; width: 100%; }
-  .ip-banner__value { display: inline-block; }
+  .ip-banner__value { width: 100%; text-align: center; font-size: 1.15rem; }
+  .faq-item__header { padding: 18px 18px; }
+  .faq-item__body--open { padding: 0 18px 18px; }
 }
+

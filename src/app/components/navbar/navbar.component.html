@@ -51,6 +51,22 @@
 
   <!-- Mobile Menu Drawer -->
   <div class="navbar__drawer" [class.navbar__drawer--open]="isMobileMenuOpen" role="dialog" aria-label="Мобильное меню">
+    <div class="navbar__drawer-header">
+      <div class="navbar__logo">
+        <img class="navbar__logo-img" src="assets/server_logo.jpg" alt="SamuraiWorld logo" />
+        <div class="navbar__logo-text">
+          <span class="navbar__logo-name">SamuraiWorld</span>
+          <span class="navbar__logo-jp">侍世界</span>
+        </div>
+      </div>
+      <button class="navbar__drawer-close" (click)="closeMobileMenu()" aria-label="Закрыть меню">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
     <nav class="navbar__drawer-nav">
       <ul class="navbar__drawer-list">
         <li *ngFor="let link of navLinks; let i = index" [style.animation-delay.ms]="i * 50">
@@ -62,12 +78,15 @@
             (click)="closeMobileMenu()"
           >
             <span class="navbar__drawer-jp">{{ link.jpLabel }}</span>
-            {{ link.label }}
+            <span class="navbar__drawer-ru">{{ link.label }}</span>
           </a>
         </li>
       </ul>
       <div class="navbar__drawer-footer">
         <a class="btn btn-primary" style="width:100%;justify-content:center" routerLink="/contacts" (click)="closeMobileMenu()">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 2L12.5 7.5L18 8.27L14 12.14L14.9 17.73L10 15L5.1 17.73L6 12.14L2 8.27L7.5 7.5L10 2Z"/>
+          </svg>
           Вступить на сервер
         </a>
       </div>

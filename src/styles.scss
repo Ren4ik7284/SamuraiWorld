@@ -266,9 +266,25 @@ ul, ol { list-style: none; }
 .d5 { animation-delay: 0.45s; }
 
 /* =============================================
-   RESPONSIVE
+   RESPONSIVE & MOBILE TOUCH OPTIMIZATIONS
    ============================================= */
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
 @media (max-width: 768px) {
-  .section { padding-block: 72px; }
-  .container { padding-inline: 20px; }
+  .section { padding-block: 60px; }
+  .container { padding-inline: 18px; }
+  .section-sub { margin-bottom: 40px; font-size: 0.95rem; }
+  .section-heading { font-size: clamp(1.75rem, 6vw, 2.4rem); }
+}
+
+@media (max-width: 480px) {
+  .section { padding-block: 48px; }
+  .container { padding-inline: 14px; }
+  .btn { width: 100%; justify-content: center; }
 }
