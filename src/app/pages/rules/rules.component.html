@@ -4,9 +4,9 @@
   <div class="page-header">
     <div class="page-header__glow"></div>
     <div class="container">
-      <p class="section-eyebrow" style="justify-content:center;margin-bottom:20px">Конституция</p>
+      <p class="section-eyebrow" style="justify-content:center;margin-bottom:20px">⛩️ Конституция & Законы</p>
       <h1 class="page-header__title">Правила сервера</h1>
-      <p class="page-header__sub">Находясь на сервере, вы автоматически соглашаетесь с данными правилами</p>
+      <p class="page-header__sub">Находясь на сервере SamuraiWorld, вы автоматически соглашаетесь с правилами</p>
     </div>
   </div>
 
@@ -16,18 +16,22 @@
     <div class="notice">
       <div class="notice__icon" [innerHTML]="sections[0].icon | safeHtml"></div>
       <div class="notice__text">
-        <strong>SamuraiWorld — приватный сервер,</strong> где главная ценность — комфортная игра каждого участника.
-        Незнание правил не освобождает от ответственности.
-        Решение администрации является окончательным.
+        <strong>SamuraiWorld — политический ванильный сервер,</strong> где главная ценность — уважение к другим игрокам и институтам государства.
+        Незнание правил не освобождает от ответственности. Решение администрации является окончательным.
       </div>
     </div>
 
-    <!-- Sections navigation -->
+    <!-- Sections navigation tabs -->
     <nav class="rules-nav" aria-label="Разделы правил">
-      <a *ngFor="let s of sections" class="rules-nav__item" [href]="'#section-' + s.num">
-        <span class="rules-nav__num">{{ s.num }}</span>
+      <button 
+        *ngFor="let s of sections" 
+        class="rules-nav__item" 
+        [class.rules-nav__item--active]="activeSection === s.num || activeSection === null"
+        (click)="scrollToSection(s.num)"
+      >
+        <span class="rules-nav__num">§ {{ s.num }}</span>
         <span class="rules-nav__title">{{ s.title }}</span>
-      </a>
+      </button>
     </nav>
 
     <!-- Sections -->
@@ -36,9 +40,10 @@
         *ngFor="let s of sections"
         [id]="'section-' + s.num"
         class="rules-section"
+        [class.rules-section--open]="isSectionOpen(s.num)"
       >
         <!-- Section header -->
-        <div class="rules-section__head" (click)="toggleSection(s.num)" [class.open]="activeSection === s.num">
+        <div class="rules-section__head" (click)="toggleSection(s.num)">
           <div class="rules-section__head-left">
             <div class="rules-section__icon" [innerHTML]="s.icon | safeHtml"></div>
             <div>
@@ -46,18 +51,21 @@
               <h2 class="rules-section__title">{{ s.title }}</h2>
             </div>
           </div>
-          <svg class="rules-section__chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
-            [class.rotated]="activeSection === s.num">
-            <path d="M4 6L8 10L12 6" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <div class="rules-section__head-right">
+            <span class="rules-section__count">{{ s.items.length }} пунктов</span>
+            <svg class="rules-section__chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+              [class.rotated]="isSectionOpen(s.num)">
+              <path d="M4 6L8 10L12 6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
         </div>
 
-        <!-- Section body — always visible, but collapsible on mobile -->
-        <div class="rules-section__body">
+        <!-- Section body -->
+        <div class="rules-section__body" *ngIf="isSectionOpen(s.num)">
           <ul class="rules-list">
             <li *ngFor="let item of s.items" class="rules-item">
               <div class="rules-item__header">
-                <span class="rules-item__id">{{ item.id }}</span>
+                <span class="rules-item__id">§ {{ item.id }}</span>
                 <p class="rules-item__text">{{ item.text }}</p>
               </div>
               <ul *ngIf="item.bullets" class="rules-item__bullets">
@@ -74,10 +82,10 @@
 
     <!-- Penalties -->
     <div class="penalties-block">
-      <header class="section-header-center" style="margin-bottom:48px">
+      <header class="section-header-center" style="margin-bottom:36px">
         <p class="section-eyebrow">Меры воздействия</p>
         <h2 class="section-heading">Система <span>наказаний</span></h2>
-        <p class="section-sub">Тяжесть наказания определяет администрация. Оно может быть выдано без предупреждения.</p>
+        <p class="section-sub">Тяжесть наказания определяет администрация. Повторные нарушения караются бан-листом.</p>
       </header>
       <div class="penalties-grid">
         <div *ngFor="let p of penalties" class="penalty-card" [class.penalty-card--severe]="p.severe">
@@ -92,13 +100,12 @@
     <div class="final-rule">
       <div class="final-rule__inner">
         <div class="final-rule__icon">⛩️</div>
-        <h3 class="final-rule__title">Главное правило</h3>
+        <h3 class="final-rule__title">Кодекс Самурая</h3>
         <p class="final-rule__text">
-          Мы создаём не просто Minecraft-сервер, а небольшое закрытое сообщество.
-          Будьте вежливы, уважайте чужой труд, помогайте новичкам и сохраняйте ту атмосферу,
-          ради которой существует SamuraiWorld.
+          Мы создаём закрытое политическое сообщество.
+          Будьте вежливы, уважайте чужой труд, принимайте участие в жизни государства и сохраняйте атмосферу SamuraiWorld.
         </p>
-        <p class="final-rule__motto">Играй честно. Уважай других. Иди по пути самурая.</p>
+        <p class="final-rule__motto">Играй честно. Уважай законы. Чти Конституцию.</p>
       </div>
     </div>
 

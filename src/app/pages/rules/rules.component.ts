@@ -159,4 +159,16 @@ export class RulesComponent {
   toggleSection(num: string): void {
     this.activeSection = this.activeSection === num ? null : num;
   }
+
+  isSectionOpen(num: string): boolean {
+    return this.activeSection === null || this.activeSection === num;
+  }
+
+  scrollToSection(num: string): void {
+    this.activeSection = num;
+    const el = document.getElementById('section-' + num);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
 }
