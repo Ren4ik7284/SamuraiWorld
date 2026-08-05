@@ -1,0 +1,106 @@
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header__glow"></div>
+    <div class="container">
+      <p class="section-eyebrow" style="justify-content:center;margin-bottom:20px">Конституция</p>
+      <h1 class="page-header__title">Правила сервера</h1>
+      <p class="page-header__sub">Находясь на сервере, вы автоматически соглашаетесь с данными правилами</p>
+    </div>
+  </div>
+
+  <div class="section container">
+
+    <!-- Notice -->
+    <div class="notice">
+      <div class="notice__icon" [innerHTML]="sections[0].icon | safeHtml"></div>
+      <div class="notice__text">
+        <strong>SamuraiWorld — приватный сервер,</strong> где главная ценность — комфортная игра каждого участника.
+        Незнание правил не освобождает от ответственности.
+        Решение администрации является окончательным.
+      </div>
+    </div>
+
+    <!-- Sections navigation -->
+    <nav class="rules-nav" aria-label="Разделы правил">
+      <a *ngFor="let s of sections" class="rules-nav__item" [href]="'#section-' + s.num">
+        <span class="rules-nav__num">{{ s.num }}</span>
+        <span class="rules-nav__title">{{ s.title }}</span>
+      </a>
+    </nav>
+
+    <!-- Sections -->
+    <div class="rules-sections">
+      <section
+        *ngFor="let s of sections"
+        [id]="'section-' + s.num"
+        class="rules-section"
+      >
+        <!-- Section header -->
+        <div class="rules-section__head" (click)="toggleSection(s.num)" [class.open]="activeSection === s.num">
+          <div class="rules-section__head-left">
+            <div class="rules-section__icon" [innerHTML]="s.icon | safeHtml"></div>
+            <div>
+              <div class="rules-section__num">Раздел {{ s.num }}</div>
+              <h2 class="rules-section__title">{{ s.title }}</h2>
+            </div>
+          </div>
+          <svg class="rules-section__chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
+            [class.rotated]="activeSection === s.num">
+            <path d="M4 6L8 10L12 6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <!-- Section body — always visible, but collapsible on mobile -->
+        <div class="rules-section__body">
+          <ul class="rules-list">
+            <li *ngFor="let item of s.items" class="rules-item">
+              <div class="rules-item__header">
+                <span class="rules-item__id">{{ item.id }}</span>
+                <p class="rules-item__text">{{ item.text }}</p>
+              </div>
+              <ul *ngIf="item.bullets" class="rules-item__bullets">
+                <li *ngFor="let b of item.bullets" class="rules-item__bullet">
+                  <svg viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="2"/></svg>
+                  {{ b }}
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <!-- Penalties -->
+    <div class="penalties-block">
+      <header class="section-header-center" style="margin-bottom:48px">
+        <p class="section-eyebrow">Меры воздействия</p>
+        <h2 class="section-heading">Система <span>наказаний</span></h2>
+        <p class="section-sub">Тяжесть наказания определяет администрация. Оно может быть выдано без предупреждения.</p>
+      </header>
+      <div class="penalties-grid">
+        <div *ngFor="let p of penalties" class="penalty-card" [class.penalty-card--severe]="p.severe">
+          <div class="penalty-card__icon" [innerHTML]="p.icon | safeHtml"></div>
+          <h4 class="penalty-card__title">{{ p.title }}</h4>
+          <p class="penalty-card__desc">{{ p.desc }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Final rule -->
+    <div class="final-rule">
+      <div class="final-rule__inner">
+        <div class="final-rule__icon">⛩️</div>
+        <h3 class="final-rule__title">Главное правило</h3>
+        <p class="final-rule__text">
+          Мы создаём не просто Minecraft-сервер, а небольшое закрытое сообщество.
+          Будьте вежливы, уважайте чужой труд, помогайте новичкам и сохраняйте ту атмосферу,
+          ради которой существует SamuraiWorld.
+        </p>
+        <p class="final-rule__motto">Играй честно. Уважай других. Иди по пути самурая.</p>
+      </div>
+    </div>
+
+  </div>
+</div>

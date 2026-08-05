@@ -1,0 +1,75 @@
+<div class="page">
+  <div class="page-header">
+    <div class="page-header__glow"></div>
+    <div class="container">
+      <p class="section-eyebrow" style="justify-content:center;margin-bottom:20px">Система</p>
+      <h1 class="page-header__title">Как устроен сервер</h1>
+      <p class="page-header__sub">Полноценное государство прямо в Minecraft</p>
+    </div>
+  </div>
+
+  <!-- Systems -->
+  <section class="section container">
+    <header class="section-header-center">
+      <p class="section-eyebrow">Механики</p>
+      <h2 class="section-heading">Ветви <span>власти</span></h2>
+      <p class="section-sub">Три ветви власти, экономика и документооборот — всё как в реальном государстве</p>
+    </header>
+    <div class="zones-grid">
+      <article *ngFor="let s of systems" class="zone-card card" [style.--z-accent]="s.accent">
+        <div class="zone-card__line"></div>
+        <div class="zone-card__icon" [innerHTML]="s.icon | safeHtml"></div>
+        <div class="zone-card__jp">{{ s.tag }}</div>
+        <h3 class="zone-card__title">{{ s.title }}</h3>
+        <p class="zone-card__desc">{{ s.desc }}</p>
+        <ul class="zone-card__details">
+          <li *ngFor="let d of s.details">
+            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M2 6L5 9L10 3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            {{ d }}
+          </li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <hr class="hr-glow" />
+
+  <!-- Specs -->
+  <section class="section container">
+    <header class="section-header-center">
+      <p class="section-eyebrow">О сервере</p>
+      <h2 class="section-heading">Технические <span>характеристики</span></h2>
+      <p class="section-sub">Чистая ваниль, без модов — только плагины для политической системы</p>
+    </header>
+    <div class="specs-grid">
+      <div *ngFor="let s of specs" class="spec-row card">
+        <span class="spec-row__label">{{ s.label }}</span>
+        <span class="spec-row__value">{{ s.value }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- How to start -->
+  <section class="connect-section">
+    <div class="container">
+      <div class="connect-card card">
+        <div class="connect-card__left">
+          <p class="section-eyebrow">Старт</p>
+          <h2 class="section-heading" style="margin-bottom:12px">Как <span>начать</span></h2>
+          <p style="font-size:.9rem;color:var(--clr-text-3)">Первые шаги на сервере</p>
+        </div>
+        <div class="connect-card__steps">
+          <div *ngFor="let step of steps" class="connect-step">
+            <div class="connect-step__num">{{ step.n }}</div>
+            <div class="connect-step__body">
+              <div class="connect-step__head">{{ step.head }}</div>
+              <div class="connect-step__sub" [class.connect-step__sub--ip]="step.n === '01'">{{ step.sub }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

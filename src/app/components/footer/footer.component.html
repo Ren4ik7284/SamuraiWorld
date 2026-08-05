@@ -1,0 +1,72 @@
+<footer class="footer">
+  <div class="footer__top-line" aria-hidden="true"></div>
+  <div class="container">
+    <div class="footer__grid">
+
+      <!-- Brand -->
+      <div class="footer__brand">
+        <a class="footer__logo" routerLink="/">
+          <img src="assets/server_logo.jpg" alt="SamuraiWorld" width="48" height="48" />
+          <div>
+            <div class="footer__logo-name">SamuraiWorld</div>
+            <div class="footer__logo-jp">侍世界</div>
+          </div>
+        </a>
+        <p class="footer__tagline">
+          Ванильный Minecraft с политической системой.<br>
+          Выбирай президента, строй бизнес, меняй законы.
+        </p>
+        <div class="footer__socials">
+          <a *ngFor="let s of socials" [href]="s.url" target="_blank" rel="noopener" class="footer__social-link" [title]="s.label">
+            <div class="footer__social-icon" [innerHTML]="s.svg | safeHtml"></div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Nav -->
+      <div class="footer__col">
+        <h3 class="footer__col-title">Навигация</h3>
+        <ul class="footer__links">
+          <li *ngFor="let link of navLinks">
+            <a [routerLink]="link.path" class="footer__link">{{ link.label }}</a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Server info -->
+      <div class="footer__col">
+        <h3 class="footer__col-title">Сервер</h3>
+        <ul class="footer__info-list">
+          <li class="footer__info-row">
+            <span class="footer__info-key">IP</span>
+            <span class="footer__info-val footer__info-val--mono">play.samuraiworld.ru</span>
+          </li>
+          <li class="footer__info-row">
+            <span class="footer__info-key">Версия</span>
+            <span class="footer__info-val">Minecraft Java 1.21</span>
+          </li>
+          <li class="footer__info-row">
+            <span class="footer__info-key">Режим</span>
+            <span class="footer__info-val">Выживание · Hard</span>
+          </li>
+          <li class="footer__info-row">
+            <span class="footer__info-key">Статус</span>
+            <span class="footer__info-val footer__info-val--online">
+              <span class="footer__dot"></span>
+              Online 24/7
+            </span>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer__bottom">
+      <hr class="hr-glow" style="margin-bottom:24px">
+      <div class="footer__bottom-row">
+        <span class="footer__copy">© {{ currentYear }} SamuraiWorld. Все права защищены.</span>
+        <span class="footer__motto">«Власть принадлежит народу — кто забудет это, потеряет всё»</span>
+      </div>
+    </div>
+  </div>
+</footer>

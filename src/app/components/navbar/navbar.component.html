@@ -1,0 +1,86 @@
+<header class="navbar" [class.navbar--scrolled]="isScrolled">
+  <div class="navbar__inner container">
+
+    <!-- Logo -->
+    <a class="navbar__logo" routerLink="/" (click)="closeMobileMenu()">
+      <img class="navbar__logo-img" src="assets/server_logo.jpg" alt="SamuraiWorld logo" />
+      <div class="navbar__logo-text">
+        <span class="navbar__logo-name">SamuraiWorld</span>
+        <span class="navbar__logo-jp">侍世界</span>
+      </div>
+    </a>
+
+    <!-- Desktop nav -->
+    <nav class="navbar__nav" aria-label="Основная навигация">
+      <ul class="navbar__list">
+        <li *ngFor="let link of navLinks">
+          <a
+            class="navbar__link"
+            [routerLink]="link.path"
+            routerLinkActive="navbar__link--active"
+            [routerLinkActiveOptions]="{exact: link.path === '/'}"
+          >
+            <span class="navbar__link-jp">{{ link.jpLabel }}</span>
+            <span class="navbar__link-ru">{{ link.label }}</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- CTA -->
+    <a class="btn btn-primary navbar__cta" routerLink="/contacts">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10 2L12.5 7.5L18 8.27L14 12.14L14.9 17.73L10 15L5.1 17.73L6 12.14L2 8.27L7.5 7.5L10 2Z"/>
+      </svg>
+      Вступить
+    </a>
+
+    <!-- Burger -->
+    <button
+      class="navbar__burger"
+      [class.navbar__burger--open]="isMobileMenuOpen"
+      (click)="toggleMobileMenu()"
+      aria-label="Открыть меню"
+      [attr.aria-expanded]="isMobileMenuOpen"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+
+  <!-- Mobile Menu Drawer -->
+  <div class="navbar__drawer" [class.navbar__drawer--open]="isMobileMenuOpen" role="dialog" aria-label="Мобильное меню">
+    <nav class="navbar__drawer-nav">
+      <ul class="navbar__drawer-list">
+        <li *ngFor="let link of navLinks; let i = index" [style.animation-delay.ms]="i * 50">
+          <a
+            class="navbar__drawer-link"
+            [routerLink]="link.path"
+            routerLinkActive="navbar__drawer-link--active"
+            [routerLinkActiveOptions]="{exact: link.path === '/'}"
+            (click)="closeMobileMenu()"
+          >
+            <span class="navbar__drawer-jp">{{ link.jpLabel }}</span>
+            {{ link.label }}
+          </a>
+        </li>
+      </ul>
+      <div class="navbar__drawer-footer">
+        <a class="btn btn-primary" style="width:100%;justify-content:center" routerLink="/contacts" (click)="closeMobileMenu()">
+          Вступить на сервер
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Overlay -->
+  <div
+    class="navbar__overlay"
+    [class.navbar__overlay--visible]="isMobileMenuOpen"
+    (click)="closeMobileMenu()"
+    aria-hidden="true"
+  ></div>
+</header>
+
+<div class="navbar__spacer"></div>

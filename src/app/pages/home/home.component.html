@@ -1,0 +1,213 @@
+<!-- Animated background particles -->
+<div class="sakura" aria-hidden="true">
+  <svg *ngFor="let p of particles; let i = index"
+    class="sakura__petal"
+    [style.left.%]="p.x"
+    [style.width.px]="p.size"
+    [style.animation-duration.s]="p.speed"
+    [style.animation-delay.s]="i * 0.7"
+    [style.opacity]="p.opacity"
+    viewBox="0 0 10 10" fill="rgba(201,146,10,0.5)">
+    <circle cx="5" cy="5" r="2"/>
+  </svg>
+</div>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero__bg">
+    <img class="hero__img" src="assets/hero_banner.jpg" alt="SamuraiWorld — политический Minecraft сервер" />
+    <div class="hero__overlay"></div>
+    <div class="hero__noise"></div>
+  </div>
+
+  <div class="hero__body container">
+    <div class="hero__badge anim-fade-up d1">
+      <span class="hero__badge-dot"></span>
+      Сервер открыт · Ванильное выживание · Версия 1.21
+    </div>
+
+    <div class="hero__title-wrap anim-fade-up d2">
+      <p class="hero__title-sub">Политический выживач</p>
+      <h1 class="hero__title">Samurai<br><span>World</span></h1>
+    </div>
+
+    <p class="hero__sub anim-fade-up d3">
+      Ванильный Minecraft, где игроки строят государство с нуля.
+      Выбирай президента, открывай бизнес, принимай законы — прямо в игре.
+    </p>
+
+    <div class="hero__actions anim-fade-up d4">
+      <button class="btn btn-primary hero__btn-play" (click)="copyIp()">
+        <svg *ngIf="!ipCopied" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="8" y="4" width="9" height="9" rx="1"/>
+          <path d="M3 8V16a1 1 0 001 1h8"/>
+        </svg>
+        <svg *ngIf="ipCopied" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M4 10L8 14L16 6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        {{ ipCopied ? 'IP скопирован!' : 'Скопировать IP' }}
+      </button>
+      <a class="btn btn-ghost" routerLink="/world">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="10" cy="10" r="8"/>
+          <path d="M10 2C10 2 7 6 7 10C7 14 10 18 10 18M10 2C10 2 13 6 13 10C13 14 10 18 10 18M2 10H18"/>
+        </svg>
+        Как устроен сервер
+      </a>
+    </div>
+
+    <div class="hero__ip-wrap anim-fade-up d5">
+      <button class="hero__ip-chip" (click)="copyIp()" title="Нажми, чтобы скопировать IP">
+        <svg class="hero__ip-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M10 2C5.58 2 2 5.58 2 10C2 14.42 5.58 18 10 18C14.42 18 18 14.42 18 10C18 5.58 14.42 2 10 2Z"/>
+          <path d="M10 6V10L13 13"/>
+        </svg>
+        <span class="hero__ip-addr">play.samuraiworld.ru</span>
+        <svg class="hero__ip-copy" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="7" y="7" width="10" height="10" rx="1"/>
+          <path d="M3 13V4a1 1 0 011-1h9"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="hero__scroll" aria-hidden="true">
+    <div class="hero__scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- ===== STATS ===== -->
+<div class="stats">
+  <div class="container">
+    <div class="stats__row">
+      <div class="stats__item">
+        <svg class="stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <rect x="2" y="3" width="20" height="14" rx="2"/>
+          <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+        <div>
+          <div class="stats__value">Minecraft 1.21</div>
+          <div class="stats__label">Java Edition · Ваниль</div>
+        </div>
+      </div>
+      <div class="stats__sep"></div>
+      <div class="stats__item">
+        <svg class="stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+        </svg>
+        <div>
+          <div class="stats__value">Демократия</div>
+          <div class="stats__label">Политическая система</div>
+        </div>
+      </div>
+      <div class="stats__sep"></div>
+      <div class="stats__item">
+        <div class="stats__dot-live"></div>
+        <div>
+          <div class="stats__value stats__value--green">Online 24/7</div>
+          <div class="stats__label">Стабильная работа</div>
+        </div>
+      </div>
+      <div class="stats__sep"></div>
+      <div class="stats__item">
+        <svg class="stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        <div>
+          <div class="stats__value">Документы</div>
+          <div class="stats__label">Реальный документооборот</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FEATURES ===== -->
+<section class="section features">
+  <div class="container">
+    <header class="section-header-center">
+      <p class="section-eyebrow">Механики</p>
+      <h2 class="section-heading">Что тебя <span>ждёт</span></h2>
+      <p class="section-sub">Ванильный Minecraft с полноценной политической и экономической системой</p>
+    </header>
+
+    <div class="features__grid">
+      <article *ngFor="let f of features" class="feature-card card">
+        <div class="feature-card__icon" [innerHTML]="f.svgIcon | safeHtml"></div>
+        <div class="feature-card__meta">{{ f.tag }}</div>
+        <h3 class="feature-card__title">{{ f.title }}</h3>
+        <p class="feature-card__desc">{{ f.desc }}</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<hr class="hr-glow" />
+
+<!-- ===== NEWS ===== -->
+<section class="section news">
+  <div class="container">
+    <header class="section-header-center">
+      <p class="section-eyebrow">Новости</p>
+      <h2 class="section-heading">Последние <span>события</span></h2>
+      <p class="section-sub">Следи за жизнью сервера</p>
+    </header>
+
+    <div class="news__grid">
+      <article *ngFor="let item of news" class="news-card card">
+        <div class="news-card__header">
+          <span class="news-card__tag">{{ item.tag }}</span>
+          <time class="news-card__date">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="1" y="2" width="14" height="13" rx="2"/>
+              <path d="M5 1V3M11 1V3M1 6H15"/>
+            </svg>
+            {{ item.date | date:'d MMM yyyy' }}
+          </time>
+        </div>
+        <h3 class="news-card__title">{{ item.title }}</h3>
+        <p class="news-card__body">{{ item.content }}</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta">
+  <div class="cta__glow"></div>
+  <div class="container">
+    <div class="cta__inner">
+      <div class="cta__text">
+        <p class="section-eyebrow">Вступай</p>
+        <h2 class="section-heading">Стань частью<br><span>истории</span></h2>
+        <p class="section-sub" style="margin-bottom:0">
+          Сервер только открылся. Именно сейчас решается, кто станет первым президентом, какие законы будут первыми, кто построит самый богатый бизнес.
+        </p>
+      </div>
+      <div class="cta__actions">
+        <button class="btn btn-primary cta__btn" (click)="copyIp()">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="8" y="4" width="9" height="9" rx="1"/>
+            <path d="M3 8V16a1 1 0 001 1h8"/>
+          </svg>
+          {{ ipCopied ? 'Скопировано!' : 'Скопировать IP' }}
+        </button>
+        <a class="btn btn-ghost cta__btn" routerLink="/contacts">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+            <path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+          </svg>
+          Discord
+        </a>
+        <div class="cta__ip">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14">
+            <circle cx="8" cy="8" r="6"/>
+            <path d="M8 4V8L11 11"/>
+          </svg>
+          play.samuraiworld.ru
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
