@@ -68,7 +68,7 @@ export interface Party {
 
 @Injectable({ providedIn: 'root' })
 export class ServerService {
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = '/api';
 
   private defaultServerInfo: ServerInfo = {
     name: 'SamuraiWorld',
