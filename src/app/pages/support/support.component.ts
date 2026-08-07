@@ -118,11 +118,23 @@ export class SupportComponent implements OnInit {
   isReplying = false;
   isDeleting = false;
 
+  private pollSubscription: any;
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.checkAdminAuth();
     this.loadTickets();
+    // Автоматическое обновление каждые 3 секунды (Real-time sync)
+    this.pollSubscription = setInterval(() => {
+      this.loadTickets(true);
+    }, 3000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.pollSubscription) {
+      clearInterval(this.pollSubscription);
+    }
   }
 
   private checkAdminAuth(): void {
@@ -234,10 +246,17 @@ export class SupportComponent implements OnInit {
     };
   }
 
-  loadTickets(): void {
+  loadTickets(silent: boolean = false): void {
     this.http.get<Ticket[]>('/api/support/tickets').subscribe({
       next: (data) => {
         this.ticketsList = data;
+        // Обновляем открытый тикет в реальном времени
+        if (this.selectedTicket) {
+          const current = data.find((t) => t.id === this.selectedTicket?.id);
+          if (current) {
+            this.selectedTicket = current;
+          }
+        }
       },
       error: () => {
         if (!this.ticketsList) this.ticketsList = [];
