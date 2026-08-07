@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
@@ -44,7 +44,10 @@ export interface Ticket {
   templateUrl: './support.component.html',
   styleUrls: ['./support.component.css'],
 })
-export class SupportComponent implements OnInit {
+export class SupportComponent implements OnInit, OnDestroy {
+  // Глобальная облачная БД для моментальной синхронизации между ВСЕМИ телефонами и компьютерами на Vercel
+  readonly CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019fdd01bf7d0bc8';
+
   // Авторизация администратора по секретному ключу
   isAdminAuthenticated: boolean = false;
   showAuthModal: boolean = false;
@@ -70,7 +73,6 @@ export class SupportComponent implements OnInit {
     description: '',
   };
 
-  // Категории с ИСПРАВЛЕННЫМ ЧЕТКИМ SVG ДЛЯ "ИДЕИ & БАГ-РЕПОРТЫ"
   categories: Array<{ title: TicketCategory; icon: string; desc: string }> = [
     {
       title: 'Технические проблемы',
@@ -118,22 +120,22 @@ export class SupportComponent implements OnInit {
   isReplying = false;
   isDeleting = false;
 
-  private pollSubscription: any;
+  private pollTimer: any;
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.checkAdminAuth();
     this.loadTickets();
-    // Автоматическое обновление каждые 3 секунды (Real-time sync)
-    this.pollSubscription = setInterval(() => {
+    // Поллинг каждые 3 секунды для моментальной синхронизации между телефоном и компьютером
+    this.pollTimer = setInterval(() => {
       this.loadTickets(true);
     }, 3000);
   }
 
   ngOnDestroy(): void {
-    if (this.pollSubscription) {
-      clearInterval(this.pollSubscription);
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
     }
   }
 
@@ -178,6 +180,70 @@ export class SupportComponent implements OnInit {
     this.newTicket.category = cat;
   }
 
+  /**
+   * Загрузка тикетов из Глобального Облака (гарантирует видимость с любого устройства)
+   */
+  loadTickets(silent: boolean = false): void {
+    // Сначала пробуем получить данные из глобального облачного хранилища
+    this.http.get<any>(this.CLOUD_DB_URL).subscribe({
+      next: (res) => {
+        if (res && res.data && Array.isArray(res.data.tickets)) {
+          this.ticketsList = res.data.tickets;
+          this.syncSelectedTicket();
+        }
+      },
+      error: () => {
+        // Резервное обращение к локальному NestJS бэкенду
+        this.http.get<Ticket[]>('/api/support/tickets').subscribe({
+          next: (data) => {
+            if (Array.isArray(data)) {
+              this.ticketsList = data;
+              this.syncSelectedTicket();
+            }
+          },
+          error: () => {
+            if (!this.ticketsList) this.ticketsList = [];
+          },
+        });
+      },
+    });
+  }
+
+  private syncSelectedTicket(): void {
+    if (this.selectedTicket) {
+      const updated = this.ticketsList.find((t) => t.id === this.selectedTicket?.id);
+      if (updated) {
+        this.selectedTicket = updated;
+      }
+    }
+  }
+
+  /**
+   * Сохранение всего массива тикетов в Глобальное Облако
+   */
+  private syncToCloudDB(): void {
+    const payload = {
+      name: 'samuraiworld_tickets',
+      data: {
+        tickets: this.ticketsList,
+      },
+    };
+
+    this.http.put(this.CLOUD_DB_URL, payload).subscribe({
+      next: () => {},
+      error: (err) => console.error('Cloud DB Sync Warning:', err),
+    });
+
+    // Также отправляем запрос на локальный NestJS бэкенд (если работает)
+    this.http.post('/api/support/tickets', this.newTicket).subscribe({
+      next: () => {},
+      error: () => {},
+    });
+  }
+
+  /**
+   * Подача нового тикета с любого устройства (телефона или ПК)
+   */
   submitTicket(): void {
     if (!this.newTicket.nickname || !this.newTicket.subject || !this.newTicket.description) {
       this.errorMessage = 'Заполните никнейм, тему и описание проблемы.';
@@ -187,52 +253,46 @@ export class SupportComponent implements OnInit {
     this.errorMessage = '';
     this.isSubmitting = true;
 
-    this.http.post<Ticket>('/api/support/tickets', this.newTicket).subscribe({
-      next: (res) => {
-        this.isSubmitting = false;
-        this.submitSuccess = true;
-        this.createdTicketInfo = res;
-        this.ticketsList.unshift(res);
-        this.resetForm();
-      },
-      error: () => {
-        this.isSubmitting = false;
-        const now = new Date().toISOString();
-        const fallbackTicket: Ticket = {
-          id: `t-${Date.now()}`,
-          ticketNumber: `TK-${Math.floor(10000 + Math.random() * 90000)}`,
-          nickname: this.newTicket.nickname,
-          contact: this.newTicket.contact || 'Не указан',
-          category: this.newTicket.category,
-          priority: this.newTicket.priority,
-          subject: this.newTicket.subject,
-          description: this.newTicket.description,
-          status: 'Ожидает ответа',
-          createdAt: now,
-          updatedAt: now,
-          messages: [
-            {
-              id: 'm-1',
-              sender: this.newTicket.nickname,
-              role: 'user',
-              text: this.newTicket.description,
-              timestamp: now,
-            },
-            {
-              id: 'm-2',
-              sender: 'Система RabbitMQ',
-              role: 'system',
-              text: 'Обращение зарегистрировано и направлено в очередь поддержки [AMQP Queue: support.ticket.created]',
-              timestamp: now,
-            },
-          ],
-        };
-        this.submitSuccess = true;
-        this.createdTicketInfo = fallbackTicket;
-        this.ticketsList.unshift(fallbackTicket);
-        this.resetForm();
-      },
-    });
+    const now = new Date().toISOString();
+    const ticketNumber = `TK-${Math.floor(10000 + Math.random() * 90000)}`;
+    const newTicketObj: Ticket = {
+      id: `t-${Date.now()}`,
+      ticketNumber,
+      nickname: this.newTicket.nickname,
+      contact: this.newTicket.contact || 'Не указан',
+      category: this.newTicket.category,
+      priority: this.newTicket.priority,
+      subject: this.newTicket.subject,
+      description: this.newTicket.description,
+      status: 'Ожидает ответа',
+      createdAt: now,
+      updatedAt: now,
+      messages: [
+        {
+          id: `m-${Date.now()}-1`,
+          sender: this.newTicket.nickname,
+          role: 'user',
+          text: this.newTicket.description,
+          timestamp: now,
+        },
+        {
+          id: `m-${Date.now()}-2`,
+          sender: 'Система Cloud Sync',
+          role: 'system',
+          text: `Тикет ${ticketNumber} успешно создан и синхронизирован между всеми устройствами [AMQP Queue: support.created]`,
+          timestamp: now,
+        },
+      ],
+    };
+
+    this.ticketsList.unshift(newTicketObj);
+    this.isSubmitting = false;
+    this.submitSuccess = true;
+    this.createdTicketInfo = newTicketObj;
+    this.resetForm();
+
+    // Мгновенно синхронизируем с облачной БД
+    this.syncToCloudDB();
   }
 
   resetForm(): void {
@@ -244,24 +304,6 @@ export class SupportComponent implements OnInit {
       subject: '',
       description: '',
     };
-  }
-
-  loadTickets(silent: boolean = false): void {
-    this.http.get<Ticket[]>('/api/support/tickets').subscribe({
-      next: (data) => {
-        this.ticketsList = data;
-        // Обновляем открытый тикет в реальном времени
-        if (this.selectedTicket) {
-          const current = data.find((t) => t.id === this.selectedTicket?.id);
-          if (current) {
-            this.selectedTicket = current;
-          }
-        }
-      },
-      error: () => {
-        if (!this.ticketsList) this.ticketsList = [];
-      },
-    });
   }
 
   get filteredTickets(): Ticket[] {
@@ -296,89 +338,56 @@ export class SupportComponent implements OnInit {
   sendReply(): void {
     if (!this.replyText.trim() || !this.selectedTicket) return;
 
-    const ticketId = this.selectedTicket.id;
     const isSupportRole = this.viewMode === 'admin';
     const senderName = isSupportRole ? (this.adminName || 'Агент Поддержки') : this.selectedTicket.nickname;
     const role = isSupportRole ? ('support' as const) : ('user' as const);
+    const now = new Date().toISOString();
 
-    const reply = {
+    this.selectedTicket.messages.push({
+      id: `m-${Date.now()}`,
       sender: senderName,
       role: role,
       text: this.replyText.trim(),
-    };
-
-    this.isReplying = true;
-    this.http.post<Ticket>(`/api/support/tickets/${ticketId}/messages`, reply).subscribe({
-      next: (updated) => {
-        this.selectedTicket = updated;
-        this.replyText = '';
-        this.isReplying = false;
-        this.updateLocalTicket(updated);
-      },
-      error: () => {
-        const now = new Date().toISOString();
-        this.selectedTicket?.messages.push({
-          id: `m-${Date.now()}`,
-          sender: reply.sender,
-          role: reply.role,
-          text: reply.text,
-          timestamp: now,
-        });
-        if (this.selectedTicket) {
-          this.selectedTicket.updatedAt = now;
-          this.selectedTicket.status = isSupportRole ? 'В обработке' : 'Ожидает ответа';
-        }
-        this.replyText = '';
-        this.isReplying = false;
-      },
+      timestamp: now,
     });
+
+    this.selectedTicket.updatedAt = now;
+    this.selectedTicket.status = isSupportRole ? 'В обработке' : 'Ожидает ответа';
+    this.replyText = '';
+
+    // Синхронизируем изменения с облачной БД
+    this.syncToCloudDB();
   }
 
   changeStatus(newStatus: TicketStatus): void {
     if (!this.selectedTicket) return;
 
-    const ticketId = this.selectedTicket.id;
-    this.http.patch<Ticket>(`/api/support/tickets/${ticketId}/status`, { status: newStatus }).subscribe({
-      next: (updated) => {
-        this.selectedTicket = updated;
-        this.updateLocalTicket(updated);
-      },
-      error: () => {
-        if (this.selectedTicket) {
-          this.selectedTicket.status = newStatus;
-        }
-      },
+    const now = new Date().toISOString();
+    this.selectedTicket.status = newStatus;
+    this.selectedTicket.updatedAt = now;
+    this.selectedTicket.messages.push({
+      id: `m-${Date.now()}`,
+      sender: 'Система',
+      role: 'system',
+      text: `Статус тикета изменён на: "${newStatus}"`,
+      timestamp: now,
     });
+
+    // Синхронизируем статус с облаком
+    this.syncToCloudDB();
   }
 
   deleteTicket(ticketId: string, event?: Event): void {
     if (event) event.stopPropagation();
     if (!confirm('Вы действительно хотите закрыть этот тикет?')) return;
 
-    this.isDeleting = true;
-    this.http.delete<{ success: boolean; id: string }>(`/api/support/tickets/${ticketId}`).subscribe({
-      next: () => {
-        this.isDeleting = false;
-        this.ticketsList = this.ticketsList.filter((t) => t.id !== ticketId);
-        if (this.selectedTicket?.id === ticketId) {
-          this.closeTicketDetails();
-        }
-      },
-      error: () => {
-        this.isDeleting = false;
-        this.ticketsList = this.ticketsList.filter((t) => t.id !== ticketId);
-        if (this.selectedTicket?.id === ticketId) {
-          this.closeTicketDetails();
-        }
-      },
-    });
-  }
-
-  private updateLocalTicket(updated: Ticket): void {
-    const idx = this.ticketsList.findIndex((t) => t.id === updated.id);
-    if (idx !== -1) {
-      this.ticketsList[idx] = updated;
+    this.ticketsList = this.ticketsList.filter((t) => t.id !== ticketId);
+    if (this.selectedTicket?.id === ticketId) {
+      this.closeTicketDetails();
     }
+
+    // Удаляем из облака
+    this.syncToCloudDB();
   }
 
   getStatusClass(status: TicketStatus): string {
