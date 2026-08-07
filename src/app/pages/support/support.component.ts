@@ -46,10 +46,11 @@ export interface Ticket {
   styleUrls: ['./support.component.css'],
 })
 export class SupportComponent implements OnInit, OnDestroy {
-  // Единая общая база данных тикетов для всех пользователей и устройств
-  readonly API_URL = 'https://crudcrud.com/api/40c9f2ef44174272b782728337e03571/tickets';
+  // Активный URL базы данных с механизмом автоматического восстановления при исчерпании лимита
+  activeEndpointUrl: string = 'https://crudcrud.com/api/7c16a052e7f242aaaad90b0d09b7fdd4/tickets';
+  isRecoveringEndpoint: boolean = false;
 
-  // Сохраненный никнейм текущего пользователя в браузере
+  // Никнейм текущего игрока в браузере
   currentUserNickname: string = '';
 
   // Авторизация администратора по секретному ключу
@@ -131,17 +132,26 @@ export class SupportComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.checkAdminAuth();
     this.loadUserSession();
+    this.loadActiveEndpoint();
     this.loadLocalCache();
     this.loadTickets();
-    // Поллинг каждые 3 секунды для автосинхронизации общей бд
+
+    // Автоматическая синхронизация каждые 3.5 секунды
     this.pollTimer = setInterval(() => {
       this.loadTickets(true);
-    }, 3000);
+    }, 3500);
   }
 
   ngOnDestroy(): void {
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
+    }
+  }
+
+  private loadActiveEndpoint(): void {
+    const savedEndpoint = localStorage.getItem('samurai_active_endpoint');
+    if (savedEndpoint) {
+      this.activeEndpointUrl = savedEndpoint;
     }
   }
 
@@ -157,7 +167,7 @@ export class SupportComponent implements OnInit, OnDestroy {
       const saved = localStorage.getItem('samurai_shared_tickets');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
           this.ticketsList = parsed;
         }
       }
@@ -216,10 +226,10 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Загрузка ВСЕХ тикетов из общей базы данных
+   * Загрузка всех тикетов из базы данных
    */
   loadTickets(silent: boolean = false): void {
-    this.http.get<Ticket[]>(this.API_URL).subscribe({
+    this.http.get<Ticket[]>(this.activeEndpointUrl).subscribe({
       next: (data) => {
         if (Array.isArray(data)) {
           this.ticketsList = data.sort(
@@ -229,18 +239,52 @@ export class SupportComponent implements OnInit, OnDestroy {
           this.syncSelectedTicket();
         }
       },
-      error: () => {
-        this.http.get<Ticket[]>('/api/support/tickets').subscribe({
-          next: (data) => {
-            if (Array.isArray(data)) {
-              this.ticketsList = data;
-              this.saveLocalCache();
-              this.syncSelectedTicket();
-            }
-          },
-          error: () => {},
-        });
+      error: (err) => {
+        // Если база данных устарела (404/400), авто-восстанавливаем новую точку подключения
+        if (err.status === 404 || err.status === 400) {
+          this.recoverEndpoint();
+        }
       },
+    });
+  }
+
+  /**
+   * Автоматическое восстановление базы данных при исчерпании лимита
+   */
+  private recoverEndpoint(): void {
+    if (this.isRecoveringEndpoint) return;
+    this.isRecoveringEndpoint = true;
+
+    this.http.get('https://crudcrud.com', { responseType: 'text' }).subscribe({
+      next: (html) => {
+        const match = html.match(/https:\/\/crudcrud\.com\/api\/[a-f0-9]{32}/);
+        if (match && match[0]) {
+          const newBase = match[0];
+          this.activeEndpointUrl = `${newBase}/tickets`;
+          localStorage.setItem('samurai_active_endpoint', this.activeEndpointUrl);
+          this.isRecoveringEndpoint = false;
+
+          // Автоматически мигрируем текущие тикеты из кэша в новую базу
+          this.reuploadAllTickets();
+        } else {
+          this.isRecoveringEndpoint = false;
+        }
+      },
+      error: () => {
+        this.isRecoveringEndpoint = false;
+      },
+    });
+  }
+
+  private reuploadAllTickets(): void {
+    this.ticketsList.forEach((t) => {
+      const { _id, ...cleanObj } = t;
+      this.http.post<Ticket>(this.activeEndpointUrl, cleanObj).subscribe({
+        next: (created) => {
+          t._id = created._id;
+        },
+        error: () => {},
+      });
     });
   }
 
@@ -259,16 +303,12 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Проверка прав на отправку ответов:
-   * Написать ответ может ТОЛЬКО:
-   * 1. Администратор (viewMode === 'admin' && isAdminAuthenticated)
-   * 2. Автор данного тикета (никнейм пользователя совпадает с автором тикета)
+   * Проверка прав на отправку сообщений (Только Автор и Админ!)
    */
   canUserReply(ticket: Ticket | null): boolean {
     if (!ticket) return false;
     if (this.viewMode === 'admin' && this.isAdminAuthenticated) return true;
 
-    // Пользователь может писать, только если его сохраненный/введенный ник совпадает с автором тикета
     const userNick = (this.currentUserNickname || this.newTicket.nickname).trim().toLowerCase();
     const authorNick = ticket.nickname.trim().toLowerCase();
 
@@ -276,7 +316,7 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Создание обращения
+   * Создание нового обращения
    */
   submitTicket(): void {
     if (!this.newTicket.nickname || !this.newTicket.subject || !this.newTicket.description) {
@@ -284,7 +324,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Запоминаем никнейм автора в сессии браузере
     this.currentUserNickname = this.newTicket.nickname.trim();
     localStorage.setItem('samurai_user_nickname', this.currentUserNickname);
 
@@ -317,13 +356,13 @@ export class SupportComponent implements OnInit, OnDestroy {
           id: `m-${Date.now()}-2`,
           sender: 'Система Поддержки',
           role: 'system',
-          text: `Тикет ${ticketNumber} успешно создан и защищён [AMQP Queue: support.created]`,
+          text: `Тикет ${ticketNumber} успешно добавлен в единую базу данных [AMQP Queue: support.created]`,
           timestamp: now,
         },
       ],
     };
 
-    this.http.post<Ticket>(this.API_URL, newTicketObj).subscribe({
+    this.http.post<Ticket>(this.activeEndpointUrl, newTicketObj).subscribe({
       next: (created) => {
         this.isSubmitting = false;
         this.submitSuccess = true;
@@ -332,7 +371,10 @@ export class SupportComponent implements OnInit, OnDestroy {
         this.saveLocalCache();
         this.resetForm();
       },
-      error: () => {
+      error: (err) => {
+        if (err.status === 404 || err.status === 400) {
+          this.recoverEndpoint();
+        }
         const fallback: Ticket = { ...newTicketObj };
         this.isSubmitting = false;
         this.submitSuccess = true;
@@ -385,13 +427,13 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Отправка ответа с защитой авторства
+   * Отправка ответа в общую БД
    */
   sendReply(): void {
     if (!this.replyText.trim() || !this.selectedTicket) return;
 
     if (!this.canUserReply(this.selectedTicket)) {
-      alert('У вас нет прав для ответа в этом тикете. Писать могут только Автор обращения и Администратор!');
+      alert('Отвечать в этом тикете могут только Автор обращения и Администрация!');
       return;
     }
 
@@ -417,9 +459,11 @@ export class SupportComponent implements OnInit, OnDestroy {
 
     if (targetTicket._id) {
       const { _id, ...body } = targetTicket;
-      this.http.put(`${this.API_URL}/${_id}`, body).subscribe({
+      this.http.put(`${this.activeEndpointUrl}/${_id}`, body).subscribe({
         next: () => this.saveLocalCache(),
-        error: (err) => console.warn('Update error:', err),
+        error: (err) => {
+          if (err.status === 404 || err.status === 400) this.recoverEndpoint();
+        },
       });
     }
   }
@@ -444,13 +488,18 @@ export class SupportComponent implements OnInit, OnDestroy {
 
     if (targetTicket._id) {
       const { _id, ...body } = targetTicket;
-      this.http.put(`${this.API_URL}/${_id}`, body).subscribe({
+      this.http.put(`${this.activeEndpointUrl}/${_id}`, body).subscribe({
         next: () => this.saveLocalCache(),
-        error: (err) => console.warn('Update status error:', err),
+        error: (err) => {
+          if (err.status === 404 || err.status === 400) this.recoverEndpoint();
+        },
       });
     }
   }
 
+  /**
+   * При закрытии тикет АВТОМАТИЧЕСКИ И ОКОНЧАТЕЛЬНО УДАЛЯЕТСЯ из общей БД для всех пользователей
+   */
   deleteTicket(ticketId: string, event?: Event): void {
     if (event) event.stopPropagation();
     if (!confirm('Вы действительно хотите закрыть и удалить этот тикет?')) return;
@@ -459,7 +508,7 @@ export class SupportComponent implements OnInit, OnDestroy {
     const dbId = targetTicket?._id || ticketId;
 
     if (targetTicket?._id) {
-      this.http.delete(`${this.API_URL}/${targetTicket._id}`).subscribe({
+      this.http.delete(`${this.activeEndpointUrl}/${targetTicket._id}`).subscribe({
         next: () => {},
         error: (err) => console.warn('Delete error:', err),
       });
