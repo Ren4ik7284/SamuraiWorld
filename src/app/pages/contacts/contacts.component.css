@@ -29,12 +29,16 @@
 
 /* Contacts grid */
 .contacts-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  max-width: 880px;
+  margin: 0 auto;
 }
 
 .contact-card {
+  flex: 1;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -263,8 +267,8 @@
 }
 
 @media (max-width: 900px) {
-  .contacts-grid { grid-template-columns: 1fr; }
-  .contact-card { padding: 24px 20px; }
+  .contacts-grid { flex-direction: column; align-items: center; }
+  .contact-card { width: 100%; max-width: 100%; padding: 24px 20px; }
   .ip-banner__inner { flex-direction: column; align-items: flex-start; padding: 28px 20px; gap: 24px; }
   .ip-banner__right { text-align: left; width: 100%; }
   .ip-banner__value { width: 100%; text-align: center; font-size: 1.15rem; }

@@ -17,7 +17,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 8px;
+  padding: 6px 12px;
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid var(--clr-surface-border);
   border-radius: 100px;
@@ -29,18 +29,27 @@
 .view-mode-label {
   font-size: 0.75rem;
   color: var(--clr-text-3);
-  padding-left: 8px;
+  padding-left: 4px;
 }
 
 .view-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 6px 16px;
   border-radius: 100px;
   background: transparent;
+  border: 1px solid transparent;
   color: var(--clr-text-2);
   font-size: 0.8rem;
   font-weight: 600;
   transition: all var(--duration);
   position: relative;
+}
+
+.view-mode-btn svg {
+  width: 15px; height: 15px;
+  flex-shrink: 0;
 }
 
 .view-mode-btn:hover {
@@ -60,12 +69,32 @@
   color: #fff;
 }
 
+.logout-btn {
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #f87171;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--duration);
+}
+
+.logout-btn svg { width: 15px; height: 15px; }
+
+.logout-btn:hover {
+  background: rgba(239,68,68,0.3);
+  color: #fff;
+}
+
 .admin-pulse {
   display: inline-block;
   width: 6px; height: 6px;
   background: var(--clr-red-3);
   border-radius: 50%;
-  margin-left: 6px;
+  margin-left: 4px;
   box-shadow: 0 0 8px var(--clr-red-3);
 }
 
@@ -335,6 +364,9 @@
   background: rgba(239,68,68,0.1);
   border: 1px solid rgba(239,68,68,0.3);
   color: #f87171;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 /* ===== TICKET TRACKER & ADMIN PANEL ===== */
@@ -409,6 +441,12 @@
   font-size: 0.75rem;
   color: var(--clr-text-3);
   flex-wrap: wrap;
+}
+
+.ticket-card__meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* Status badges */
@@ -546,6 +584,9 @@
 
 /* Delete Button */
 .btn-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: rgba(239,68,68,0.12);
   border: 1px solid rgba(239,68,68,0.3);
   color: #f87171;
@@ -564,7 +605,7 @@
 }
 
 .btn-delete-head {
-  padding: 4px 10px;
+  padding: 5px 12px;
   font-size: 0.75rem;
 }
 
@@ -609,13 +650,62 @@
   gap: 14px;
 }
 
-.empty-state__icon { font-size: 2.5rem; }
+.empty-state__icon {
+  color: var(--clr-gold-2);
+}
 
 /* ===== FAQ ===== */
 .faq-container { padding: 32px; }
 .faq-list { display: flex; flex-direction: column; gap: 20px; }
 .faq-item__q { font-size: 0.98rem; font-weight: 600; color: var(--clr-gold-2); margin-bottom: 6px; }
 .faq-item__a { font-size: 0.88rem; color: var(--clr-text-2); line-height: 1.65; }
+
+/* ===== MODAL AUTH DIALOG ===== */
+.auth-modal {
+  max-width: 440px;
+}
+
+.auth-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-icon-badge {
+  width: 38px; height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(201,146,10,0.15);
+  border: 1px solid rgba(201,146,10,0.3);
+  border-radius: 10px;
+}
+
+.auth-icon-badge svg {
+  width: 20px; height: 20px;
+  stroke: var(--clr-gold-2);
+}
+
+.auth-desc {
+  font-size: 0.85rem;
+  color: var(--clr-text-2);
+  line-height: 1.5;
+}
+
+.auth-desc code {
+  background: rgba(201,146,10,0.15);
+  color: var(--clr-gold-3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+}
+
+.auth-input {
+  letter-spacing: 0.2em;
+  font-size: 1.1rem;
+  text-align: center;
+}
 
 /* ===== MODAL TICKET DRAWER ===== */
 .modal-overlay {
@@ -770,5 +860,5 @@
   .admin-ticket-row { flex-direction: column; align-items: flex-start; }
   .admin-header { flex-direction: column; }
   .view-mode-bar { flex-direction: column; width: 100%; border-radius: 14px; }
-  .view-mode-btn { width: 100%; }
+  .view-mode-btn { width: 100%; justify-content: center; }
 }
