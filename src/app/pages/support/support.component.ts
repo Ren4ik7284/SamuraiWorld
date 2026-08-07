@@ -334,7 +334,7 @@ export class SupportComponent implements OnInit {
 
   deleteTicket(ticketId: string, event?: Event): void {
     if (event) event.stopPropagation();
-    if (!confirm('Вы действительно хотите удалить этот тикет?')) return;
+    if (!confirm('Вы действительно хотите закрыть этот тикет?')) return;
 
     this.isDeleting = true;
     this.http.delete<{ success: boolean; id: string }>(`/api/support/tickets/${ticketId}`).subscribe({

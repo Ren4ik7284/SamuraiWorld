@@ -394,9 +394,9 @@
               <button class="btn btn-ghost btn-sm" (click)="openTicketDetails(ticket)">
                 Ответить от Поддержки
               </button>
-              <button class="btn-delete" title="Удалить тикет" (click)="deleteTicket(ticket.id, $event)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                Удалить
+              <button class="btn-delete" title="Закрыть тикет" (click)="deleteTicket(ticket.id, $event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                Закрыть тикет
               </button>
             </div>
           </div>
@@ -429,7 +429,7 @@
         <button class="modal-close" (click)="showAuthModal = false">&times;</button>
       </div>
 
-      <p class="auth-desc">Для входа в панель модерации тикетов введите секретный ключ доступа (Пин-код: <code>7777</code>):</p>
+      <p class="auth-desc">Для входа в панель модерации тикетов введите секретный ключ доступа:</p>
 
       <form (ngSubmit)="verifyAdminKey()" style="margin-top:16px;">
         <div *ngIf="authErrorMessage" class="alert alert-error" style="margin-bottom:14px;padding:10px 14px;">
@@ -469,8 +469,8 @@
         </div>
         <div class="modal-actions-right">
           <button class="btn-delete btn-delete-head" (click)="deleteTicket(selectedTicket.id)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            Удалить тикет
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            Закрыть тикет
           </button>
           <button class="modal-close" (click)="closeTicketDetails()">&times;</button>
         </div>
