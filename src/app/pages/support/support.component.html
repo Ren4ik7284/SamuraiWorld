@@ -4,10 +4,38 @@
   <div class="page-header">
     <div class="page-header__glow"></div>
     <div class="container">
-      <p class="section-eyebrow" style="justify-content:center;margin-bottom:20px">⛩️ Технический Центр & Поддержка</p>
-      <h1 class="page-header__title">Служба <span>Поддержки</span></h1>
+
+      <!-- View Mode Switcher Header -->
+      <div class="view-mode-bar">
+        <span class="view-mode-label">Режим просмотра:</span>
+        <button 
+          class="view-mode-btn" 
+          [class.view-mode-btn--active]="viewMode === 'user'"
+          (click)="viewMode = 'user'"
+        >
+          👤 Игрок (Подача тикетов)
+        </button>
+        <button 
+          class="view-mode-btn view-mode-btn--admin" 
+          [class.view-mode-btn--active]="viewMode === 'admin'"
+          (click)="viewMode = 'admin'"
+        >
+          🛠️ Админ-панель Поддержки
+          <span class="admin-pulse"></span>
+        </button>
+      </div>
+
+      <p class="section-eyebrow" style="justify-content:center;margin-bottom:16px">
+        {{ viewMode === 'admin' ? '🛡️ Панель Управления Команды Поддержки' : '⛩️ Технический Центр & Поддержка' }}
+      </p>
+      <h1 class="page-header__title" *ngIf="viewMode === 'admin'">
+        Штаб <span>Администратора</span>
+      </h1>
+      <h1 class="page-header__title" *ngIf="viewMode === 'user'">
+        Служба <span>Поддержки</span>
+      </h1>
       <p class="page-header__sub">
-        Подавайте тикеты, задавайте вопросы администраторам и отслеживайте решения проблем онлайн.
+        {{ viewMode === 'admin' ? 'Управление обращениями игроков, ответы от лица Поддержки и модерация тикетов.' : 'Подавайте тикеты, задавайте вопросы администраторам и отслеживайте решения проблем онлайн.' }}
       </p>
 
       <!-- Live metrics -->
@@ -17,16 +45,16 @@
           <span>Поддержка Online 24/7</span>
         </div>
         <div class="metric-chip">
-          <span class="metric-label">Время ответа:</span>
-          <strong>~15 минут</strong>
+          <span class="metric-label">Всего тикетов:</span>
+          <strong>{{ ticketsList.length }}</strong>
         </div>
         <div class="metric-chip">
           <span class="metric-label">Очередь RabbitMQ:</span>
-          <strong>0 задержек</strong>
+          <strong>Active</strong>
         </div>
         <div class="metric-chip">
-          <span class="metric-label">БД:</span>
-          <strong>PostgreSQL Active</strong>
+          <span class="metric-label">База Данных:</span>
+          <strong>PostgreSQL Live</strong>
         </div>
       </div>
     </div>
@@ -34,231 +62,334 @@
 
   <div class="section container">
 
-    <!-- Navigation tabs -->
-    <nav class="support-nav">
-      <button 
-        class="support-nav__btn" 
-        [class.support-nav__btn--active]="activeTab === 'create'"
-        (click)="activeTab = 'create'"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
-        <span>Создать обращение</span>
-      </button>
-      <button 
-        class="support-nav__btn" 
-        [class.support-nav__btn--active]="activeTab === 'tracker'"
-        (click)="activeTab = 'tracker'"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <span>Отследить тикет</span>
-        <span class="support-nav__badge" *ngIf="ticketsList.length > 0">{{ ticketsList.length }}</span>
-      </button>
-      <button 
-        class="support-nav__btn" 
-        [class.support-nav__btn--active]="activeTab === 'faq'"
-        (click)="activeTab = 'faq'"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        <span>База знаний (FAQ)</span>
-      </button>
-    </nav>
+    <!-- USER VIEW -->
+    <ng-container *ngIf="viewMode === 'user'">
+      <!-- Navigation tabs -->
+      <nav class="support-nav">
+        <button 
+          class="support-nav__btn" 
+          [class.support-nav__btn--active]="activeTab === 'create'"
+          (click)="activeTab = 'create'"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+          <span>Создать обращение</span>
+        </button>
+        <button 
+          class="support-nav__btn" 
+          [class.support-nav__btn--active]="activeTab === 'tracker'"
+          (click)="activeTab = 'tracker'"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <span>Мои тикеты</span>
+          <span class="support-nav__badge" *ngIf="ticketsList.length > 0">{{ ticketsList.length }}</span>
+        </button>
+        <button 
+          class="support-nav__btn" 
+          [class.support-nav__btn--active]="activeTab === 'faq'"
+          (click)="activeTab = 'faq'"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>База знаний (FAQ)</span>
+        </button>
+      </nav>
 
-    <!-- TAB 1: CREATE TICKET FORM -->
-    <div class="tab-content" *ngIf="activeTab === 'create'">
-      
-      <!-- Category selector -->
-      <div class="category-section">
-        <h3 class="section-sub-title">1. Выберите категорию обращения</h3>
-        <div class="categories-grid">
-          <div 
-            *ngFor="let cat of categories" 
-            class="category-card card"
-            [class.category-card--selected]="newTicket.category === cat.title"
-            (click)="selectCategory(cat.title)"
-          >
-            <div class="category-card__icon" [innerHTML]="cat.icon | safeHtml"></div>
-            <h4 class="category-card__title">{{ cat.title }}</h4>
-            <p class="category-card__desc">{{ cat.desc }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Ticket form -->
-      <div class="form-container card">
-        <h3 class="section-sub-title">2. Детали обращения</h3>
-
-        <div *ngIf="submitSuccess && createdTicketInfo" class="alert alert-success">
-          <div class="alert__icon">✅</div>
-          <div>
-            <h4>Тикет {{ createdTicketInfo.ticketNumber }} успешно создан!</h4>
-            <p>Ваше обращение отправлено в очередь RabbitMQ и записано в базу данных PostgreSQL. Номер обращения: <strong>{{ createdTicketInfo.ticketNumber }}</strong></p>
-            <button class="btn btn-primary" style="margin-top:12px;" (click)="openTicketDetails(createdTicketInfo); activeTab = 'tracker'">
-              Посмотреть статус тикета
-            </button>
+      <!-- TAB 1: CREATE TICKET FORM -->
+      <div class="tab-content" *ngIf="activeTab === 'create'">
+        
+        <!-- Category selector -->
+        <div class="category-section">
+          <h3 class="section-sub-title">1. Выберите категорию обращения</h3>
+          <div class="categories-grid">
+            <div 
+              *ngFor="let cat of categories" 
+              class="category-card card"
+              [class.category-card--selected]="newTicket.category === cat.title"
+              (click)="selectCategory(cat.title)"
+            >
+              <div class="category-card__icon" [innerHTML]="cat.icon | safeHtml"></div>
+              <h4 class="category-card__title">{{ cat.title }}</h4>
+              <p class="category-card__desc">{{ cat.desc }}</p>
+            </div>
           </div>
         </div>
 
-        <form (ngSubmit)="submitTicket()" *ngIf="!submitSuccess">
-          <div *ngIf="errorMessage" class="alert alert-error">
-            ⚠️ {{ errorMessage }}
+        <!-- Ticket form -->
+        <div class="form-container card">
+          <h3 class="section-sub-title">2. Детали обращения</h3>
+
+          <div *ngIf="submitSuccess && createdTicketInfo" class="alert alert-success">
+            <div class="alert__icon">✅</div>
+            <div>
+              <h4>Тикет {{ createdTicketInfo.ticketNumber }} успешно создан!</h4>
+              <p>Ваше обращение отправлено в очередь RabbitMQ и записано в базу данных PostgreSQL. Номер обращения: <strong>{{ createdTicketInfo.ticketNumber }}</strong></p>
+              <button class="btn btn-primary" style="margin-top:12px;" (click)="openTicketDetails(createdTicketInfo); activeTab = 'tracker'">
+                Посмотреть статус тикета
+              </button>
+            </div>
           </div>
 
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label" for="nickname">Игровой ник в Minecraft *</label>
+          <form (ngSubmit)="submitTicket()" *ngIf="!submitSuccess">
+            <div *ngIf="errorMessage" class="alert alert-error">
+              ⚠️ {{ errorMessage }}
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="nickname">Игровой ник в Minecraft *</label>
+                <input 
+                  id="nickname" 
+                  type="text" 
+                  class="form-control" 
+                  placeholder="Например: Shogun_Kenji" 
+                  [(ngModel)]="newTicket.nickname" 
+                  name="nickname"
+                  required 
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="contact">Контакты для связи (Discord / Telegram / Email)</label>
+                <input 
+                  id="contact" 
+                  type="text" 
+                  class="form-control" 
+                  placeholder="Discord: nickname / Telegram: @user" 
+                  [(ngModel)]="newTicket.contact" 
+                  name="contact"
+                />
+              </div>
+            </div>
+
+            <div class="form-grid" style="margin-top:20px;">
+              <div class="form-group">
+                <label class="form-label" for="category">Категория</label>
+                <select id="category" class="form-control" [(ngModel)]="newTicket.category" name="category">
+                  <option *ngFor="let cat of categories" [value]="cat.title">{{ cat.title }}</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Приоритет обращения</label>
+                <div class="priority-selector">
+                  <button 
+                    type="button" 
+                    *ngFor="let p of priorities" 
+                    class="priority-btn"
+                    [class.priority-btn--active]="newTicket.priority === p"
+                    (click)="newTicket.priority = p"
+                  >
+                    {{ p }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:20px;">
+              <label class="form-label" for="subject">Тема обращения *</label>
               <input 
-                id="nickname" 
+                id="subject" 
                 type="text" 
                 class="form-control" 
-                placeholder="Например: Shogun_Kenji" 
-                [(ngModel)]="newTicket.nickname" 
-                name="nickname"
+                placeholder="Кратко опишите проблему" 
+                [(ngModel)]="newTicket.subject" 
+                name="subject"
                 required 
               />
             </div>
 
-            <div class="form-group">
-              <label class="form-label" for="contact">Контакты для связи (Discord / Telegram / Email)</label>
-              <input 
-                id="contact" 
-                type="text" 
+            <div class="form-group" style="margin-top:20px;">
+              <label class="form-label" for="description">Подробное описание *</label>
+              <textarea 
+                id="description" 
+                rows="5" 
                 class="form-control" 
-                placeholder="Discord: nickname / Telegram: @user" 
-                [(ngModel)]="newTicket.contact" 
-                name="contact"
-              />
-            </div>
-          </div>
-
-          <div class="form-grid" style="margin-top:20px;">
-            <div class="form-group">
-              <label class="form-label" for="category">Категория</label>
-              <select id="category" class="form-control" [(ngModel)]="newTicket.category" name="category">
-                <option *ngFor="let cat of categories" [value]="cat.title">{{ cat.title }}</option>
-              </select>
+                placeholder="Укажите подробности, координаты места (X, Y, Z), время и другую информацию..." 
+                [(ngModel)]="newTicket.description" 
+                name="description"
+                required
+              ></textarea>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">Приоритет обращения</label>
-              <div class="priority-selector">
-                <button 
-                  type="button" 
-                  *ngFor="let p of priorities" 
-                  class="priority-btn"
-                  [class.priority-btn--active]="newTicket.priority === p"
-                  (click)="newTicket.priority = p"
-                >
-                  {{ p }}
-                </button>
-              </div>
+            <div class="form-actions" style="margin-top:28px;">
+              <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                {{ isSubmitting ? 'Отправка в RabbitMQ...' : 'Отправить обращение' }}
+              </button>
             </div>
-          </div>
+          </form>
+        </div>
+      </div>
 
-          <div class="form-group" style="margin-top:20px;">
-            <label class="form-label" for="subject">Тема обращения *</label>
+      <!-- TAB 2: TICKET TRACKER -->
+      <div class="tab-content" *ngIf="activeTab === 'tracker'">
+        <div class="tracker-header">
+          <div class="search-box card">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             <input 
-              id="subject" 
               type="text" 
-              class="form-control" 
-              placeholder="Кратко опишите проблему" 
-              [(ngModel)]="newTicket.subject" 
-              name="subject"
-              required 
+              class="search-input" 
+              placeholder="Поиск по номеру тикета (TK-XXXXX) или никнейму..." 
+              [(ngModel)]="searchQuery" 
             />
           </div>
+        </div>
 
-          <div class="form-group" style="margin-top:20px;">
-            <label class="form-label" for="description">Подробное описание *</label>
-            <textarea 
-              id="description" 
-              rows="5" 
-              class="form-control" 
-              placeholder="Укажите подробности, координаты места (X, Y, Z), время и другую информацию..." 
-              [(ngModel)]="newTicket.description" 
-              name="description"
-              required
-            ></textarea>
+        <div class="tickets-grid" *ngIf="filteredTickets.length > 0; else noTicketsUser">
+          <div 
+            *ngFor="let ticket of filteredTickets" 
+            class="ticket-card card"
+            (click)="openTicketDetails(ticket)"
+          >
+            <div class="ticket-card__header">
+              <span class="ticket-number">{{ ticket.ticketNumber }}</span>
+              <span class="status-badge" [ngClass]="getStatusClass(ticket.status)">{{ ticket.status }}</span>
+            </div>
+
+            <h4 class="ticket-card__title">{{ ticket.subject }}</h4>
+
+            <div class="ticket-card__meta">
+              <span>👤 {{ ticket.nickname }}</span>
+              <span>📂 {{ ticket.category }}</span>
+              <span>🕒 {{ ticket.createdAt | date:'d MMM HH:mm' }}</span>
+            </div>
           </div>
+        </div>
 
-          <div class="form-actions" style="margin-top:28px;">
-            <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-              {{ isSubmitting ? 'Отправка в RabbitMQ...' : 'Отправить обращение' }}
+        <ng-template #noTicketsUser>
+          <div class="empty-state card">
+            <div class="empty-state__icon">📭</div>
+            <h3>Тикеты не найдены</h3>
+            <p>Вы еще не создавали обращений. Создайте новый тикет прямо сейчас!</p>
+            <button class="btn btn-primary" (click)="activeTab = 'create'">Создать обращение</button>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- TAB 3: FAQ -->
+      <div class="tab-content" *ngIf="activeTab === 'faq'">
+        <div class="faq-container card">
+          <h3 class="section-sub-title" style="margin-bottom:24px;">Часто задаваемые вопросы (FAQ)</h3>
+
+          <div class="faq-list">
+            <div class="faq-item">
+              <h4 class="faq-item__q">❓ Какое среднее время ответа техподдержки?</h4>
+              <p class="faq-item__a">Агенты поддержки отвечают в течение 10–30 минут в дневное время. Все тикеты мгновенно публикуются в брокер сообщений RabbitMQ и поступают дежурным администраторам.</p>
+            </div>
+
+            <div class="faq-item">
+              <h4 class="faq-item__q">❓ Что делать, если не выдались донат-предметы или валюта?</h4>
+              <p class="faq-item__a">Создайте тикет в категории «Донат & Экономика», указав ваш ник и способ оплаты. Наша система в базе данных PostgreSQL сверит транзакцию и начислит предметы.</p>
+            </div>
+
+            <div class="faq-item">
+              <h4 class="faq-item__q">❓ Как подать иск в Верховный Игровой Суд?</h4>
+              <p class="faq-item__a">Выбирайте категорию «Суд & Жалоба». Укажите ник ответчика, суть иска и доказательства (скриншоты, видео или логи). Судебные приставы назначат слушание.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- ADMIN PANEL VIEW -->
+    <ng-container *ngIf="viewMode === 'admin'">
+      <div class="admin-panel card">
+        <div class="admin-header">
+          <div>
+            <h3 class="section-sub-title" style="margin-bottom:4px;">Панель Модерации и Ответов</h3>
+            <p class="admin-sub">Здесь вы отвечаете игрокам <strong>от лица Службы Поддержки / Администрации</strong> и управляете тикетами.</p>
+          </div>
+          <div class="admin-name-field">
+            <label class="form-label" style="font-size:0.75rem;">Ваша подпись в ответе:</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="adminName" placeholder="Агент Поддержки" />
+          </div>
+        </div>
+
+        <!-- Admin Filters & Search -->
+        <div class="admin-filters">
+          <div class="filter-buttons">
+            <button 
+              class="filter-btn" 
+              [class.filter-btn--active]="adminFilterStatus === 'ВСЕ'"
+              (click)="adminFilterStatus = 'ВСЕ'"
+            >
+              Все ({{ ticketsList.length }})
+            </button>
+            <button 
+              class="filter-btn" 
+              [class.filter-btn--active]="adminFilterStatus === 'Ожидает ответа'"
+              (click)="adminFilterStatus = 'Ожидает ответа'"
+            >
+              Ожидают ответа
+            </button>
+            <button 
+              class="filter-btn" 
+              [class.filter-btn--active]="adminFilterStatus === 'В обработке'"
+              (click)="adminFilterStatus = 'В обработке'"
+            >
+              В обработке
+            </button>
+            <button 
+              class="filter-btn" 
+              [class.filter-btn--active]="adminFilterStatus === 'Решено'"
+              (click)="adminFilterStatus = 'Решено'"
+            >
+              Решенные
             </button>
           </div>
-        </form>
-      </div>
 
-    </div>
-
-    <!-- TAB 2: TICKET TRACKER -->
-    <div class="tab-content" *ngIf="activeTab === 'tracker'">
-      <div class="tracker-header">
-        <div class="search-box card">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input 
-            type="text" 
-            class="search-input" 
-            placeholder="Поиск по номеру тикета (TK-XXXXX) или никнейму..." 
-            [(ngModel)]="searchQuery" 
-          />
-        </div>
-      </div>
-
-      <div class="tickets-grid" *ngIf="filteredTickets.length > 0; else noTickets">
-        <div 
-          *ngFor="let ticket of filteredTickets" 
-          class="ticket-card card"
-          (click)="openTicketDetails(ticket)"
-        >
-          <div class="ticket-card__header">
-            <span class="ticket-number">{{ ticket.ticketNumber }}</span>
-            <span class="status-badge" [ngClass]="getStatusClass(ticket.status)">{{ ticket.status }}</span>
-          </div>
-
-          <h4 class="ticket-card__title">{{ ticket.subject }}</h4>
-
-          <div class="ticket-card__meta">
-            <span>👤 {{ ticket.nickname }}</span>
-            <span>📂 {{ ticket.category }}</span>
-            <span>🕒 {{ ticket.createdAt | date:'d MMM HH:mm' }}</span>
+          <div class="search-box" style="margin:0; flex:1;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input 
+              type="text" 
+              class="search-input" 
+              placeholder="Поиск обращения..." 
+              [(ngModel)]="searchQuery" 
+            />
           </div>
         </div>
-      </div>
 
-      <ng-template #noTickets>
-        <div class="empty-state card">
-          <div class="empty-state__icon">📭</div>
-          <h3>Тикеты не найдены</h3>
-          <p>По вашему запросу обращений не обнаружено. Вы можете создать новый тикет прямо сейчас.</p>
-          <button class="btn btn-primary" (click)="activeTab = 'create'">Создать обращение</button>
+        <!-- Tickets List for Admin -->
+        <div class="admin-tickets-list" *ngIf="filteredTickets.length > 0; else noTicketsAdmin">
+          <div 
+            *ngFor="let ticket of filteredTickets" 
+            class="admin-ticket-row card"
+            (click)="openTicketDetails(ticket)"
+          >
+            <div class="admin-ticket-main">
+              <div class="admin-ticket-top">
+                <span class="ticket-number">{{ ticket.ticketNumber }}</span>
+                <span class="status-badge" [ngClass]="getStatusClass(ticket.status)">{{ ticket.status }}</span>
+                <span class="priority-tag">{{ ticket.priority }}</span>
+              </div>
+              <h4 class="admin-ticket-title">{{ ticket.subject }}</h4>
+              <div class="admin-ticket-info">
+                <span>👤 <strong>{{ ticket.nickname }}</strong></span>
+                <span>📞 {{ ticket.contact }}</span>
+                <span>📂 {{ ticket.category }}</span>
+                <span>🕒 {{ ticket.createdAt | date:'d MMM HH:mm' }}</span>
+              </div>
+            </div>
+
+            <div class="admin-ticket-actions" (click)="$event.stopPropagation()">
+              <button class="btn btn-ghost btn-sm" (click)="openTicketDetails(ticket)">
+                Ответить от Поддержки
+              </button>
+              <button class="btn-delete" title="Удалить тикет" (click)="deleteTicket(ticket.id, $event)">
+                🗑️ Удалить
+              </button>
+            </div>
+          </div>
         </div>
-      </ng-template>
-    </div>
 
-    <!-- TAB 3: FAQ / KNOWLEDGE BASE -->
-    <div class="tab-content" *ngIf="activeTab === 'faq'">
-      <div class="faq-container card">
-        <h3 class="section-sub-title" style="margin-bottom:24px;">Часто задаваемые вопросы (FAQ)</h3>
-
-        <div class="faq-list">
-          <div class="faq-item">
-            <h4 class="faq-item__q">❓ Какое среднее время ответа техподдержки?</h4>
-            <p class="faq-item__a">Агенты поддержки отвечают в течение 10–30 минут в дневное время. Все тикеты мгновенно публикуются в брокер сообщений RabbitMQ и поступают дежурным администраторам.</p>
+        <ng-template #noTicketsAdmin>
+          <div class="empty-state card">
+            <div class="empty-state__icon">🛡️</div>
+            <h3>Пока нет обращений от игроков</h3>
+            <p>Когда игроки отправят тикеты, они моментально отобразятся в этой админ-панели через RabbitMQ & PostgreSQL.</p>
           </div>
-
-          <div class="faq-item">
-            <h4 class="faq-item__q">❓ Что делать, если не выдались донат-предметы или валюта?</h4>
-            <p class="faq-item__a">Создайте тикет в категории «Донат & Экономика», указав ваш ник и способ оплаты. Наша система в базе данных PostgreSQL сверит транзакцию и начислит предметы.</p>
-          </div>
-
-          <div class="faq-item">
-            <h4 class="faq-item__q">❓ Как подать иск в Верховный Игровой Суд?</h4>
-            <p class="faq-item__a">Выбирайте категорию «Суд & Жалоба». Укажите ник ответчика, суть иска и доказательства (скриншоты, видео или логи). Судебные приставы назначат слушание.</p>
-          </div>
-        </div>
+        </ng-template>
       </div>
-    </div>
+    </ng-container>
 
   </div>
 
@@ -271,14 +402,29 @@
           <div class="modal-subtitle">Тикет {{ selectedTicket.ticketNumber }}</div>
           <h3 class="modal-title">{{ selectedTicket.subject }}</h3>
         </div>
-        <button class="modal-close" (click)="closeTicketDetails()">&times;</button>
+        <div class="modal-actions-right">
+          <button class="btn-delete btn-delete-head" (click)="deleteTicket(selectedTicket.id)">
+            🗑️ Удалить тикет
+          </button>
+          <button class="modal-close" (click)="closeTicketDetails()">&times;</button>
+        </div>
       </div>
 
       <div class="modal-info-row">
         <span class="info-chip"><strong>Автор:</strong> {{ selectedTicket.nickname }}</span>
+        <span class="info-chip"><strong>Контакты:</strong> {{ selectedTicket.contact }}</span>
         <span class="info-chip"><strong>Категория:</strong> {{ selectedTicket.category }}</span>
         <span class="info-chip"><strong>Приоритет:</strong> {{ selectedTicket.priority }}</span>
         <span class="status-badge" [ngClass]="getStatusClass(selectedTicket.status)">{{ selectedTicket.status }}</span>
+      </div>
+
+      <!-- Admin Status Changer Controls -->
+      <div class="status-changer-bar" *ngIf="viewMode === 'admin'">
+        <span class="form-label" style="font-size:0.78rem;">Изменить статус:</span>
+        <button class="btn-status status-pending" (click)="changeStatus('Ожидает ответа')">Ожидает ответа</button>
+        <button class="btn-status status-progress" (click)="changeStatus('В обработке')">В обработке</button>
+        <button class="btn-status status-resolved" (click)="changeStatus('Решено')">Решено</button>
+        <button class="btn-status status-closed" (click)="changeStatus('Закрыто')">Закрыть</button>
       </div>
 
       <!-- Messages timeline -->
@@ -291,7 +437,7 @@
           [class.chat-bubble--system]="msg.role === 'system'"
         >
           <div class="chat-bubble__header">
-            <strong>{{ msg.sender }}</strong>
+            <strong>{{ msg.sender }} {{ msg.role === 'support' ? '🛡️ (Служба Поддержки)' : '' }}</strong>
             <span class="chat-bubble__time">{{ msg.timestamp | date:'d MMM HH:mm' }}</span>
           </div>
           <div class="chat-bubble__text">{{ msg.text }}</div>
@@ -300,15 +446,18 @@
 
       <!-- Reply box -->
       <div class="reply-container" *ngIf="selectedTicket.status !== 'Закрыто'">
+        <div class="reply-role-indicator">
+          {{ viewMode === 'admin' ? '🛡️ Отправляете ответ ОТ ЛИЦА СЛУЖБЫ ПОДДЕРЖКИ:' : '👤 Отправляете сообщение от своего ника:' }}
+        </div>
         <textarea 
           rows="3" 
           class="form-control reply-textarea" 
-          placeholder="Напишите ответ или уточнение..."
+          [placeholder]="viewMode === 'admin' ? 'Напишите официальный ответ игроку от имени Поддержки...' : 'Напишите уточнение по вашему вопросу...'"
           [(ngModel)]="replyText"
         ></textarea>
         <div class="reply-actions">
           <button class="btn btn-primary btn-sm" (click)="sendReply()" [disabled]="isReplying || !replyText.trim()">
-            {{ isReplying ? 'Отправка...' : 'Отправить ответ' }}
+            {{ isReplying ? 'Отправка...' : (viewMode === 'admin' ? 'Ответить от Поддержки' : 'Отправить ответ') }}
           </button>
         </div>
       </div>

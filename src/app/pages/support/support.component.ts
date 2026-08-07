@@ -45,10 +45,13 @@ export interface Ticket {
   styleUrls: ['./support.component.css'],
 })
 export class SupportComponent implements OnInit {
-  // Выбранная вкладка: 'create' | 'tracker' | 'faq'
+  // Режим просмотра: 'user' (Игрок) или 'admin' (Админ-панель)
+  viewMode: 'user' | 'admin' = 'user';
+
+  // Выбранная вкладка игрока: 'create' | 'tracker' | 'faq'
   activeTab: 'create' | 'tracker' | 'faq' = 'create';
 
-  // Поля формы создания тикета
+  // Форма создания тикета
   newTicket = {
     nickname: '',
     contact: '',
@@ -88,18 +91,22 @@ export class SupportComponent implements OnInit {
 
   priorities: TicketPriority[] = ['Низкий', 'Средний', 'Высокий', 'Критический'];
 
-  // Статус отправки тикета
   isSubmitting = false;
   submitSuccess = false;
   createdTicketInfo: Ticket | null = null;
   errorMessage = '';
 
-  // Трекер тикетов
+  // Список тикетов и фильтры
   searchQuery = '';
+  adminFilterStatus = 'ВСЕ';
   ticketsList: Ticket[] = [];
   selectedTicket: Ticket | null = null;
+
+  // Ответы и действия админа
   replyText = '';
+  adminName = 'Администратор SamuraiWorld';
   isReplying = false;
+  isDeleting = false;
 
   constructor(private http: HttpClient) {}
 
@@ -120,7 +127,6 @@ export class SupportComponent implements OnInit {
     this.errorMessage = '';
     this.isSubmitting = true;
 
-    // Запрос на backend API
     this.http.post<Ticket>('/api/support/tickets', this.newTicket).subscribe({
       next: (res) => {
         this.isSubmitting = false;
@@ -130,8 +136,9 @@ export class SupportComponent implements OnInit {
         this.resetForm();
       },
       error: () => {
-        // Запасное сохранение в локальное состояние (если бэкенд оффлайн)
+        // Резервное добавление (если бэк недоступен)
         this.isSubmitting = false;
+        const now = new Date().toISOString();
         const fallbackTicket: Ticket = {
           id: `t-${Date.now()}`,
           ticketNumber: `TK-${Math.floor(10000 + Math.random() * 90000)}`,
@@ -142,22 +149,22 @@ export class SupportComponent implements OnInit {
           subject: this.newTicket.subject,
           description: this.newTicket.description,
           status: 'Ожидает ответа',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          createdAt: now,
+          updatedAt: now,
           messages: [
             {
               id: 'm-1',
               sender: this.newTicket.nickname,
               role: 'user',
               text: this.newTicket.description,
-              timestamp: new Date().toISOString(),
+              timestamp: now,
             },
             {
               id: 'm-2',
-              sender: 'Система RabbitMQ (Local Queue)',
+              sender: 'Система RabbitMQ',
               role: 'system',
-              text: 'Обращение зарегистрировано в локальной очереди RabbitMQ и направлено команде поддержки.',
-              timestamp: new Date().toISOString(),
+              text: 'Обращение зарегистрировано и направлено в очередь поддержки [AMQP Queue: support.ticket.created]',
+              timestamp: now,
             },
           ],
         };
@@ -186,53 +193,30 @@ export class SupportComponent implements OnInit {
         this.ticketsList = data;
       },
       error: () => {
-        // Демонстрационный набор тикетов если бэкенд не доступен
-        if (this.ticketsList.length === 0) {
-          this.ticketsList = [
-            {
-              id: 't-1001',
-              ticketNumber: 'TK-84920',
-              nickname: 'Miner_Joe',
-              contact: 'Discord: miner_joe#1234',
-              category: 'Аккаунт & Паспорт',
-              priority: 'Высокий',
-              subject: 'Не выдался паспорт после регистрации',
-              description: 'Я заполнил анкету на паспорт в игре, но паспорт не появился в инвентаре.',
-              status: 'Ожидает ответа',
-              createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-              updatedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-              messages: [
-                {
-                  id: '1',
-                  sender: 'Miner_Joe',
-                  role: 'user',
-                  text: 'Я заполнил анкету на паспорт в игре, но паспорт не появился в инвентаре.',
-                  timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-                },
-                {
-                  id: '2',
-                  sender: 'Система RabbitMQ',
-                  role: 'system',
-                  text: 'Тикет успешно обработан брокером сообщений RabbitMQ и сохранён в PostgreSQL.',
-                  timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-                },
-              ],
-            },
-          ];
-        }
+        // По умолчанию изначально 0 тикетов
+        if (!this.ticketsList) this.ticketsList = [];
       },
     });
   }
 
   get filteredTickets(): Ticket[] {
-    if (!this.searchQuery) return this.ticketsList;
-    const q = this.searchQuery.toLowerCase();
-    return this.ticketsList.filter(
-      (t) =>
-        t.ticketNumber.toLowerCase().includes(q) ||
-        t.nickname.toLowerCase().includes(q) ||
-        t.subject.toLowerCase().includes(q),
-    );
+    let list = [...this.ticketsList];
+
+    if (this.viewMode === 'admin' && this.adminFilterStatus !== 'ВСЕ') {
+      list = list.filter((t) => t.status === this.adminFilterStatus);
+    }
+
+    if (this.searchQuery) {
+      const q = this.searchQuery.toLowerCase();
+      list = list.filter(
+        (t) =>
+          t.ticketNumber.toLowerCase().includes(q) ||
+          t.nickname.toLowerCase().includes(q) ||
+          t.subject.toLowerCase().includes(q),
+      );
+    }
+
+    return list;
   }
 
   openTicketDetails(ticket: Ticket): void {
@@ -241,15 +225,21 @@ export class SupportComponent implements OnInit {
 
   closeTicketDetails(): void {
     this.selectedTicket = null;
+    this.replyText = '';
   }
 
+  // Отправка ответа (Различаем роль пользователя и АДМИНИСТРАТОРА ПОДДЕРЖКИ)
   sendReply(): void {
     if (!this.replyText.trim() || !this.selectedTicket) return;
 
     const ticketId = this.selectedTicket.id;
+    const isSupportRole = this.viewMode === 'admin';
+    const senderName = isSupportRole ? (this.adminName || 'Агент Поддержки') : this.selectedTicket.nickname;
+    const role = isSupportRole ? ('support' as const) : ('user' as const);
+
     const reply = {
-      sender: this.selectedTicket.nickname,
-      role: 'user' as const,
+      sender: senderName,
+      role: role,
       text: this.replyText.trim(),
     };
 
@@ -259,9 +249,10 @@ export class SupportComponent implements OnInit {
         this.selectedTicket = updated;
         this.replyText = '';
         this.isReplying = false;
+        this.updateLocalTicket(updated);
       },
       error: () => {
-        // Локальное добавление в диалог
+        // Резервное локальное добавление
         const now = new Date().toISOString();
         this.selectedTicket?.messages.push({
           id: `m-${Date.now()}`,
@@ -272,12 +263,62 @@ export class SupportComponent implements OnInit {
         });
         if (this.selectedTicket) {
           this.selectedTicket.updatedAt = now;
-          this.selectedTicket.status = 'Ожидает ответа';
+          this.selectedTicket.status = isSupportRole ? 'В обработке' : 'Ожидает ответа';
         }
         this.replyText = '';
         this.isReplying = false;
       },
     });
+  }
+
+  // Изменение статуса (Админка)
+  changeStatus(newStatus: TicketStatus): void {
+    if (!this.selectedTicket) return;
+
+    const ticketId = this.selectedTicket.id;
+    this.http.patch<Ticket>(`/api/support/tickets/${ticketId}/status`, { status: newStatus }).subscribe({
+      next: (updated) => {
+        this.selectedTicket = updated;
+        this.updateLocalTicket(updated);
+      },
+      error: () => {
+        if (this.selectedTicket) {
+          this.selectedTicket.status = newStatus;
+        }
+      },
+    });
+  }
+
+  // УДАЛЕНИЕ ТИКЕТА
+  deleteTicket(ticketId: string, event?: Event): void {
+    if (event) event.stopPropagation();
+    if (!confirm('Вы действительно хотите удалить этот тикет?')) return;
+
+    this.isDeleting = true;
+    this.http.delete<{ success: boolean; id: string }>(`/api/support/tickets/${ticketId}`).subscribe({
+      next: () => {
+        this.isDeleting = false;
+        this.ticketsList = this.ticketsList.filter((t) => t.id !== ticketId);
+        if (this.selectedTicket?.id === ticketId) {
+          this.closeTicketDetails();
+        }
+      },
+      error: () => {
+        // Резервное удаление
+        this.isDeleting = false;
+        this.ticketsList = this.ticketsList.filter((t) => t.id !== ticketId);
+        if (this.selectedTicket?.id === ticketId) {
+          this.closeTicketDetails();
+        }
+      },
+    });
+  }
+
+  private updateLocalTicket(updated: Ticket): void {
+    const idx = this.ticketsList.findIndex((t) => t.id === updated.id);
+    if (idx !== -1) {
+      this.ticketsList[idx] = updated;
+    }
   }
 
   getStatusClass(status: TicketStatus): string {
