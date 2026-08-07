@@ -49,6 +49,9 @@ export class SupportComponent implements OnInit, OnDestroy {
   // Единая общая база данных тикетов для всех пользователей и устройств
   readonly API_URL = 'https://crudcrud.com/api/40c9f2ef44174272b782728337e03571/tickets';
 
+  // Сохраненный никнейм текущего пользователя в браузере
+  currentUserNickname: string = '';
+
   // Авторизация администратора по секретному ключу
   isAdminAuthenticated: boolean = false;
   showAuthModal: boolean = false;
@@ -127,9 +130,10 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.checkAdminAuth();
+    this.loadUserSession();
     this.loadLocalCache();
     this.loadTickets();
-    // Поллинг каждые 3 секунды для автосинхронизации общей бд для всех пользователей
+    // Поллинг каждые 3 секунды для автосинхронизации общей бд
     this.pollTimer = setInterval(() => {
       this.loadTickets(true);
     }, 3000);
@@ -138,6 +142,13 @@ export class SupportComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
+    }
+  }
+
+  private loadUserSession(): void {
+    this.currentUserNickname = localStorage.getItem('samurai_user_nickname') || '';
+    if (this.currentUserNickname) {
+      this.newTicket.nickname = this.currentUserNickname;
     }
   }
 
@@ -205,7 +216,7 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Загрузка ВСЕХ тикетов из общей базы данных (видимы абсолютно всем пользователям)
+   * Загрузка ВСЕХ тикетов из общей базы данных
    */
   loadTickets(silent: boolean = false): void {
     this.http.get<Ticket[]>(this.API_URL).subscribe({
@@ -219,7 +230,6 @@ export class SupportComponent implements OnInit, OnDestroy {
         }
       },
       error: () => {
-        // Резервный поиск по локальному бэкенду
         this.http.get<Ticket[]>('/api/support/tickets').subscribe({
           next: (data) => {
             if (Array.isArray(data)) {
@@ -249,13 +259,34 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Создание обращения: сохраняется в ОБЩУЮ БАЗУ ДАННЫХ для всех пользователей
+   * Проверка прав на отправку ответов:
+   * Написать ответ может ТОЛЬКО:
+   * 1. Администратор (viewMode === 'admin' && isAdminAuthenticated)
+   * 2. Автор данного тикета (никнейм пользователя совпадает с автором тикета)
+   */
+  canUserReply(ticket: Ticket | null): boolean {
+    if (!ticket) return false;
+    if (this.viewMode === 'admin' && this.isAdminAuthenticated) return true;
+
+    // Пользователь может писать, только если его сохраненный/введенный ник совпадает с автором тикета
+    const userNick = (this.currentUserNickname || this.newTicket.nickname).trim().toLowerCase();
+    const authorNick = ticket.nickname.trim().toLowerCase();
+
+    return !!userNick && userNick === authorNick;
+  }
+
+  /**
+   * Создание обращения
    */
   submitTicket(): void {
     if (!this.newTicket.nickname || !this.newTicket.subject || !this.newTicket.description) {
       this.errorMessage = 'Заполните никнейм, тему и описание проблемы.';
       return;
     }
+
+    // Запоминаем никнейм автора в сессии браузере
+    this.currentUserNickname = this.newTicket.nickname.trim();
+    localStorage.setItem('samurai_user_nickname', this.currentUserNickname);
 
     this.errorMessage = '';
     this.isSubmitting = true;
@@ -265,7 +296,7 @@ export class SupportComponent implements OnInit, OnDestroy {
     const newTicketObj: Omit<Ticket, '_id'> = {
       id: `t-${Date.now()}`,
       ticketNumber,
-      nickname: this.newTicket.nickname,
+      nickname: this.currentUserNickname,
       contact: this.newTicket.contact || 'Не указан',
       category: this.newTicket.category,
       priority: this.newTicket.priority,
@@ -277,7 +308,7 @@ export class SupportComponent implements OnInit, OnDestroy {
       messages: [
         {
           id: `m-${Date.now()}-1`,
-          sender: this.newTicket.nickname,
+          sender: this.currentUserNickname,
           role: 'user',
           text: this.newTicket.description,
           timestamp: now,
@@ -286,13 +317,12 @@ export class SupportComponent implements OnInit, OnDestroy {
           id: `m-${Date.now()}-2`,
           sender: 'Система Поддержки',
           role: 'system',
-          text: `Тикет ${ticketNumber} добавлен в общую базу данных для всех пользователей [AMQP Queue: support.created]`,
+          text: `Тикет ${ticketNumber} успешно создан и защищён [AMQP Queue: support.created]`,
           timestamp: now,
         },
       ],
     };
 
-    // Сохраняем в ОБЩУЮ БД через HTTP POST
     this.http.post<Ticket>(this.API_URL, newTicketObj).subscribe({
       next: (created) => {
         this.isSubmitting = false;
@@ -303,7 +333,6 @@ export class SupportComponent implements OnInit, OnDestroy {
         this.resetForm();
       },
       error: () => {
-        // Fallback локальный вывод
         const fallback: Ticket = { ...newTicketObj };
         this.isSubmitting = false;
         this.submitSuccess = true;
@@ -317,7 +346,7 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   resetForm(): void {
     this.newTicket = {
-      nickname: '',
+      nickname: this.currentUserNickname || '',
       contact: '',
       category: 'Технические проблемы',
       priority: 'Средний',
@@ -356,12 +385,17 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Отправка ответа администратора в ОБЩУЮ БД (пользователь видит мгновенно)
+   * Отправка ответа с защитой авторства
    */
   sendReply(): void {
     if (!this.replyText.trim() || !this.selectedTicket) return;
 
-    const isSupportRole = this.viewMode === 'admin';
+    if (!this.canUserReply(this.selectedTicket)) {
+      alert('У вас нет прав для ответа в этом тикете. Писать могут только Автор обращения и Администратор!');
+      return;
+    }
+
+    const isSupportRole = this.viewMode === 'admin' && this.isAdminAuthenticated;
     const senderName = isSupportRole ? (this.adminName || 'Агент Поддержки') : this.selectedTicket.nickname;
     const role = isSupportRole ? ('support' as const) : ('user' as const);
     const now = new Date().toISOString();
@@ -381,7 +415,6 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.selectedTicket = { ...targetTicket, messages: [...targetTicket.messages] };
     this.replyText = '';
 
-    // Обновляем тикет в ОБЩЕЙ БД через HTTP PUT
     if (targetTicket._id) {
       const { _id, ...body } = targetTicket;
       this.http.put(`${this.API_URL}/${_id}`, body).subscribe({
@@ -391,9 +424,6 @@ export class SupportComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Смена статуса тикета в ОБЩЕЙ БД
-   */
   changeStatus(newStatus: TicketStatus): void {
     if (!this.selectedTicket) return;
 
@@ -421,9 +451,6 @@ export class SupportComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * При закрытии/удалении тикет АВТОМАТИЧЕСКИ УДАЛЯЕТСЯ из ОБЩЕЙ БД для всех пользователей
-   */
   deleteTicket(ticketId: string, event?: Event): void {
     if (event) event.stopPropagation();
     if (!confirm('Вы действительно хотите закрыть и удалить этот тикет?')) return;
@@ -431,7 +458,6 @@ export class SupportComponent implements OnInit, OnDestroy {
     const targetTicket = this.ticketsList.find((t) => t.id === ticketId || t._id === ticketId);
     const dbId = targetTicket?._id || ticketId;
 
-    // 1. Автоматически удаляем из общей БД через HTTP DELETE
     if (targetTicket?._id) {
       this.http.delete(`${this.API_URL}/${targetTicket._id}`).subscribe({
         next: () => {},
@@ -439,7 +465,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       });
     }
 
-    // 2. Удаляем из текущего списка и кэша
     this.ticketsList = this.ticketsList.filter((t) => t.id !== ticketId && t._id !== ticketId && t._id !== dbId);
     this.saveLocalCache();
 
