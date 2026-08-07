@@ -46,8 +46,15 @@ export interface Ticket {
   styleUrls: ['./support.component.css'],
 })
 export class SupportComponent implements OnInit, OnDestroy {
-  // Активный URL базы данных с механизмом автоматического восстановления при исчерпании лимита
-  activeEndpointUrl: string = 'https://crudcrud.com/api/7c16a052e7f242aaaad90b0d09b7fdd4/tickets';
+  // Список резервных эндпоинтов для 100% гарантии синхронизации
+  readonly ENDPOINTS: string[] = [
+    'https://crudcrud.com/api/7c16a052e7f242aaaad90b0d09b7fdd4/tickets',
+    'https://crudcrud.com/api/40c9f2ef44174272b782728337e03571/tickets',
+    'https://crudcrud.com/api/88568c07e034458f96e42b2ca7452d5b/tickets',
+  ];
+
+  activeEndpointIndex: number = 0;
+  activeEndpointUrl: string = '';
   isRecoveringEndpoint: boolean = false;
 
   // Никнейм текущего игрока в браузере
@@ -136,10 +143,10 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.loadLocalCache();
     this.loadTickets();
 
-    // Автоматическая синхронизация каждые 3.5 секунды
+    // Автоматическая синхронизация каждые 3 секунды
     this.pollTimer = setInterval(() => {
       this.loadTickets(true);
-    }, 3500);
+    }, 3000);
   }
 
   ngOnDestroy(): void {
@@ -152,6 +159,8 @@ export class SupportComponent implements OnInit, OnDestroy {
     const savedEndpoint = localStorage.getItem('samurai_active_endpoint');
     if (savedEndpoint) {
       this.activeEndpointUrl = savedEndpoint;
+    } else {
+      this.activeEndpointUrl = this.ENDPOINTS[0];
     }
   }
 
@@ -232,7 +241,12 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.http.get<Ticket[]>(this.activeEndpointUrl).subscribe({
       next: (data) => {
         if (Array.isArray(data)) {
-          this.ticketsList = data.sort(
+          // Объединяем локальный кэш с полученными удаленными данными
+          const map = new Map<string, Ticket>();
+          this.ticketsList.forEach((t) => map.set(t.id, t));
+          data.forEach((t) => map.set(t.id, t));
+
+          this.ticketsList = Array.from(map.values()).sort(
             (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
           this.saveLocalCache();
@@ -240,8 +254,7 @@ export class SupportComponent implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        // Если база данных устарела (404/400), авто-восстанавливаем новую точку подключения
-        if (err.status === 404 || err.status === 400) {
+        if (err.status === 404 || err.status === 400 || err.status === 0) {
           this.recoverEndpoint();
         }
       },
@@ -249,28 +262,30 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Автоматическое восстановление базы данных при исчерпании лимита
+   * Автоматическое переключение на свежую базу данных при исчерпании лимита 100 запросов
    */
   private recoverEndpoint(): void {
     if (this.isRecoveringEndpoint) return;
     this.isRecoveringEndpoint = true;
 
+    // Сначала пробуем переключить на следующий резервный эндпоинт из списка
+    this.activeEndpointIndex = (this.activeEndpointIndex + 1) % this.ENDPOINTS.length;
+    this.activeEndpointUrl = this.ENDPOINTS[this.activeEndpointIndex];
+    localStorage.setItem('samurai_active_endpoint', this.activeEndpointUrl);
+
+    // Параллельно запрашиваем со страницы новую чистую динамическую точку
     this.http.get('https://crudcrud.com', { responseType: 'text' }).subscribe({
       next: (html) => {
         const match = html.match(/https:\/\/crudcrud\.com\/api\/[a-f0-9]{32}/);
         if (match && match[0]) {
-          const newBase = match[0];
-          this.activeEndpointUrl = `${newBase}/tickets`;
+          this.activeEndpointUrl = `${match[0]}/tickets`;
           localStorage.setItem('samurai_active_endpoint', this.activeEndpointUrl);
-          this.isRecoveringEndpoint = false;
-
-          // Автоматически мигрируем текущие тикеты из кэша в новую базу
           this.reuploadAllTickets();
-        } else {
-          this.isRecoveringEndpoint = false;
         }
+        this.isRecoveringEndpoint = false;
       },
       error: () => {
+        this.reuploadAllTickets();
         this.isRecoveringEndpoint = false;
       },
     });
@@ -302,9 +317,6 @@ export class SupportComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Проверка прав на отправку сообщений (Только Автор и Админ!)
-   */
   canUserReply(ticket: Ticket | null): boolean {
     if (!ticket) return false;
     if (this.viewMode === 'admin' && this.isAdminAuthenticated) return true;
@@ -356,32 +368,32 @@ export class SupportComponent implements OnInit, OnDestroy {
           id: `m-${Date.now()}-2`,
           sender: 'Система Поддержки',
           role: 'system',
-          text: `Тикет ${ticketNumber} успешно добавлен в единую базу данных [AMQP Queue: support.created]`,
+          text: `Тикет ${ticketNumber} успешно создан [AMQP Queue: support.created]`,
           timestamp: now,
         },
       ],
     };
 
+    // Сразу сохраняем локально, чтобы у пользователя тикет появился мгновенно!
+    const localTicket: Ticket = { ...newTicketObj };
+    this.ticketsList.unshift(localTicket);
+    this.saveLocalCache();
+
+    this.isSubmitting = false;
+    this.submitSuccess = true;
+    this.createdTicketInfo = localTicket;
+    this.resetForm();
+
+    // Отправляем во внешнюю базу данных
     this.http.post<Ticket>(this.activeEndpointUrl, newTicketObj).subscribe({
       next: (created) => {
-        this.isSubmitting = false;
-        this.submitSuccess = true;
-        this.createdTicketInfo = created;
-        this.ticketsList.unshift(created);
+        localTicket._id = created._id;
         this.saveLocalCache();
-        this.resetForm();
       },
       error: (err) => {
-        if (err.status === 404 || err.status === 400) {
+        if (err.status === 404 || err.status === 400 || err.status === 0) {
           this.recoverEndpoint();
         }
-        const fallback: Ticket = { ...newTicketObj };
-        this.isSubmitting = false;
-        this.submitSuccess = true;
-        this.createdTicketInfo = fallback;
-        this.ticketsList.unshift(fallback);
-        this.saveLocalCache();
-        this.resetForm();
       },
     });
   }
@@ -426,9 +438,6 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.replyText = '';
   }
 
-  /**
-   * Отправка ответа в общую БД
-   */
   sendReply(): void {
     if (!this.replyText.trim() || !this.selectedTicket) return;
 
@@ -455,6 +464,7 @@ export class SupportComponent implements OnInit, OnDestroy {
     targetTicket.updatedAt = now;
     targetTicket.status = isSupportRole ? 'В обработке' : 'Ожидает ответа';
     this.selectedTicket = { ...targetTicket, messages: [...targetTicket.messages] };
+    this.saveLocalCache();
     this.replyText = '';
 
     if (targetTicket._id) {
@@ -462,7 +472,19 @@ export class SupportComponent implements OnInit, OnDestroy {
       this.http.put(`${this.activeEndpointUrl}/${_id}`, body).subscribe({
         next: () => this.saveLocalCache(),
         error: (err) => {
-          if (err.status === 404 || err.status === 400) this.recoverEndpoint();
+          if (err.status === 404 || err.status === 400 || err.status === 0) this.recoverEndpoint();
+        },
+      });
+    } else {
+      // Если у тикета нет _id, создаем заново в базе
+      const { _id, ...body } = targetTicket;
+      this.http.post<Ticket>(this.activeEndpointUrl, body).subscribe({
+        next: (created) => {
+          targetTicket._id = created._id;
+          this.saveLocalCache();
+        },
+        error: (err) => {
+          if (err.status === 404 || err.status === 400 || err.status === 0) this.recoverEndpoint();
         },
       });
     }
@@ -485,21 +507,19 @@ export class SupportComponent implements OnInit, OnDestroy {
     targetTicket.updatedAt = now;
     targetTicket.messages.push(newMsg);
     this.selectedTicket = { ...targetTicket, messages: [...targetTicket.messages] };
+    this.saveLocalCache();
 
     if (targetTicket._id) {
       const { _id, ...body } = targetTicket;
       this.http.put(`${this.activeEndpointUrl}/${_id}`, body).subscribe({
         next: () => this.saveLocalCache(),
         error: (err) => {
-          if (err.status === 404 || err.status === 400) this.recoverEndpoint();
+          if (err.status === 404 || err.status === 400 || err.status === 0) this.recoverEndpoint();
         },
       });
     }
   }
 
-  /**
-   * При закрытии тикет АВТОМАТИЧЕСКИ И ОКОНЧАТЕЛЬНО УДАЛЯЕТСЯ из общей БД для всех пользователей
-   */
   deleteTicket(ticketId: string, event?: Event): void {
     if (event) event.stopPropagation();
     if (!confirm('Вы действительно хотите закрыть и удалить этот тикет?')) return;
