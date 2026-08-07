@@ -160,6 +160,8 @@
   display: flex;
   align-items: center;
   gap: 18px;
+  min-width: 0;
+  flex: 1;
 }
 
 .rules-section__icon {
@@ -204,6 +206,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .rules-section__count {
@@ -213,6 +216,8 @@
   padding: 4px 10px;
   border-radius: 100px;
   border: 1px solid rgba(201,146,10,0.2);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .rules-section__chevron {
@@ -453,12 +458,14 @@
 
 @media (max-width: 640px) {
   .penalties-grid { grid-template-columns: repeat(2, 1fr); }
-  .rules-section__head { padding: 16px 18px; gap: 12px; }
-  .rules-section__head-left { gap: 12px; }
-  .rules-section__icon { width: 38px; height: 38px; }
-  .rules-section__icon svg { width: 18px; height: 18px; }
-  .rules-section__title { font-size: 0.95rem; }
-  .rules-section__body { padding: 0 16px 18px; }
+  .rules-section__head { padding: 14px 14px; gap: 10px; flex-wrap: nowrap; }
+  .rules-section__head-left { gap: 10px; min-width: 0; flex: 1; }
+  .rules-section__icon { width: 36px; height: 36px; flex-shrink: 0; }
+  .rules-section__icon svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .rules-section__title { font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rules-section__head-right { gap: 8px; flex-shrink: 0; white-space: nowrap; }
+  .rules-section__count { font-size: 0.7rem; padding: 3px 8px; white-space: nowrap; flex-shrink: 0; display: inline-block; }
+  .rules-section__body { padding: 0 14px 16px; }
   .final-rule__inner { padding: 32px 18px; }
   .rules-item__bullets { margin-left: 12px; padding: 10px 12px; }
   .rules-item__header { gap: 8px; }
@@ -467,5 +474,14 @@
 
 @media (max-width: 480px) {
   .penalties-grid { grid-template-columns: 1fr; }
+  .rules-section__head { padding: 12px 10px; gap: 8px; }
+  .rules-section__head-left { gap: 8px; }
+  .rules-section__icon { width: 32px; height: 32px; border-radius: 6px; }
+  .rules-section__icon svg { width: 16px; height: 16px; }
+  .rules-section__num { font-size: 0.65rem; margin-bottom: 1px; }
+  .rules-section__title { font-size: 0.84rem; }
+  .rules-section__head-right { gap: 6px; }
+  .rules-section__count { font-size: 0.65rem; padding: 2px 6px; }
+  .rules-section__chevron { width: 14px; height: 14px; }
 }
 

@@ -52,7 +52,7 @@
             </div>
           </div>
           <div class="rules-section__head-right">
-            <span class="rules-section__count">{{ s.items.length }} пунктов</span>
+            <span class="rules-section__count">{{ getItemsCountText(s.items.length) }}</span>
             <svg class="rules-section__chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"
               [class.rotated]="isSectionOpen(s.num)">
               <path d="M4 6L8 10L12 6" stroke-linecap="round" stroke-linejoin="round"/>
