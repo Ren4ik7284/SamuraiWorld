@@ -45,8 +45,8 @@ export interface Ticket {
   styleUrls: ['./support.component.css'],
 })
 export class SupportComponent implements OnInit, OnDestroy {
-  // Глобальная облачная БД для гарантированного обмена сообщениями между устройствами
-  readonly CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019fdd01bf7d0bc8';
+  // Высокоскоростное облако без ограничений запросов для синхронизации
+  readonly CLOUD_DB_URL = 'https://jsonblob.com/api/jsonBlob/019fdd11-73b3-78bd-a22d-4bb1f907e1ee';
 
   // Авторизация администратора по секретному ключу
   isAdminAuthenticated: boolean = false;
@@ -126,16 +126,39 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.checkAdminAuth();
+    this.loadLocalCache();
     this.loadTickets();
-    // Поллинг каждые 2.5 секунды для передачи сообщений от админа пользователю в реальном времени
+    // Поллинг каждые 3 секунды
     this.pollTimer = setInterval(() => {
       this.loadTickets(true);
-    }, 2500);
+    }, 3000);
   }
 
   ngOnDestroy(): void {
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
+    }
+  }
+
+  private loadLocalCache(): void {
+    try {
+      const saved = localStorage.getItem('samurai_support_tickets');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          this.ticketsList = parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading local cache:', e);
+    }
+  }
+
+  private saveLocalCache(): void {
+    try {
+      localStorage.setItem('samurai_support_tickets', JSON.stringify(this.ticketsList));
+    } catch (e) {
+      console.warn('Error saving local cache:', e);
     }
   }
 
@@ -181,28 +204,46 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Загрузка тикетов из Глобального Облака
+   * Загрузка тикетов из Глобального Облака (без лимитов запросов)
    */
   loadTickets(silent: boolean = false): void {
     this.http.get<any>(this.CLOUD_DB_URL).subscribe({
       next: (res) => {
-        if (res && res.data && Array.isArray(res.data.tickets)) {
-          this.ticketsList = res.data.tickets;
+        let remoteTickets: Ticket[] = [];
+        if (res && Array.isArray(res.tickets)) {
+          remoteTickets = res.tickets;
+        } else if (Array.isArray(res)) {
+          remoteTickets = res;
+        }
+
+        if (remoteTickets.length > 0) {
+          // Объединяем полученные облачные тикеты с локальными, убирая дубликаты
+          const map = new Map<string, Ticket>();
+          // Сначала добавляем локальные
+          this.ticketsList.forEach((t) => map.set(t.id, t));
+          // Затем перезаписываем или добавляем удаленные из облака
+          remoteTickets.forEach((t) => map.set(t.id, t));
+
+          const merged = Array.from(map.values()).sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+
+          this.ticketsList = merged;
+          this.saveLocalCache();
           this.syncSelectedTicket();
         }
       },
       error: () => {
-        // Резервное обращение к локальному бэкенду
+        // Резервное обращение к локальному NestJS бэкенду
         this.http.get<Ticket[]>('/api/support/tickets').subscribe({
           next: (data) => {
-            if (Array.isArray(data)) {
+            if (Array.isArray(data) && data.length > 0) {
               this.ticketsList = data;
+              this.saveLocalCache();
               this.syncSelectedTicket();
             }
           },
-          error: () => {
-            if (!this.ticketsList) this.ticketsList = [];
-          },
+          error: () => {},
         });
       },
     });
@@ -212,7 +253,6 @@ export class SupportComponent implements OnInit, OnDestroy {
     if (this.selectedTicket) {
       const updated = this.ticketsList.find((t) => t.id === this.selectedTicket?.id);
       if (updated) {
-        // Вызываем обновление ссылки на массив, чтобы Angular перерисовал чат
         this.selectedTicket = {
           ...updated,
           messages: [...updated.messages],
@@ -222,27 +262,34 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Сохранение всего массива тикетов в Глобальное Облако
+   * Сохранение всех тикетов в Облако и LocalStorage
    */
   private syncToCloudDB(): void {
+    this.saveLocalCache();
+
     const payload = {
-      name: 'samuraiworld_tickets',
-      data: {
-        tickets: this.ticketsList,
-      },
+      tickets: this.ticketsList,
     };
 
     this.http.put<any>(this.CLOUD_DB_URL, payload).subscribe({
       next: (res) => {
-        if (res && res.data && Array.isArray(res.data.tickets)) {
-          this.ticketsList = res.data.tickets;
+        let remoteTickets: Ticket[] = [];
+        if (res && Array.isArray(res.tickets)) {
+          remoteTickets = res.tickets;
+        } else if (Array.isArray(res)) {
+          remoteTickets = res;
+        }
+
+        if (remoteTickets.length > 0) {
+          this.ticketsList = remoteTickets;
+          this.saveLocalCache();
           this.syncSelectedTicket();
         }
       },
-      error: (err) => console.error('Cloud DB Sync Warning:', err),
+      error: (err) => console.error('Cloud Sync Notice:', err),
     });
 
-    // Резервный вызов на локальный NestJS
+    // Резервный вызов на NestJS
     this.http.post('/api/support/tickets', this.newTicket).subscribe({
       next: () => {},
       error: () => {},
@@ -285,21 +332,23 @@ export class SupportComponent implements OnInit, OnDestroy {
         },
         {
           id: `m-${Date.now()}-2`,
-          sender: 'Система Cloud Sync',
+          sender: 'Система Поддержки',
           role: 'system',
-          text: `Тикет ${ticketNumber} успешно создан и синхронизирован между всеми устройствами [AMQP Queue: support.created]`,
+          text: `Тикет ${ticketNumber} успешно создан и зарегистрирован [AMQP Queue: support.created]`,
           timestamp: now,
         },
       ],
     };
 
+    // 1. Мгновенно отображаем тикет у пользователя локально
     this.ticketsList.unshift(newTicketObj);
+    this.saveLocalCache();
     this.isSubmitting = false;
     this.submitSuccess = true;
     this.createdTicketInfo = newTicketObj;
     this.resetForm();
 
-    // Мгновенная синхронизация с облаком
+    // 2. Мгновенно синхронизируем тикет с облачной БД
     this.syncToCloudDB();
   }
 
@@ -362,7 +411,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       timestamp: now,
     };
 
-    // Находим тикет в глобальном массиве ticketsList
     const targetTicket = this.ticketsList.find((t) => t.id === this.selectedTicket?.id);
     if (targetTicket) {
       targetTicket.messages.push(newMsg);
@@ -377,7 +425,7 @@ export class SupportComponent implements OnInit, OnDestroy {
 
     this.replyText = '';
 
-    // Мгновенно отправляем в облако, чтобы пользователь на своем устройстве сразу увидел ответ
+    // Мгновенно синхронизируем с облаком
     this.syncToCloudDB();
   }
 
