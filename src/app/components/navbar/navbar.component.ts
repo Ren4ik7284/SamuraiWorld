@@ -23,6 +23,7 @@ export class NavbarComponent implements OnInit {
     { label: 'Главная', path: '/', jpLabel: 'Главная' },
     { label: 'О сервере', path: '/world', jpLabel: 'Система' },
     { label: 'Правила', path: '/rules', jpLabel: 'Законы' },
+    { label: 'Поддержка', path: '/support', jpLabel: 'Помощь' },
     { label: 'Контакты', path: '/contacts', jpLabel: 'Контакты' }
   ];
 

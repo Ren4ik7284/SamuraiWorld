@@ -40,6 +40,7 @@ export class FooterComponent {
     { label: 'Главная', path: '/' },
     { label: 'О сервере', path: '/world' },
     { label: 'Правила', path: '/rules' },
+    { label: 'Поддержка', path: '/support' },
     { label: 'Контакты', path: '/contacts' }
   ];
 }
