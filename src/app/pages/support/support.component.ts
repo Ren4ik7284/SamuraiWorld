@@ -23,6 +23,7 @@ export interface TicketMessage {
 }
 
 export interface Ticket {
+  _id?: string;
   id: string;
   ticketNumber: string;
   nickname: string;
@@ -45,8 +46,8 @@ export interface Ticket {
   styleUrls: ['./support.component.css'],
 })
 export class SupportComponent implements OnInit, OnDestroy {
-  // Высокоскоростное облако без ограничений запросов для синхронизации
-  readonly CLOUD_DB_URL = 'https://jsonblob.com/api/jsonBlob/019fdd11-73b3-78bd-a22d-4bb1f907e1ee';
+  // Единая общая база данных тикетов для всех пользователей и устройств
+  readonly API_URL = 'https://crudcrud.com/api/40c9f2ef44174272b782728337e03571/tickets';
 
   // Авторизация администратора по секретному ключу
   isAdminAuthenticated: boolean = false;
@@ -128,7 +129,7 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.checkAdminAuth();
     this.loadLocalCache();
     this.loadTickets();
-    // Поллинг каждые 3 секунды
+    // Поллинг каждые 3 секунды для автосинхронизации общей бд для всех пользователей
     this.pollTimer = setInterval(() => {
       this.loadTickets(true);
     }, 3000);
@@ -142,23 +143,23 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   private loadLocalCache(): void {
     try {
-      const saved = localStorage.getItem('samurai_support_tickets');
+      const saved = localStorage.getItem('samurai_shared_tickets');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           this.ticketsList = parsed;
         }
       }
     } catch (e) {
-      console.warn('Error reading local cache:', e);
+      console.warn('Cache error:', e);
     }
   }
 
   private saveLocalCache(): void {
     try {
-      localStorage.setItem('samurai_support_tickets', JSON.stringify(this.ticketsList));
+      localStorage.setItem('samurai_shared_tickets', JSON.stringify(this.ticketsList));
     } catch (e) {
-      console.warn('Error saving local cache:', e);
+      console.warn('Save cache error:', e);
     }
   }
 
@@ -204,40 +205,24 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Загрузка тикетов из Глобального Облака (без лимитов запросов)
+   * Загрузка ВСЕХ тикетов из общей базы данных (видимы абсолютно всем пользователям)
    */
   loadTickets(silent: boolean = false): void {
-    this.http.get<any>(this.CLOUD_DB_URL).subscribe({
-      next: (res) => {
-        let remoteTickets: Ticket[] = [];
-        if (res && Array.isArray(res.tickets)) {
-          remoteTickets = res.tickets;
-        } else if (Array.isArray(res)) {
-          remoteTickets = res;
-        }
-
-        if (remoteTickets.length > 0) {
-          // Объединяем полученные облачные тикеты с локальными, убирая дубликаты
-          const map = new Map<string, Ticket>();
-          // Сначала добавляем локальные
-          this.ticketsList.forEach((t) => map.set(t.id, t));
-          // Затем перезаписываем или добавляем удаленные из облака
-          remoteTickets.forEach((t) => map.set(t.id, t));
-
-          const merged = Array.from(map.values()).sort(
+    this.http.get<Ticket[]>(this.API_URL).subscribe({
+      next: (data) => {
+        if (Array.isArray(data)) {
+          this.ticketsList = data.sort(
             (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
-
-          this.ticketsList = merged;
           this.saveLocalCache();
           this.syncSelectedTicket();
         }
       },
       error: () => {
-        // Резервное обращение к локальному NestJS бэкенду
+        // Резервный поиск по локальному бэкенду
         this.http.get<Ticket[]>('/api/support/tickets').subscribe({
           next: (data) => {
-            if (Array.isArray(data) && data.length > 0) {
+            if (Array.isArray(data)) {
               this.ticketsList = data;
               this.saveLocalCache();
               this.syncSelectedTicket();
@@ -251,7 +236,9 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   private syncSelectedTicket(): void {
     if (this.selectedTicket) {
-      const updated = this.ticketsList.find((t) => t.id === this.selectedTicket?.id);
+      const updated = this.ticketsList.find(
+        (t) => t._id === this.selectedTicket?._id || t.id === this.selectedTicket?.id
+      );
       if (updated) {
         this.selectedTicket = {
           ...updated,
@@ -262,42 +249,7 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Сохранение всех тикетов в Облако и LocalStorage
-   */
-  private syncToCloudDB(): void {
-    this.saveLocalCache();
-
-    const payload = {
-      tickets: this.ticketsList,
-    };
-
-    this.http.put<any>(this.CLOUD_DB_URL, payload).subscribe({
-      next: (res) => {
-        let remoteTickets: Ticket[] = [];
-        if (res && Array.isArray(res.tickets)) {
-          remoteTickets = res.tickets;
-        } else if (Array.isArray(res)) {
-          remoteTickets = res;
-        }
-
-        if (remoteTickets.length > 0) {
-          this.ticketsList = remoteTickets;
-          this.saveLocalCache();
-          this.syncSelectedTicket();
-        }
-      },
-      error: (err) => console.error('Cloud Sync Notice:', err),
-    });
-
-    // Резервный вызов на NestJS
-    this.http.post('/api/support/tickets', this.newTicket).subscribe({
-      next: () => {},
-      error: () => {},
-    });
-  }
-
-  /**
-   * Подача нового тикета
+   * Создание обращения: сохраняется в ОБЩУЮ БАЗУ ДАННЫХ для всех пользователей
    */
   submitTicket(): void {
     if (!this.newTicket.nickname || !this.newTicket.subject || !this.newTicket.description) {
@@ -310,7 +262,7 @@ export class SupportComponent implements OnInit, OnDestroy {
 
     const now = new Date().toISOString();
     const ticketNumber = `TK-${Math.floor(10000 + Math.random() * 90000)}`;
-    const newTicketObj: Ticket = {
+    const newTicketObj: Omit<Ticket, '_id'> = {
       id: `t-${Date.now()}`,
       ticketNumber,
       nickname: this.newTicket.nickname,
@@ -334,22 +286,33 @@ export class SupportComponent implements OnInit, OnDestroy {
           id: `m-${Date.now()}-2`,
           sender: 'Система Поддержки',
           role: 'system',
-          text: `Тикет ${ticketNumber} успешно создан и зарегистрирован [AMQP Queue: support.created]`,
+          text: `Тикет ${ticketNumber} добавлен в общую базу данных для всех пользователей [AMQP Queue: support.created]`,
           timestamp: now,
         },
       ],
     };
 
-    // 1. Мгновенно отображаем тикет у пользователя локально
-    this.ticketsList.unshift(newTicketObj);
-    this.saveLocalCache();
-    this.isSubmitting = false;
-    this.submitSuccess = true;
-    this.createdTicketInfo = newTicketObj;
-    this.resetForm();
-
-    // 2. Мгновенно синхронизируем тикет с облачной БД
-    this.syncToCloudDB();
+    // Сохраняем в ОБЩУЮ БД через HTTP POST
+    this.http.post<Ticket>(this.API_URL, newTicketObj).subscribe({
+      next: (created) => {
+        this.isSubmitting = false;
+        this.submitSuccess = true;
+        this.createdTicketInfo = created;
+        this.ticketsList.unshift(created);
+        this.saveLocalCache();
+        this.resetForm();
+      },
+      error: () => {
+        // Fallback локальный вывод
+        const fallback: Ticket = { ...newTicketObj };
+        this.isSubmitting = false;
+        this.submitSuccess = true;
+        this.createdTicketInfo = fallback;
+        this.ticketsList.unshift(fallback);
+        this.saveLocalCache();
+        this.resetForm();
+      },
+    });
   }
 
   resetForm(): void {
@@ -393,7 +356,7 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Отправка ответа (Гарантированно доходит до пользователя на любом устройстве)
+   * Отправка ответа администратора в ОБЩУЮ БД (пользователь видит мгновенно)
    */
   sendReply(): void {
     if (!this.replyText.trim() || !this.selectedTicket) return;
@@ -411,24 +374,26 @@ export class SupportComponent implements OnInit, OnDestroy {
       timestamp: now,
     };
 
-    const targetTicket = this.ticketsList.find((t) => t.id === this.selectedTicket?.id);
-    if (targetTicket) {
-      targetTicket.messages.push(newMsg);
-      targetTicket.updatedAt = now;
-      targetTicket.status = isSupportRole ? 'В обработке' : 'Ожидает ответа';
-      this.selectedTicket = { ...targetTicket, messages: [...targetTicket.messages] };
-    } else {
-      this.selectedTicket.messages.push(newMsg);
-      this.selectedTicket.updatedAt = now;
-      this.selectedTicket.status = isSupportRole ? 'В обработке' : 'Ожидает ответа';
-    }
-
+    const targetTicket = this.selectedTicket;
+    targetTicket.messages.push(newMsg);
+    targetTicket.updatedAt = now;
+    targetTicket.status = isSupportRole ? 'В обработке' : 'Ожидает ответа';
+    this.selectedTicket = { ...targetTicket, messages: [...targetTicket.messages] };
     this.replyText = '';
 
-    // Мгновенно синхронизируем с облаком
-    this.syncToCloudDB();
+    // Обновляем тикет в ОБЩЕЙ БД через HTTP PUT
+    if (targetTicket._id) {
+      const { _id, ...body } = targetTicket;
+      this.http.put(`${this.API_URL}/${_id}`, body).subscribe({
+        next: () => this.saveLocalCache(),
+        error: (err) => console.warn('Update error:', err),
+      });
+    }
   }
 
+  /**
+   * Смена статуса тикета в ОБЩЕЙ БД
+   */
   changeStatus(newStatus: TicketStatus): void {
     if (!this.selectedTicket) return;
 
@@ -441,31 +406,46 @@ export class SupportComponent implements OnInit, OnDestroy {
       timestamp: now,
     };
 
-    const targetTicket = this.ticketsList.find((t) => t.id === this.selectedTicket?.id);
-    if (targetTicket) {
-      targetTicket.status = newStatus;
-      targetTicket.updatedAt = now;
-      targetTicket.messages.push(newMsg);
-      this.selectedTicket = { ...targetTicket, messages: [...targetTicket.messages] };
-    } else {
-      this.selectedTicket.status = newStatus;
-      this.selectedTicket.updatedAt = now;
-      this.selectedTicket.messages.push(newMsg);
-    }
+    const targetTicket = this.selectedTicket;
+    targetTicket.status = newStatus;
+    targetTicket.updatedAt = now;
+    targetTicket.messages.push(newMsg);
+    this.selectedTicket = { ...targetTicket, messages: [...targetTicket.messages] };
 
-    this.syncToCloudDB();
+    if (targetTicket._id) {
+      const { _id, ...body } = targetTicket;
+      this.http.put(`${this.API_URL}/${_id}`, body).subscribe({
+        next: () => this.saveLocalCache(),
+        error: (err) => console.warn('Update status error:', err),
+      });
+    }
   }
 
+  /**
+   * При закрытии/удалении тикет АВТОМАТИЧЕСКИ УДАЛЯЕТСЯ из ОБЩЕЙ БД для всех пользователей
+   */
   deleteTicket(ticketId: string, event?: Event): void {
     if (event) event.stopPropagation();
-    if (!confirm('Вы действительно хотите закрыть этот тикет?')) return;
+    if (!confirm('Вы действительно хотите закрыть и удалить этот тикет?')) return;
 
-    this.ticketsList = this.ticketsList.filter((t) => t.id !== ticketId);
-    if (this.selectedTicket?.id === ticketId) {
-      this.closeTicketDetails();
+    const targetTicket = this.ticketsList.find((t) => t.id === ticketId || t._id === ticketId);
+    const dbId = targetTicket?._id || ticketId;
+
+    // 1. Автоматически удаляем из общей БД через HTTP DELETE
+    if (targetTicket?._id) {
+      this.http.delete(`${this.API_URL}/${targetTicket._id}`).subscribe({
+        next: () => {},
+        error: (err) => console.warn('Delete error:', err),
+      });
     }
 
-    this.syncToCloudDB();
+    // 2. Удаляем из текущего списка и кэша
+    this.ticketsList = this.ticketsList.filter((t) => t.id !== ticketId && t._id !== ticketId && t._id !== dbId);
+    this.saveLocalCache();
+
+    if (this.selectedTicket?.id === ticketId || this.selectedTicket?._id === dbId) {
+      this.closeTicketDetails();
+    }
   }
 
   getStatusClass(status: TicketStatus): string {
