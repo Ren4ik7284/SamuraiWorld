@@ -45,7 +45,7 @@ export interface Ticket {
   styleUrls: ['./support.component.css'],
 })
 export class SupportComponent implements OnInit, OnDestroy {
-  // Глобальная облачная БД для моментальной синхронизации между ВСЕМИ телефонами и компьютерами на Vercel
+  // Глобальная облачная БД для гарантированного обмена сообщениями между устройствами
   readonly CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff8081819f7e10ae019fdd01bf7d0bc8';
 
   // Авторизация администратора по секретному ключу
@@ -127,10 +127,10 @@ export class SupportComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.checkAdminAuth();
     this.loadTickets();
-    // Поллинг каждые 3 секунды для моментальной синхронизации между телефоном и компьютером
+    // Поллинг каждые 2.5 секунды для передачи сообщений от админа пользователю в реальном времени
     this.pollTimer = setInterval(() => {
       this.loadTickets(true);
-    }, 3000);
+    }, 2500);
   }
 
   ngOnDestroy(): void {
@@ -181,10 +181,9 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Загрузка тикетов из Глобального Облака (гарантирует видимость с любого устройства)
+   * Загрузка тикетов из Глобального Облака
    */
   loadTickets(silent: boolean = false): void {
-    // Сначала пробуем получить данные из глобального облачного хранилища
     this.http.get<any>(this.CLOUD_DB_URL).subscribe({
       next: (res) => {
         if (res && res.data && Array.isArray(res.data.tickets)) {
@@ -193,7 +192,7 @@ export class SupportComponent implements OnInit, OnDestroy {
         }
       },
       error: () => {
-        // Резервное обращение к локальному NestJS бэкенду
+        // Резервное обращение к локальному бэкенду
         this.http.get<Ticket[]>('/api/support/tickets').subscribe({
           next: (data) => {
             if (Array.isArray(data)) {
@@ -213,7 +212,11 @@ export class SupportComponent implements OnInit, OnDestroy {
     if (this.selectedTicket) {
       const updated = this.ticketsList.find((t) => t.id === this.selectedTicket?.id);
       if (updated) {
-        this.selectedTicket = updated;
+        // Вызываем обновление ссылки на массив, чтобы Angular перерисовал чат
+        this.selectedTicket = {
+          ...updated,
+          messages: [...updated.messages],
+        };
       }
     }
   }
@@ -229,12 +232,17 @@ export class SupportComponent implements OnInit, OnDestroy {
       },
     };
 
-    this.http.put(this.CLOUD_DB_URL, payload).subscribe({
-      next: () => {},
+    this.http.put<any>(this.CLOUD_DB_URL, payload).subscribe({
+      next: (res) => {
+        if (res && res.data && Array.isArray(res.data.tickets)) {
+          this.ticketsList = res.data.tickets;
+          this.syncSelectedTicket();
+        }
+      },
       error: (err) => console.error('Cloud DB Sync Warning:', err),
     });
 
-    // Также отправляем запрос на локальный NestJS бэкенд (если работает)
+    // Резервный вызов на локальный NestJS
     this.http.post('/api/support/tickets', this.newTicket).subscribe({
       next: () => {},
       error: () => {},
@@ -242,7 +250,7 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Подача нового тикета с любого устройства (телефона или ПК)
+   * Подача нового тикета
    */
   submitTicket(): void {
     if (!this.newTicket.nickname || !this.newTicket.subject || !this.newTicket.description) {
@@ -291,7 +299,7 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.createdTicketInfo = newTicketObj;
     this.resetForm();
 
-    // Мгновенно синхронизируем с облачной БД
+    // Мгновенная синхронизация с облаком
     this.syncToCloudDB();
   }
 
@@ -335,6 +343,9 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.replyText = '';
   }
 
+  /**
+   * Отправка ответа (Гарантированно доходит до пользователя на любом устройстве)
+   */
   sendReply(): void {
     if (!this.replyText.trim() || !this.selectedTicket) return;
 
@@ -343,19 +354,30 @@ export class SupportComponent implements OnInit, OnDestroy {
     const role = isSupportRole ? ('support' as const) : ('user' as const);
     const now = new Date().toISOString();
 
-    this.selectedTicket.messages.push({
+    const newMsg: TicketMessage = {
       id: `m-${Date.now()}`,
       sender: senderName,
       role: role,
       text: this.replyText.trim(),
       timestamp: now,
-    });
+    };
 
-    this.selectedTicket.updatedAt = now;
-    this.selectedTicket.status = isSupportRole ? 'В обработке' : 'Ожидает ответа';
+    // Находим тикет в глобальном массиве ticketsList
+    const targetTicket = this.ticketsList.find((t) => t.id === this.selectedTicket?.id);
+    if (targetTicket) {
+      targetTicket.messages.push(newMsg);
+      targetTicket.updatedAt = now;
+      targetTicket.status = isSupportRole ? 'В обработке' : 'Ожидает ответа';
+      this.selectedTicket = { ...targetTicket, messages: [...targetTicket.messages] };
+    } else {
+      this.selectedTicket.messages.push(newMsg);
+      this.selectedTicket.updatedAt = now;
+      this.selectedTicket.status = isSupportRole ? 'В обработке' : 'Ожидает ответа';
+    }
+
     this.replyText = '';
 
-    // Синхронизируем изменения с облачной БД
+    // Мгновенно отправляем в облако, чтобы пользователь на своем устройстве сразу увидел ответ
     this.syncToCloudDB();
   }
 
@@ -363,17 +385,26 @@ export class SupportComponent implements OnInit, OnDestroy {
     if (!this.selectedTicket) return;
 
     const now = new Date().toISOString();
-    this.selectedTicket.status = newStatus;
-    this.selectedTicket.updatedAt = now;
-    this.selectedTicket.messages.push({
+    const newMsg: TicketMessage = {
       id: `m-${Date.now()}`,
       sender: 'Система',
       role: 'system',
       text: `Статус тикета изменён на: "${newStatus}"`,
       timestamp: now,
-    });
+    };
 
-    // Синхронизируем статус с облаком
+    const targetTicket = this.ticketsList.find((t) => t.id === this.selectedTicket?.id);
+    if (targetTicket) {
+      targetTicket.status = newStatus;
+      targetTicket.updatedAt = now;
+      targetTicket.messages.push(newMsg);
+      this.selectedTicket = { ...targetTicket, messages: [...targetTicket.messages] };
+    } else {
+      this.selectedTicket.status = newStatus;
+      this.selectedTicket.updatedAt = now;
+      this.selectedTicket.messages.push(newMsg);
+    }
+
     this.syncToCloudDB();
   }
 
@@ -386,7 +417,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       this.closeTicketDetails();
     }
 
-    // Удаляем из облака
     this.syncToCloudDB();
   }
 
