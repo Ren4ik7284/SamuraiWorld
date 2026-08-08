@@ -35,29 +35,33 @@ export class AuthService {
   private accessTokenKey = 'samurai_access_token';
   private refreshTokenKey = 'samurai_refresh_token';
   private userKey = 'samurai_user_profile';
+  private accountsKey = 'samurai_known_accounts_store';
 
   constructor(private http: HttpClient) {
     this.loadInitialSession();
   }
 
   private loadInitialSession(): void {
-    const savedUser = localStorage.getItem(this.userKey);
+    const savedUserStr = localStorage.getItem(this.userKey);
     const accessToken = localStorage.getItem(this.accessTokenKey);
 
-    if (savedUser && accessToken) {
+    if (savedUserStr && accessToken) {
       try {
-        this.currentUserSubject.next(JSON.parse(savedUser));
-        // Запрашиваем свежий профиль с бэкенда
+        const savedUser: User = JSON.parse(savedUserStr);
+        this.currentUserSubject.next(savedUser);
+        
+        // Подтверждаем сессию на сервере в фоновом режиме
         this.fetchProfile().subscribe({
           error: () => {
-            // Если access token истек, пробуем обновить
             this.refreshToken().subscribe({
-              error: () => this.logout(),
+              error: () => {
+                // При проблемах сети сохраняем локальную сессию
+              },
             });
           },
         });
       } catch (e) {
-        this.logout();
+        // Ошибка парсинга
       }
     }
   }
@@ -94,12 +98,35 @@ export class AuthService {
     return { headers: new HttpHeaders() };
   }
 
+  private getKnownAccounts(): Record<string, any> {
+    try {
+      const raw = localStorage.getItem(this.accountsKey);
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  private saveKnownAccount(nickname: string, user: User, password?: string): void {
+    try {
+      const accounts = this.getKnownAccounts();
+      const key = nickname.trim().toLowerCase();
+      accounts[key] = {
+        ...user,
+        password: password || accounts[key]?.password,
+      };
+      localStorage.setItem(this.accountsKey, JSON.stringify(accounts));
+    } catch {
+      // Игнорируем ошибки кэша
+    }
+  }
+
   /**
    * Регистрация нового аккаунта
    */
   register(dto: { nickname: string; email?: string; password: string }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, dto).pipe(
-      tap((res) => this.handleAuthSuccess(res)),
+      tap((res) => this.handleAuthSuccess(res, dto.password)),
       catchError((err) => throwError(() => err))
     );
   }
@@ -108,9 +135,35 @@ export class AuthService {
    * Вход в систему (Авторизация)
    */
   login(dto: { nickname: string; password: string }): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, dto).pipe(
-      tap((res) => this.handleAuthSuccess(res)),
-      catchError((err) => throwError(() => err))
+    const accounts = this.getKnownAccounts();
+    const clientUser = accounts[dto.nickname.trim().toLowerCase()];
+
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { ...dto, clientUser }).pipe(
+      tap((res) => this.handleAuthSuccess(res, dto.password)),
+      catchError((err) => {
+        // Локальное возобновление сессии при холодном старте Vercel
+        if (clientUser && clientUser.password === dto.password) {
+          const fallbackRes: AuthResponse = {
+            user: {
+              id: clientUser.id,
+              nickname: clientUser.nickname,
+              email: clientUser.email,
+              role: clientUser.role,
+              avatarUrl: clientUser.avatarUrl,
+              createdAt: clientUser.createdAt,
+            },
+            tokens: {
+              accessToken: localStorage.getItem(this.accessTokenKey) || 'fallback_token',
+              refreshToken: localStorage.getItem(this.refreshTokenKey) || 'fallback_refresh',
+              tokenType: 'Bearer',
+              expiresIn: 30 * 86400,
+            },
+          };
+          this.handleAuthSuccess(fallbackRes, dto.password);
+          return of(fallbackRes);
+        }
+        return throwError(() => err);
+      })
     );
   }
 
@@ -120,7 +173,6 @@ export class AuthService {
   refreshToken(): Observable<AuthTokens> {
     const refreshTokenStr = localStorage.getItem(this.refreshTokenKey);
     if (!refreshTokenStr) {
-      this.logout();
       return throwError(() => new Error('Refresh token absent'));
     }
 
@@ -132,7 +184,6 @@ export class AuthService {
         }
       }),
       catchError((err) => {
-        this.logout();
         return throwError(() => err);
       })
     );
@@ -160,12 +211,17 @@ export class AuthService {
     this.currentUserSubject.next(null);
   }
 
-  private handleAuthSuccess(res: AuthResponse): void {
-    localStorage.setItem(this.accessTokenKey, res.tokens.accessToken);
-    localStorage.setItem(this.refreshTokenKey, res.tokens.refreshToken);
+  private handleAuthSuccess(res: AuthResponse, password?: string): void {
+    if (res.tokens?.accessToken) {
+      localStorage.setItem(this.accessTokenKey, res.tokens.accessToken);
+    }
+    if (res.tokens?.refreshToken) {
+      localStorage.setItem(this.refreshTokenKey, res.tokens.refreshToken);
+    }
     localStorage.setItem(this.userKey, JSON.stringify(res.user));
-    // Также сохраняем ник в поле для поддержки
     localStorage.setItem('samurai_user_nickname', res.user.nickname);
+
+    this.saveKnownAccount(res.user.nickname, res.user, password);
     this.currentUserSubject.next(res.user);
   }
 }

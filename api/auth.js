@@ -1,7 +1,10 @@
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'samuraiworld_super_secret_jwt_key_2026';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'samuraiworld_super_secret_refresh_key_2026';
+const TMP_USERS_FILE = path.join('/tmp', 'samurai_users_store.json');
 
 let users = [
   {
@@ -11,7 +14,7 @@ let users = [
     passwordHash: hashPassword('admin123'),
     role: 'admin',
     avatarUrl: 'https://crafatar.com/avatars/Shogun_Kenji?overlay=true',
-    createdAt: new Date().toISOString(),
+    createdAt: '2026-01-01T00:00:00.000Z',
   },
   {
     id: 'usr-support-1',
@@ -20,7 +23,7 @@ let users = [
     passwordHash: hashPassword('support123'),
     role: 'support',
     avatarUrl: 'https://crafatar.com/avatars/President_Alex?overlay=true',
-    createdAt: new Date().toISOString(),
+    createdAt: '2026-01-01T00:00:00.000Z',
   },
   {
     id: 'usr-player-1',
@@ -29,9 +32,38 @@ let users = [
     passwordHash: hashPassword('player123'),
     role: 'user',
     avatarUrl: 'https://crafatar.com/avatars/Miner_Joe?overlay=true',
-    createdAt: new Date().toISOString(),
+    createdAt: '2026-01-01T00:00:00.000Z',
   },
 ];
+
+function loadPersistedUsers() {
+  try {
+    if (fs.existsSync(TMP_USERS_FILE)) {
+      const data = fs.readFileSync(TMP_USERS_FILE, 'utf8');
+      const loaded = JSON.parse(data);
+      if (Array.isArray(loaded)) {
+        for (const u of loaded) {
+          if (!users.some((existing) => existing.id === u.id || existing.nickname.toLowerCase() === u.nickname.toLowerCase())) {
+            users.push(u);
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // Ignore tmp file read errors
+  }
+}
+
+function savePersistedUsers() {
+  try {
+    fs.writeFileSync(TMP_USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
+  } catch (e) {
+    // Ignore tmp file write errors
+  }
+}
+
+// Initial load
+loadPersistedUsers();
 
 function hashPassword(password) {
   const salt = 'samurai_salt_2026';
@@ -97,30 +129,40 @@ function verifyToken(token, secret) {
 
 function generateTokens(user) {
   const now = Math.floor(Date.now() / 1000);
+  const THIRTY_DAYS = 30 * 86400; // 30 дней доступ без выхода
+  const ONE_YEAR = 365 * 86400; // 1 год refresh
+
   const accessPayload = {
     sub: user.id,
     nickname: user.nickname,
     email: user.email,
     role: user.role,
+    avatarUrl: user.avatarUrl,
+    createdAt: user.createdAt,
+    pwdHash: user.passwordHash,
     type: 'access',
     iat: now,
-    exp: now + 3600,
+    exp: now + THIRTY_DAYS,
   };
+
   const refreshPayload = {
     sub: user.id,
     nickname: user.nickname,
     email: user.email,
     role: user.role,
+    avatarUrl: user.avatarUrl,
+    createdAt: user.createdAt,
+    pwdHash: user.passwordHash,
     type: 'refresh',
     iat: now,
-    exp: now + 7 * 86400,
+    exp: now + ONE_YEAR,
   };
 
   return {
     accessToken: signToken(accessPayload, JWT_SECRET),
     refreshToken: signToken(refreshPayload, REFRESH_SECRET),
     tokenType: 'Bearer',
-    expiresIn: 3600,
+    expiresIn: THIRTY_DAYS,
   };
 }
 
@@ -138,6 +180,7 @@ export default function handler(req, res) {
     return;
   }
 
+  loadPersistedUsers();
   const { url, method, body, headers } = req;
   const path = url.split('?')[0];
 
@@ -178,6 +221,8 @@ export default function handler(req, res) {
     };
 
     users.push(newUser);
+    savePersistedUsers();
+
     const tokens = generateTokens(newUser);
     const { passwordHash, ...safeUser } = newUser;
     return res.status(201).json({ user: safeUser, tokens });
@@ -185,18 +230,38 @@ export default function handler(req, res) {
 
   // POST /api/auth/login
   if (method === 'POST' && path.endsWith('/login')) {
-    const { nickname, password } = body || {};
+    const { nickname, password, clientUser } = body || {};
     if (!nickname || !password) {
       return res.status(400).json({ message: 'Введите никнейм и пароль' });
     }
 
-    const user = users.find((u) => u.nickname.toLowerCase() === nickname.trim().toLowerCase());
-    if (!user || user.passwordHash !== hashPassword(password)) {
+    const cleanNick = nickname.trim().toLowerCase();
+    const pwdHash = hashPassword(password);
+    let user = users.find((u) => u.nickname.toLowerCase() === cleanNick);
+
+    // Восстановление аккаунта из клиентского кэша при повторном деплое/холодном старте
+    if (!user && clientUser && clientUser.nickname?.toLowerCase() === cleanNick) {
+      if (clientUser.passwordHash === pwdHash || clientUser.password === password) {
+        user = {
+          id: clientUser.id || `usr-${Date.now()}`,
+          nickname: nickname.trim(),
+          email: clientUser.email || `${cleanNick}@samuraiworld.local`,
+          passwordHash: pwdHash,
+          role: clientUser.role || 'user',
+          avatarUrl: clientUser.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(nickname)}?overlay=true`,
+          createdAt: clientUser.createdAt || new Date().toISOString(),
+        };
+        users.push(user);
+        savePersistedUsers();
+      }
+    }
+
+    if (!user || user.passwordHash !== pwdHash) {
       return res.status(401).json({ message: 'Неверный никнейм или пароль' });
     }
 
     const tokens = generateTokens(user);
-    const { passwordHash, ...safeUser } = user;
+    const { passwordHash: p, ...safeUser } = user;
     return res.status(200).json({ user: safeUser, tokens });
   }
 
@@ -212,7 +277,21 @@ export default function handler(req, res) {
       return res.status(401).json({ message: 'Невалидный или истекший Refresh Token' });
     }
 
-    const user = users.find((u) => u.id === payload.sub);
+    let user = users.find((u) => u.id === payload.sub || u.nickname.toLowerCase() === payload.nickname.toLowerCase());
+    if (!user && payload.nickname) {
+      user = {
+        id: payload.sub,
+        nickname: payload.nickname,
+        email: payload.email,
+        passwordHash: payload.pwdHash || '',
+        role: payload.role || 'user',
+        avatarUrl: payload.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(payload.nickname)}?overlay=true`,
+        createdAt: payload.createdAt || new Date().toISOString(),
+      };
+      users.push(user);
+      savePersistedUsers();
+    }
+
     if (!user) {
       return res.status(401).json({ message: 'Пользователь не найден' });
     }
@@ -234,12 +313,28 @@ export default function handler(req, res) {
       return res.status(401).json({ message: 'Недействительный или истекший JWT токен' });
     }
 
-    const user = users.find((u) => u.id === payload.sub || u.nickname === payload.nickname);
+    let user = users.find((u) => u.id === payload.sub || u.nickname.toLowerCase() === payload.nickname.toLowerCase());
+
+    // Самодостаточная подпись JWT: если сервер перезапустился, восстанавливаем пользователя из подлинного токена
+    if (!user && payload.nickname) {
+      user = {
+        id: payload.sub,
+        nickname: payload.nickname,
+        email: payload.email,
+        passwordHash: payload.pwdHash || '',
+        role: payload.role || 'user',
+        avatarUrl: payload.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(payload.nickname)}?overlay=true`,
+        createdAt: payload.createdAt || new Date().toISOString(),
+      };
+      users.push(user);
+      savePersistedUsers();
+    }
+
     if (!user) {
       return res.status(404).json({ message: 'Пользователь не найден' });
     }
 
-    const { passwordHash, ...safeUser } = user;
+    const { passwordHash: p, pwdHash: ph, ...safeUser } = user;
     return res.status(200).json(safeUser);
   }
 
