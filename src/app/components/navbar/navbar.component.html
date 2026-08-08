@@ -20,20 +20,48 @@
             routerLinkActive="navbar__link--active"
             [routerLinkActiveOptions]="{exact: link.path === '/'}"
           >
-            <span class="navbar__link-jp">{{ link.jpLabel }}</span>
             <span class="navbar__link-ru">{{ link.label }}</span>
           </a>
         </li>
       </ul>
     </nav>
 
-    <!-- CTA -->
-    <a class="btn btn-primary navbar__cta" routerLink="/contacts">
-      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M10 2L12.5 7.5L18 8.27L14 12.14L14.9 17.73L10 15L5.1 17.73L6 12.14L2 8.27L7.5 7.5L10 2Z"/>
-      </svg>
-      Вступить
-    </a>
+    <!-- Auth & Action Area -->
+    <div class="navbar__actions">
+      <!-- User profile chip if logged in -->
+      <div class="navbar__user-chip" *ngIf="currentUser; else unauthButtons">
+        <img [src]="currentUser.avatarUrl || 'https://crafatar.com/avatars/Steve?overlay=true'" class="navbar__avatar" alt="avatar" />
+        <div class="navbar__user-details">
+          <span class="navbar__user-name">{{ currentUser.nickname }}</span>
+          <span class="navbar__user-role" [class.navbar__user-role--admin]="currentUser.role === 'admin'" [class.navbar__user-role--support]="currentUser.role === 'support'">
+            {{ currentUser.role === 'admin' ? 'Админ' : currentUser.role === 'support' ? 'Поддержка' : 'Игрок' }}
+          </span>
+        </div>
+        <button class="navbar__logout-btn" (click)="logout()" title="Выйти из аккаунта">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </div>
+
+      <ng-template #unauthButtons>
+        <div class="navbar__auth-group">
+          <button class="navbar__auth-btn" (click)="openAuthModal('login')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            <span>Вход</span>
+          </button>
+          <button class="navbar__auth-btn navbar__auth-btn--reg" (click)="openAuthModal('register')">
+            Регистрация
+          </button>
+        </div>
+      </ng-template>
+
+      <!-- CTA -->
+      <a class="btn btn-primary navbar__cta" routerLink="/contacts">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10 2L12.5 7.5L18 8.27L14 12.14L14.9 17.73L10 15L5.1 17.73L6 12.14L2 8.27L7.5 7.5L10 2Z"/>
+        </svg>
+        Вступить
+      </a>
+    </div>
 
     <!-- Burger -->
     <button
@@ -68,8 +96,25 @@
     </div>
 
     <nav class="navbar__drawer-nav">
-      <ul class="navbar__drawer-list">
-        <li *ngFor="let link of navLinks; let i = index" [style.animation-delay.ms]="i * 50">
+      <!-- User profile chip in mobile drawer -->
+      <div class="navbar__drawer-user" *ngIf="currentUser; else drawerUnauth">
+        <img [src]="currentUser.avatarUrl || 'https://crafatar.com/avatars/Steve?overlay=true'" class="navbar__avatar" alt="avatar" />
+        <div class="navbar__user-details">
+          <span class="navbar__user-name">{{ currentUser.nickname }}</span>
+          <span class="navbar__user-role">{{ currentUser.role === 'admin' ? 'Администратор' : currentUser.role === 'support' ? 'Поддержка' : 'Игрок' }}</span>
+        </div>
+        <button class="navbar__logout-btn" (click)="logout()">Выйти</button>
+      </div>
+
+      <ng-template #drawerUnauth>
+        <div class="navbar__drawer-auth-buttons">
+          <button class="btn btn-outline" style="width:100%" (click)="openAuthModal('login')">Вход в аккаунт</button>
+          <button class="btn btn-primary" style="width:100%" (click)="openAuthModal('register')">Регистрация</button>
+        </div>
+      </ng-template>
+
+      <ul class="navbar__drawer-list" style="margin-top:16px;">
+        <li *ngFor="let link of navLinks; let i = index">
           <a
             class="navbar__drawer-link"
             [routerLink]="link.path"
@@ -77,7 +122,6 @@
             [routerLinkActiveOptions]="{exact: link.path === '/'}"
             (click)="closeMobileMenu()"
           >
-            <span class="navbar__drawer-jp">{{ link.jpLabel }}</span>
             <span class="navbar__drawer-ru">{{ link.label }}</span>
           </a>
         </li>
@@ -103,3 +147,78 @@
 </header>
 
 <div class="navbar__spacer"></div>
+
+<!-- ГЛОБАЛЬНОЕ МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ / РЕГИСТРАЦИИ -->
+<div class="auth-modal-overlay" *ngIf="showAuthModal" (click)="closeAuthModal()">
+  <div class="auth-modal-card" (click)="$event.stopPropagation()">
+    <div class="auth-modal-header">
+      <h3>{{ authMode === 'login' ? 'Авторизация' : 'Регистрация аккаунта' }}</h3>
+      <button class="auth-modal-close" (click)="closeAuthModal()">&times;</button>
+    </div>
+
+    <!-- Табы переключения -->
+    <div class="auth-modal-tabs">
+      <button class="auth-modal-tab" [class.active]="authMode === 'login'" (click)="setAuthMode('login')">Вход</button>
+      <button class="auth-modal-tab" [class.active]="authMode === 'register'" (click)="setAuthMode('register')">Регистрация</button>
+    </div>
+
+    <!-- Ошибка -->
+    <div class="auth-alert error" *ngIf="authErrorMsg">
+      {{ authErrorMsg }}
+    </div>
+
+    <form (ngSubmit)="submitAuth()" class="auth-form">
+      <div class="auth-field">
+        <label>Никнейм на сервере *</label>
+        <input 
+          type="text" 
+          class="auth-input" 
+          placeholder="Например: PlayerOne" 
+          [(ngModel)]="authNicknameInput" 
+          name="authNickname"
+          required
+        />
+      </div>
+
+      <div class="auth-field" *ngIf="authMode === 'register'">
+        <label>Email (необязательно)</label>
+        <input 
+          type="email" 
+          class="auth-input" 
+          placeholder="email@example.com" 
+          [(ngModel)]="authEmailInput" 
+          name="authEmail"
+        />
+      </div>
+
+      <div class="auth-field">
+        <label>Пароль *</label>
+        <input 
+          type="password" 
+          class="auth-input" 
+          placeholder="Ваш пароль..." 
+          [(ngModel)]="authPasswordInput" 
+          name="authPassword"
+          required
+        />
+      </div>
+
+      <!-- Быстрый тестовый вход -->
+      <div class="auth-demo-hint">
+        <span>Тестовый вход в 1 клик:</span>
+        <div class="auth-demo-buttons">
+          <button type="button" (click)="fillDemoAccount('player')">Игрок (PlayerOne)</button>
+          <button type="button" (click)="fillDemoAccount('admin')">Админ (Admin_Samurai)</button>
+        </div>
+      </div>
+
+      <div class="auth-modal-actions">
+        <button type="button" class="btn-cancel" (click)="closeAuthModal()">Отмена</button>
+        <button type="submit" class="btn-submit" [disabled]="isAuthSubmitting">
+          {{ isAuthSubmitting ? 'Обработка...' : (authMode === 'login' ? 'Войти' : 'Создать аккаунт') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
