@@ -219,9 +219,9 @@
             </div>
 
             <div class="form-actions" style="margin-top:28px;">
-              <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                {{ isSubmitting ? 'Отправка в API...' : 'Отправить обращение' }}
+              <button type="submit" class="btn-submit-ticket" [disabled]="isSubmitting">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                <span>{{ isSubmitting ? 'Отправка обращения...' : 'Отправить обращение' }}</span>
               </button>
             </div>
           </form>
