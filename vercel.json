@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/minecraft-site/browser",
+  "rewrites": [
+    { "source": "/api/auth/(.*)", "destination": "/api/auth.js" },
+    { "source": "/api/auth", "destination": "/api/auth.js" },
+    { "source": "/api/support/tickets/(.*)", "destination": "/api/tickets.js" },
+    { "source": "/api/support/tickets", "destination": "/api/tickets.js" },
+    { "source": "/api/tickets/(.*)", "destination": "/api/tickets.js" },
+    { "source": "/api/tickets", "destination": "/api/tickets.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

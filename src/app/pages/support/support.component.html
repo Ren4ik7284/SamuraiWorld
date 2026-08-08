@@ -5,16 +5,42 @@
     <div class="page-header__glow"></div>
     <div class="container">
 
-      <!-- View Mode Switcher Header -->
+      <!-- View Mode & User Auth Bar Header -->
       <div class="view-mode-bar">
-        <span class="view-mode-label">Режим просмотра:</span>
+        <div class="auth-status-chip" *ngIf="currentUser; else unauthChip">
+          <img [src]="currentUser.avatarUrl" class="user-avatar-mini" alt="avatar" />
+          <div class="user-info-text">
+            <span class="user-nickname">{{ currentUser.nickname }}</span>
+            <span class="user-role-badge" [class.badge-admin]="currentUser.role === 'admin'" [class.badge-support]="currentUser.role === 'support'">
+              {{ currentUser.role === 'admin' ? 'Администратор' : currentUser.role === 'support' ? 'Поддержка' : 'Игрок' }}
+            </span>
+          </div>
+          <button class="logout-btn" (click)="logout()" title="Выйти из аккаунта">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
+
+        <ng-template #unauthChip>
+          <div class="auth-actions-group">
+            <button class="btn btn-outline btn-sm" (click)="openAuthModal('login')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              Вход
+            </button>
+            <button class="btn btn-primary btn-sm" (click)="openAuthModal('register')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+              Регистрация JWT
+            </button>
+          </div>
+        </ng-template>
+
+        <span class="view-mode-label" style="margin-left:auto;">Режим:</span>
         <button 
           class="view-mode-btn" 
           [class.view-mode-btn--active]="viewMode === 'user'"
           (click)="switchToUserView()"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span>Игрок (Подача тикетов)</span>
+          <span>Игрок</span>
         </button>
         <button 
           class="view-mode-btn view-mode-btn--admin" 
@@ -22,17 +48,14 @@
           (click)="switchToAdminView()"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span>Админ-панель</span>
+          <span>Панель Поддержки</span>
           <span class="admin-pulse"></span>
-        </button>
-        <button class="logout-btn" *ngIf="isAdminAuthenticated && viewMode === 'admin'" (click)="logoutAdmin()" title="Выйти из админки">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
       </div>
 
       <p class="section-eyebrow" style="justify-content:center;margin-bottom:16px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/></svg>
-        <span>{{ viewMode === 'admin' ? 'Панель Управления Поддержки' : 'Технический Центр & Поддержка' }}</span>
+        <span>{{ viewMode === 'admin' ? 'Панель Управления Поддержки' : 'Технический Центр & JWT Поддержка' }}</span>
       </p>
       <h1 class="page-header__title" *ngIf="viewMode === 'admin'">
         Штаб <span>Администратора</span>
@@ -41,7 +64,7 @@
         Служба <span>Поддержки</span>
       </h1>
       <p class="page-header__sub">
-        {{ viewMode === 'admin' ? 'Управление обращениями игроков, ответы от лица Поддержки и модерация тикетов.' : 'Подавайте тикеты, задавайте вопросы администраторам и отслеживайте решения проблем онлайн.' }}
+        {{ viewMode === 'admin' ? 'Управление обращениями игроков, ответы от лица Поддержки и модерация тикетов.' : 'Подавайте тикеты с JWT авторизацией, отслеживайте их статус и получайте быстрые ответы от Администрации.' }}
       </p>
 
       <!-- Live metrics -->
@@ -51,16 +74,16 @@
           <span>Поддержка Online 24/7</span>
         </div>
         <div class="metric-chip">
-          <span class="metric-label">Всего тикетов:</span>
+          <span class="metric-label">Ваши тикеты:</span>
           <strong>{{ ticketsList.length }}</strong>
         </div>
         <div class="metric-chip">
-          <span class="metric-label">Очередь RabbitMQ:</span>
-          <strong>Active</strong>
+          <span class="metric-label">Авторизация:</span>
+          <strong>{{ currentUser ? 'JWT Bearer Active' : 'Гость' }}</strong>
         </div>
         <div class="metric-chip">
           <span class="metric-label">База Данных:</span>
-          <strong>PostgreSQL Live</strong>
+          <strong>NestJS API + Postgres</strong>
         </div>
       </div>
     </div>
@@ -129,7 +152,7 @@
             </div>
             <div>
               <h4>Тикет {{ createdTicketInfo.ticketNumber }} успешно создан!</h4>
-              <p>Ваше обращение отправлено в очередь RabbitMQ и записано в базу данных PostgreSQL. Номер обращения: <strong>{{ createdTicketInfo.ticketNumber }}</strong></p>
+              <p>Ваше обращение привязано к JWT токену аккаунта <strong>{{ createdTicketInfo.nickname }}</strong>. Номер обращения: <strong>{{ createdTicketInfo.ticketNumber }}</strong></p>
               <button class="btn btn-primary" style="margin-top:12px;" (click)="openTicketDetails(createdTicketInfo); activeTab = 'tracker'">
                 Посмотреть статус тикета
               </button>
@@ -152,8 +175,10 @@
                   placeholder="Например: Shogun_Kenji" 
                   [(ngModel)]="newTicket.nickname" 
                   name="nickname"
+                  [readonly]="!!currentUser"
                   required 
                 />
+                <span class="field-hint" *ngIf="currentUser">✓ Авторизован как {{ currentUser.nickname }} (JWT токен прикреплён)</span>
               </div>
 
               <div class="form-group">
@@ -222,7 +247,7 @@
             <div class="form-actions" style="margin-top:28px;">
               <button type="submit" class="btn btn-primary" [disabled]="isSubmitting">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                {{ isSubmitting ? 'Отправка в RabbitMQ...' : 'Отправить обращение' }}
+                {{ isSubmitting ? 'Отправка в API...' : 'Отправить обращение' }}
               </button>
             </div>
           </form>
@@ -237,7 +262,7 @@
             <input 
               type="text" 
               class="search-input" 
-              placeholder="Поиск по номеру тикета (TK-XXXXX) или никнейму..." 
+              placeholder="Поиск по номеру тикета (TK-XXXXX) или теме..." 
               [(ngModel)]="searchQuery" 
             />
           </div>
@@ -278,9 +303,13 @@
             <div class="empty-state__icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px;height:48px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             </div>
-            <h3>Тикеты не найдены</h3>
-            <p>Вы еще не создавали обращений. Создайте новый тикет прямо сейчас!</p>
-            <button class="btn btn-primary" (click)="activeTab = 'create'">Создать обращение</button>
+            <h3>Обращения не найдены</h3>
+            <p *ngIf="currentUser">Для аккаунта <strong>{{ currentUser.nickname }}</strong> пока нет активных тикетов.</p>
+            <p *ngIf="!currentUser">Войдите в аккаунт через JWT авторизацию или создайте новое обращение!</p>
+            <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;">
+              <button class="btn btn-primary" (click)="activeTab = 'create'">Создать обращение</button>
+              <button class="btn btn-outline" *ngIf="!currentUser" (click)="openAuthModal('login')">Войти через JWT</button>
+            </div>
           </div>
         </ng-template>
       </div>
@@ -292,18 +321,18 @@
 
           <div class="faq-list">
             <div class="faq-item">
+              <h4 class="faq-item__q">Зачем нужна JWT авторизация в техподдержке?</h4>
+              <p class="faq-item__a">JWT (JSON Web Token) авторизация гарантирует, что ваши обращения и тикеты привязаны к вашему аккаунту и видны только вам и агентам поддержки. Никто посторонний не сможет прочитать или изменить ваши тикеты.</p>
+            </div>
+
+            <div class="faq-item">
               <h4 class="faq-item__q">Какое среднее время ответа техподдержки?</h4>
-              <p class="faq-item__a">Агенты поддержки отвечают в течение 10–30 минут в дневное время. Все тикеты мгновенно публикуются в брокер сообщений RabbitMQ и поступают дежурным администраторам.</p>
+              <p class="faq-item__a">Агенты поддержки отвечают в течение 10–30 минут в дневное время. Все тикеты мгновенно отправляются в единую NestJS API систему и сопоставляются в реальном времени.</p>
             </div>
 
             <div class="faq-item">
               <h4 class="faq-item__q">Что делать, если не выдались донат-предметы или валюта?</h4>
-              <p class="faq-item__a">Создайте тикет в категории «Донат & Экономика», указав ваш ник и способ оплаты. Наша система в базе данных PostgreSQL сверит транзакцию и начислит предметы.</p>
-            </div>
-
-            <div class="faq-item">
-              <h4 class="faq-item__q">Как подать иск в Верховный Игровой Суд?</h4>
-              <p class="faq-item__a">Выбирайте категорию «Суд & Жалоба». Укажите ник ответчика, суть иска и доказательства (скриншоты, видео или логи). Судебные приставы назначат слушание.</p>
+              <p class="faq-item__a">Создайте тикет в категории «Донат & Экономика», указав ваш ник и способ оплаты. Наша система сверит транзакцию и начислит предметы.</p>
             </div>
           </div>
         </div>
@@ -317,10 +346,6 @@
           <div>
             <h3 class="section-sub-title" style="margin-bottom:4px;">Панель Модерации и Ответов</h3>
             <p class="admin-sub">Здесь вы отвечаете игрокам <strong>от лица Службы Поддержки / Администрации</strong> и управляете тикетами.</p>
-          </div>
-          <div class="admin-name-field">
-            <label class="form-label" style="font-size:0.75rem;">Ваша подпись в ответе:</label>
-            <input type="text" class="form-control form-control-sm" [(ngModel)]="adminName" placeholder="Агент Поддержки" />
           </div>
         </div>
 
@@ -392,11 +417,11 @@
 
             <div class="admin-ticket-actions" (click)="$event.stopPropagation()">
               <button class="btn btn-ghost btn-sm" (click)="openTicketDetails(ticket)">
-                Ответить от Поддержки
+                Ответить
               </button>
               <button class="btn-delete" title="Закрыть тикет" (click)="deleteTicket(ticket.id, $event)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                Закрыть тикет
+                Удалить
               </button>
             </div>
           </div>
@@ -408,7 +433,7 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px;height:48px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
             <h3>Пока нет обращений от игроков</h3>
-            <p>Когда игроки отправят тикеты, они моментально отобразятся в этой админ-панели через RabbitMQ & PostgreSQL.</p>
+            <p>Когда игроки отправят тикеты, они моментально отобразятся в этой панеле через NestJS API.</p>
           </div>
         </ng-template>
       </div>
@@ -416,49 +441,93 @@
 
   </div>
 
-  <!-- SECRET ADMIN KEY AUTH MODAL -->
-  <div class="modal-overlay" *ngIf="showAuthModal" (click)="showAuthModal = false">
+  <!-- JWT AUTH MODAL (LOGIN / REGISTER) -->
+  <div class="modal-overlay" *ngIf="showAuthModal" (click)="closeAuthModal()">
     <div class="modal-card auth-modal card" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <div class="auth-header-title">
           <div class="auth-icon-badge">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           </div>
-          <h3>Вход в Админ-Панель</h3>
+          <h3>{{ authMode === 'login' ? 'Вход в аккаунт (JWT)' : 'Регистрация аккаунта' }}</h3>
         </div>
-        <button class="modal-close" (click)="showAuthModal = false">&times;</button>
+        <button class="modal-close" (click)="closeAuthModal()">&times;</button>
       </div>
 
-      <p class="auth-desc">Для входа в панель модерации тикетов введите секретный ключ доступа:</p>
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab-btn" [class.active]="authMode === 'login'" (click)="switchAuthMode('login')">
+          Авторизация
+        </button>
+        <button type="button" class="auth-tab-btn" [class.active]="authMode === 'register'" (click)="switchAuthMode('register')">
+          Создать аккаунт
+        </button>
+      </div>
 
-      <form (ngSubmit)="verifyAdminKey()" style="margin-top:16px;">
+      <p class="auth-desc">
+        {{ authMode === 'login' ? 'Введите никнейм и пароль для получения JWT токена и доступа к своим тикетам.' : 'Зарегистрируйте игровой профиль. Вы получите Access и Refresh токены доступа.' }}
+      </p>
+
+      <form (ngSubmit)="submitAuth()" style="margin-top:16px;">
         <div *ngIf="authErrorMessage" class="alert alert-error" style="margin-bottom:14px;padding:10px 14px;">
           <span>{{ authErrorMessage }}</span>
         </div>
+        <div *ngIf="authSuccessMessage" class="alert alert-success" style="margin-bottom:14px;padding:10px 14px;">
+          <span>{{ authSuccessMessage }}</span>
+        </div>
 
         <div class="form-group">
-          <label class="form-label" for="adminKey">Секретный ключ (PIN)</label>
+          <label class="form-label" for="authNickname">Игровой никнейм *</label>
           <input 
-            id="adminKey" 
-            type="password" 
+            id="authNickname" 
+            type="text" 
             class="form-control auth-input" 
-            placeholder="Введите пин-код..." 
-            [(ngModel)]="inputAdminKey" 
-            name="adminKey"
-            autofocus 
+            placeholder="Например: PlayerOne" 
+            [(ngModel)]="authNicknameInput" 
+            name="authNickname"
             required
           />
         </div>
 
-        <div class="modal-actions" style="margin-top:20px;display:flex;justify-content:flex-end;gap:10px;">
-          <button type="button" class="btn btn-ghost btn-sm" (click)="showAuthModal = false">Отмена</button>
-          <button type="submit" class="btn btn-primary btn-sm">Войти в админку</button>
+        <div class="form-group" style="margin-top:14px;" *ngIf="authMode === 'register'">
+          <label class="form-label" for="authEmail">Email (необязательно)</label>
+          <input 
+            id="authEmail" 
+            type="email" 
+            class="form-control auth-input" 
+            placeholder="your@email.ru" 
+            [(ngModel)]="authEmailInput" 
+            name="authEmail"
+          />
+        </div>
+
+        <div class="form-group" style="margin-top:14px;">
+          <label class="form-label" for="authPassword">Пароль *</label>
+          <input 
+            id="authPassword" 
+            type="password" 
+            class="form-control auth-input" 
+            placeholder="Ваш пароль..." 
+            [(ngModel)]="authPasswordInput" 
+            name="authPassword"
+            required
+          />
+        </div>
+
+        <div class="modal-actions" style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;">
+          <div class="demo-logins-hint">
+            <span class="hint-title">Тестовые аккаунты:</span>
+            <span>Игрок: <code>PlayerOne / player123</code></span>
+            <span>Админ: <code>Admin_Samurai / admin123</code></span>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm" [disabled]="isAuthSubmitting">
+            {{ isAuthSubmitting ? 'Выполнение...' : (authMode === 'login' ? 'Войти и получить токен' : 'Зарегистрироваться') }}
+          </button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- TICKET DETAILS MODAL / DRAWER -->
+  <!-- TICKET DETAILS MODAL -->
   <div class="modal-overlay" *ngIf="selectedTicket" (click)="closeTicketDetails()">
     <div class="modal-card card" (click)="$event.stopPropagation()">
       
@@ -470,7 +539,7 @@
         <div class="modal-actions-right">
           <button class="btn-delete btn-delete-head" (click)="deleteTicket(selectedTicket.id)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            Закрыть тикет
+            Удалить тикет
           </button>
           <button class="modal-close" (click)="closeTicketDetails()">&times;</button>
         </div>
@@ -485,7 +554,7 @@
       </div>
 
       <!-- Admin Status Changer Controls -->
-      <div class="status-changer-bar" *ngIf="viewMode === 'admin'">
+      <div class="status-changer-bar" *ngIf="authService.isSupportOrAdmin">
         <span class="form-label" style="font-size:0.78rem;">Изменить статус:</span>
         <button class="btn-status status-pending" (click)="changeStatus('Ожидает ответа')">Ожидает ответа</button>
         <button class="btn-status status-progress" (click)="changeStatus('В обработке')">В обработке</button>
@@ -514,17 +583,17 @@
       <div class="reply-container" *ngIf="selectedTicket.status !== 'Закрыто'">
         <ng-container *ngIf="canUserReply(selectedTicket); else noReplyPermission">
           <div class="reply-role-indicator">
-            {{ viewMode === 'admin' ? 'Отправляете ответ ОТ ЛИЦА СЛУЖБЫ ПОДДЕРЖКИ:' : 'Отправляете сообщение от своего ника (' + selectedTicket.nickname + '):' }}
+            {{ authService.isSupportOrAdmin ? 'Отправляете ответ ОТ ЛИЦА СЛУЖБЫ ПОДДЕРЖКИ:' : 'Отправляете сообщение от своего ника (' + selectedTicket.nickname + '):' }}
           </div>
           <textarea 
             rows="3" 
             class="form-control reply-textarea" 
-            [placeholder]="viewMode === 'admin' ? 'Напишите официальный ответ игроку от имени Поддержки...' : 'Напишите уточнение по вашему вопросу...'"
+            [placeholder]="authService.isSupportOrAdmin ? 'Напишите официальный ответ игроку от имени Поддержки...' : 'Напишите уточнение по вашему вопросу...'"
             [(ngModel)]="replyText"
           ></textarea>
           <div class="reply-actions">
             <button class="btn btn-primary btn-sm" (click)="sendReply()" [disabled]="isReplying || !replyText.trim()">
-              {{ isReplying ? 'Отправка...' : (viewMode === 'admin' ? 'Ответить от Поддержки' : 'Отправить ответ') }}
+              {{ isReplying ? 'Отправка...' : (authService.isSupportOrAdmin ? 'Ответить от Поддержки' : 'Отправить ответ') }}
             </button>
           </div>
         </ng-container>
@@ -532,7 +601,7 @@
         <ng-template #noReplyPermission>
           <div class="alert alert-error" style="margin:0;font-size:0.85rem;display:flex;align-items:center;gap:8px;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <span>Отвечать в этом тикете могут только <strong>Автор ({{ selectedTicket.nickname }})</strong> и <strong>Администрация</strong>.</span>
+            <span>Отвечать в этом тикете могут только <strong>Автор ({{ selectedTicket.nickname }})</strong> и <strong>Поддержка</strong>.</span>
           </div>
         </ng-template>
       </div>

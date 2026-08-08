@@ -851,14 +851,350 @@
   font-size: 0.8rem;
 }
 
-/* Responsive */
+/* ===== MOBILE RESPONSIVE ADAPTATION ===== */
 @media (max-width: 768px) {
-  .support-nav { flex-direction: column; }
-  .form-grid { grid-template-columns: 1fr; }
-  .form-container { padding: 20px 16px; }
-  .priority-selector { flex-wrap: wrap; }
-  .admin-ticket-row { flex-direction: column; align-items: flex-start; }
-  .admin-header { flex-direction: column; }
-  .view-mode-bar { flex-direction: column; width: 100%; border-radius: 14px; }
-  .view-mode-btn { width: 100%; justify-content: center; }
+  .page-header { padding: 40px 0 30px; }
+
+  .view-mode-bar {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    border-radius: 16px;
+    padding: 12px;
+    gap: 12px;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .auth-status-chip {
+    width: 100%;
+    justify-content: space-between;
+    padding: 6px 14px;
+  }
+
+  .auth-actions-group {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .auth-actions-group .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .view-mode-label { display: none; }
+
+  .view-mode-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+  }
+
+  .support-nav {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 6px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius-sm);
+  }
+
+  .support-nav::-webkit-scrollbar { display: none; }
+
+  .support-nav__btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    min-height: 44px;
+  }
+
+  .categories-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .form-container {
+    padding: 20px 16px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .form-control, input, select, textarea {
+    font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
+  }
+
+  .priority-selector {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .priority-btn {
+    padding: 12px 6px;
+    font-size: 0.8rem;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px;
+  }
+
+  .tickets-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-panel {
+    padding: 16px;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .admin-name-field {
+    width: 100%;
+  }
+
+  .filter-buttons {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .filter-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .admin-ticket-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .admin-ticket-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .admin-ticket-actions .btn, .admin-ticket-actions .btn-delete {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modals on Mobile */
+  .modal-overlay {
+    padding: 10px;
+    align-items: flex-end; /* Mobile bottom sheet style on small screens */
+  }
+
+  .modal-card {
+    padding: 20px 16px;
+    border-radius: 20px 20px 0 0;
+    max-height: 92vh;
+    width: 100%;
+  }
+
+  .auth-modal {
+    max-width: 100%;
+    border-radius: 20px;
+  }
+
+  .auth-input {
+    letter-spacing: 0.05em;
+    font-size: 1rem;
+  }
+
+  .modal-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .modal-actions-right {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .status-changer-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .status-changer-bar .btn-status {
+    width: 100%;
+    text-align: center;
+    padding: 8px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .demo-logins-hint {
+    text-align: center;
+    align-items: center;
+  }
 }
+
+@media (max-width: 480px) {
+  .page-header__title { font-size: 1.65rem; }
+  .header-metrics { flex-direction: column; align-items: stretch; }
+  .metric-chip { justify-content: center; width: 100%; }
+}
+
+/* ===== JWT AUTH PROFILE CHIP & MODAL STYLES ===== */
+.auth-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 100px;
+}
+
+.user-avatar-mini {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--clr-gold-2);
+}
+
+.user-info-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-nickname {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--clr-gold-3);
+}
+
+.user-role-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--clr-text-2);
+  text-transform: uppercase;
+}
+
+.badge-admin {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.badge-support {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.auth-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--clr-surface-border);
+  color: var(--clr-text-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--duration);
+}
+
+.btn-outline:hover {
+  border-color: var(--clr-gold-2);
+  color: var(--clr-gold-3);
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  margin-bottom: 14px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.auth-tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: var(--clr-text-3);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration);
+}
+
+.auth-tab-btn:hover {
+  color: var(--clr-text-1);
+}
+
+.auth-tab-btn.active {
+  background: rgba(201, 146, 10, 0.2);
+  color: var(--clr-gold-3);
+  border: 1px solid rgba(201, 146, 10, 0.4);
+}
+
+.demo-logins-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.72rem;
+  color: var(--clr-text-3);
+}
+
+.demo-logins-hint .hint-title {
+  font-weight: 700;
+  color: var(--clr-text-2);
+}
+
+.demo-logins-hint code {
+  color: var(--clr-gold-3);
+  font-family: 'Courier New', monospace;
+}
+
+.field-hint {
+  font-size: 0.75rem;
+  color: #4ade80;
+  margin-top: 4px;
+  display: block;
+}
+
+

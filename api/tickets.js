@@ -1,14 +1,80 @@
-// Vercel Serverless API for Support Tickets (Zero external dependency, 100% reliable)
-let globalTickets = [];
+import crypto from 'crypto';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'samuraiworld_super_secret_jwt_key_2026';
+
+let globalTickets = [
+  {
+    id: 't-1001',
+    ticketNumber: 'TK-1001',
+    userId: 'usr-player-1',
+    nickname: 'PlayerOne',
+    contact: 'Discord: @playerone',
+    category: 'Технические проблемы',
+    priority: 'Высокий',
+    subject: 'Не могу зайти на спавн после обновления',
+    description: 'При входе на спавн кикает с ошибкой Internal Server Error.',
+    status: 'В обработке',
+    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+    messages: [
+      {
+        id: 'm-1',
+        sender: 'PlayerOne',
+        role: 'user',
+        text: 'При входе на спавн кикает с ошибкой Internal Server Error.',
+        timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
+      },
+      {
+        id: 'm-2',
+        sender: 'Support_Agent',
+        role: 'support',
+        text: 'Здравствуйте! Перезагрузили чанк спавна. Попробуйте войти снова.',
+        timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
+      },
+    ],
+  },
+];
+
+function base64urlDecode(str) {
+  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (base64.length % 4) {
+    base64 += '=';
+  }
+  return Buffer.from(base64, 'base64').toString('utf8');
+}
+
+function verifyAccessToken(authHeader) {
+  if (!authHeader) return null;
+  const token = authHeader.split(' ')[1];
+  if (!token) return null;
+
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const [encodedHeader, encodedPayload, signature] = parts;
+    const signatureInput = `${encodedHeader}.${encodedPayload}`;
+    const expectedSignature = crypto
+      .createHmac('sha256', JWT_SECRET)
+      .update(signatureInput)
+      .digest('base64url');
+
+    if (signature !== expectedSignature) return null;
+    const payload = JSON.parse(base64urlDecode(encodedPayload));
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < now) return null;
+    return payload;
+  } catch (e) {
+    return null;
+  }
+}
 
 export default function handler(req, res) {
-  // CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
   );
 
   if (req.method === 'OPTIONS') {
@@ -16,39 +82,149 @@ export default function handler(req, res) {
     return;
   }
 
-  const { method, query, body } = req;
+  const { method, query, body, headers, url } = req;
+  const user = verifyAccessToken(headers['authorization']);
 
-  if (method === 'GET') {
-    return res.status(200).json(globalTickets);
-  }
+  // Extract ID from URL if calling /api/support/tickets/:id
+  const urlParts = url.split('?')[0].split('/');
+  const lastPart = urlParts[urlParts.length - 1];
+  const ticketIdParam = (lastPart && lastPart !== 'tickets') ? lastPart : null;
 
-  if (method === 'POST') {
-    const ticket = body;
-    if (!ticket || !ticket.id) {
-      return res.status(400).json({ error: 'Invalid ticket payload' });
+  // GET Tickets list
+  if (method === 'GET' && !ticketIdParam) {
+    let result = [...globalTickets];
+
+    if (user) {
+      if (user.role === 'admin' || user.role === 'support') {
+        // Admin sees all
+      } else {
+        // User sees only their tickets
+        result = result.filter(
+          (t) => t.userId === user.sub || t.nickname.toLowerCase() === user.nickname.toLowerCase()
+        );
+      }
+    } else if (query.nickname) {
+      result = result.filter((t) => t.nickname.toLowerCase() === query.nickname.toLowerCase());
     }
-    // Remove duplicates if existing
-    globalTickets = globalTickets.filter((t) => t.id !== ticket.id && t._id !== ticket._id);
-    globalTickets.unshift(ticket);
-    return res.status(201).json(ticket);
-  }
 
-  if (method === 'PUT') {
-    const { id } = query;
-    const ticketId = id || body.id;
-    const index = globalTickets.findIndex((t) => t.id === ticketId || t._id === ticketId);
-    if (index !== -1) {
-      globalTickets[index] = { ...globalTickets[index], ...body };
-      return res.status(200).json(globalTickets[index]);
+    if (query.category) {
+      result = result.filter((t) => t.category === query.category);
     }
-    return res.status(404).json({ error: 'Ticket not found' });
+    if (query.status) {
+      result = result.filter((t) => t.status === query.status);
+    }
+
+    return res.status(200).json(
+      result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    );
   }
 
+  // GET Ticket by ID
+  if (method === 'GET' && ticketIdParam) {
+    const ticket = globalTickets.find((t) => t.id === ticketIdParam || t.ticketNumber.toLowerCase() === ticketIdParam.toLowerCase());
+    if (!ticket) return res.status(404).json({ error: 'Тикет не найден' });
+    return res.status(200).json(ticket);
+  }
+
+  // POST Create Ticket
+  if (method === 'POST' && !url.includes('/messages')) {
+    const dto = body || {};
+    const nickname = user?.nickname || dto.nickname;
+    if (!nickname || !dto.subject || !dto.description) {
+      return res.status(400).json({ message: 'Заполните никнейм, тему и описание' });
+    }
+
+    const now = new Date().toISOString();
+    const ticketNumber = `TK-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const newTicket = {
+      id: `t-${Date.now()}`,
+      ticketNumber,
+      userId: user?.sub || dto.userId,
+      nickname,
+      contact: dto.contact || 'Не указан',
+      category: dto.category || 'Технические проблемы',
+      priority: dto.priority || 'Средний',
+      subject: dto.subject,
+      description: dto.description,
+      status: 'Ожидает ответа',
+      createdAt: now,
+      updatedAt: now,
+      messages: [
+        {
+          id: `m-${Date.now()}-1`,
+          sender: nickname,
+          role: 'user',
+          text: dto.description,
+          timestamp: now,
+        },
+        {
+          id: `m-${Date.now()}-2`,
+          sender: 'Система JWT',
+          role: 'system',
+          text: `Обращение ${ticketNumber} привязано к аккаунту ${nickname}`,
+          timestamp: now,
+        },
+      ],
+    };
+
+    globalTickets.unshift(newTicket);
+    return res.status(201).json(newTicket);
+  }
+
+  // POST Add message /api/support/tickets/:id/messages
+  if (method === 'POST' && url.includes('/messages')) {
+    const id = ticketIdParam || query.id;
+    const ticket = globalTickets.find((t) => t.id === id || t.ticketNumber === id);
+    if (!ticket) return res.status(404).json({ message: 'Тикет не найден' });
+
+    const now = new Date().toISOString();
+    const isStaff = user?.role === 'admin' || user?.role === 'support';
+    const senderRole = body?.role || (isStaff ? 'support' : 'user');
+    const senderName = user?.nickname || body?.sender || ticket.nickname;
+
+    const newMsg = {
+      id: `m-${Date.now()}`,
+      sender: senderName,
+      role: senderRole,
+      text: body?.text || '',
+      timestamp: now,
+    };
+
+    ticket.messages.push(newMsg);
+    ticket.updatedAt = now;
+    ticket.status = senderRole === 'support' ? 'В обработке' : 'Ожидает ответа';
+
+    return res.status(200).json(ticket);
+  }
+
+  // PATCH Update status /api/support/tickets/:id/status
+  if (method === 'PATCH' && url.includes('/status')) {
+    const id = ticketIdParam || query.id;
+    const ticket = globalTickets.find((t) => t.id === id || t.ticketNumber === id);
+    if (!ticket) return res.status(404).json({ message: 'Тикет не найден' });
+
+    const now = new Date().toISOString();
+    const newStatus = body?.status || 'В обработке';
+    ticket.status = newStatus;
+    ticket.updatedAt = now;
+
+    ticket.messages.push({
+      id: `m-${Date.now()}`,
+      sender: 'Система',
+      role: 'system',
+      text: `Статус тикета изменён на: "${newStatus}"`,
+      timestamp: now,
+    });
+
+    return res.status(200).json(ticket);
+  }
+
+  // DELETE Ticket
   if (method === 'DELETE') {
-    const { id } = query;
-    const ticketId = id || body?.id;
-    globalTickets = globalTickets.filter((t) => t.id !== ticketId && t._id !== ticketId);
-    return res.status(200).json({ success: true, id: ticketId });
+    const id = ticketIdParam || query.id || body?.id;
+    globalTickets = globalTickets.filter((t) => t.id !== id && t.ticketNumber !== id);
+    return res.status(200).json({ success: true, id });
   }
 
   return res.status(405).json({ error: 'Method Not Allowed' });

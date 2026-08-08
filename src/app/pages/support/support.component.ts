@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
+import { AuthService, User } from '../../services/auth.service';
 
 export type TicketCategory =
   | 'Технические проблемы'
@@ -23,9 +24,9 @@ export interface TicketMessage {
 }
 
 export interface Ticket {
-  _id?: string;
   id: string;
   ticketNumber: string;
+  userId?: string;
   nickname: string;
   contact: string;
   category: TicketCategory;
@@ -46,33 +47,25 @@ export interface Ticket {
   styleUrls: ['./support.component.css'],
 })
 export class SupportComponent implements OnInit, OnDestroy {
-  // Список резервных эндпоинтов для 100% гарантии синхронизации
-  readonly ENDPOINTS: string[] = [
-    'https://crudcrud.com/api/7c16a052e7f242aaaad90b0d09b7fdd4/tickets',
-    'https://crudcrud.com/api/40c9f2ef44174272b782728337e03571/tickets',
-    'https://crudcrud.com/api/88568c07e034458f96e42b2ca7452d5b/tickets',
-  ];
+  readonly API_TICKETS_URL = '/api/support/tickets';
 
-  activeEndpointIndex: number = 0;
-  activeEndpointUrl: string = '';
-  isRecoveringEndpoint: boolean = false;
+  // Текущий пользователь из AuthService
+  currentUser: User | null = null;
 
-  // Никнейм текущего игрока в браузере
-  currentUserNickname: string = '';
-
-  // Авторизация администратора по секретному ключу
-  isAdminAuthenticated: boolean = false;
+  // Модалка авторизации / регистрации
   showAuthModal: boolean = false;
-  inputAdminKey: string = '';
+  authMode: 'login' | 'register' = 'login';
+  authNicknameInput: string = '';
+  authPasswordInput: string = '';
+  authEmailInput: string = '';
   authErrorMessage: string = '';
+  authSuccessMessage: string = '';
+  isAuthSubmitting: boolean = false;
 
-  // Секретные ключи доступа в админ-панель
-  readonly SECRET_ADMIN_KEYS: string[] = ['7777', 'SAMURAI-ADMIN'];
-
-  // Режим просмотра: 'user' (Игрок) или 'admin' (Админ-панель)
+  // Режим просмотра: 'user' (Игрок) или 'admin' (Панель техподдержки)
   viewMode: 'user' | 'admin' = 'user';
 
-  // Выбранная вкладка игрока: 'create' | 'tracker' | 'faq'
+  // Выбранная вкладка: 'create' | 'tracker' | 'faq'
   activeTab: 'create' | 'tracker' | 'faq' = 'create';
 
   // Форма создания тикета
@@ -126,27 +119,33 @@ export class SupportComponent implements OnInit, OnDestroy {
   ticketsList: Ticket[] = [];
   selectedTicket: Ticket | null = null;
 
-  // Ответы и действия админа
+  // Ответы и действия поддержки
   replyText = '';
-  adminName = 'Администратор SamuraiWorld';
   isReplying = false;
-  isDeleting = false;
 
   private pollTimer: any;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    public authService: AuthService
+  ) {}
 
   ngOnInit(): void {
-    this.checkAdminAuth();
-    this.loadUserSession();
-    this.loadActiveEndpoint();
-    this.loadLocalCache();
-    this.loadTickets();
+    this.authService.currentUser$.subscribe((user) => {
+      this.currentUser = user;
+      if (user) {
+        this.newTicket.nickname = user.nickname;
+        if (user.role === 'admin' || user.role === 'support') {
+          this.viewMode = 'admin';
+        }
+      }
+      this.loadTickets();
+    });
 
-    // Автоматическая синхронизация каждые 3 секунды
+    // Автоматическое обновление каждые 4 секунды
     this.pollTimer = setInterval(() => {
       this.loadTickets(true);
-    }, 3000);
+    }, 4000);
   }
 
   ngOnDestroy(): void {
@@ -155,46 +154,79 @@ export class SupportComponent implements OnInit, OnDestroy {
     }
   }
 
-  private loadActiveEndpoint(): void {
-    const savedEndpoint = localStorage.getItem('samurai_active_endpoint');
-    if (savedEndpoint) {
-      this.activeEndpointUrl = savedEndpoint;
+  openAuthModal(mode: 'login' | 'register' = 'login'): void {
+    this.authMode = mode;
+    this.showAuthModal = true;
+    this.authErrorMessage = '';
+    this.authSuccessMessage = '';
+  }
+
+  closeAuthModal(): void {
+    this.showAuthModal = false;
+  }
+
+  switchAuthMode(mode: 'login' | 'register'): void {
+    this.authMode = mode;
+    this.authErrorMessage = '';
+    this.authSuccessMessage = '';
+  }
+
+  submitAuth(): void {
+    if (!this.authNicknameInput.trim() || !this.authPasswordInput.trim()) {
+      this.authErrorMessage = 'Введите никнейм и пароль';
+      return;
+    }
+
+    this.isAuthSubmitting = true;
+    this.authErrorMessage = '';
+    this.authSuccessMessage = '';
+
+    if (this.authMode === 'register') {
+      this.authService
+        .register({
+          nickname: this.authNicknameInput.trim(),
+          password: this.authPasswordInput.trim(),
+          email: this.authEmailInput.trim() || undefined,
+        })
+        .subscribe({
+          next: () => {
+            this.isAuthSubmitting = false;
+            this.authSuccessMessage = 'Успешная регистрация и вход!';
+            setTimeout(() => this.closeAuthModal(), 800);
+          },
+          error: (err) => {
+            this.isAuthSubmitting = false;
+            this.authErrorMessage =
+              err.error?.message || 'Ошибка при регистрации. Возможно никнейм уже занят.';
+          },
+        });
     } else {
-      this.activeEndpointUrl = this.ENDPOINTS[0];
+      this.authService
+        .login({
+          nickname: this.authNicknameInput.trim(),
+          password: this.authPasswordInput.trim(),
+        })
+        .subscribe({
+          next: () => {
+            this.isAuthSubmitting = false;
+            this.authSuccessMessage = 'Успешный вход!';
+            setTimeout(() => this.closeAuthModal(), 800);
+          },
+          error: (err) => {
+            this.isAuthSubmitting = false;
+            this.authErrorMessage =
+              err.error?.message || 'Неверный никнейм или пароль.';
+          },
+        });
     }
   }
 
-  private loadUserSession(): void {
-    this.currentUserNickname = localStorage.getItem('samurai_user_nickname') || '';
-    if (this.currentUserNickname) {
-      this.newTicket.nickname = this.currentUserNickname;
-    }
-  }
-
-  private loadLocalCache(): void {
-    try {
-      const saved = localStorage.getItem('samurai_shared_tickets');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          this.ticketsList = parsed;
-        }
-      }
-    } catch (e) {
-      console.warn('Cache error:', e);
-    }
-  }
-
-  private saveLocalCache(): void {
-    try {
-      localStorage.setItem('samurai_shared_tickets', JSON.stringify(this.ticketsList));
-    } catch (e) {
-      console.warn('Save cache error:', e);
-    }
-  }
-
-  private checkAdminAuth(): void {
-    this.isAdminAuthenticated = localStorage.getItem('samurai_admin_auth') === 'true';
+  logout(): void {
+    this.authService.logout();
+    this.viewMode = 'user';
+    this.ticketsList = [];
+    this.selectedTicket = null;
+    this.loadTickets();
   }
 
   switchToUserView(): void {
@@ -202,32 +234,11 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   switchToAdminView(): void {
-    if (this.isAdminAuthenticated) {
+    if (this.authService.isSupportOrAdmin) {
       this.viewMode = 'admin';
     } else {
-      this.showAuthModal = true;
-      this.inputAdminKey = '';
-      this.authErrorMessage = '';
+      this.openAuthModal('login');
     }
-  }
-
-  verifyAdminKey(): void {
-    const key = this.inputAdminKey.trim();
-    if (this.SECRET_ADMIN_KEYS.includes(key)) {
-      this.isAdminAuthenticated = true;
-      localStorage.setItem('samurai_admin_auth', 'true');
-      this.showAuthModal = false;
-      this.authErrorMessage = '';
-      this.viewMode = 'admin';
-    } else {
-      this.authErrorMessage = 'Неверный секретный ключ доступа!';
-    }
-  }
-
-  logoutAdmin(): void {
-    this.isAdminAuthenticated = false;
-    localStorage.removeItem('samurai_admin_auth');
-    this.viewMode = 'user';
   }
 
   selectCategory(cat: TicketCategory): void {
@@ -235,79 +246,35 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Загрузка всех тикетов из базы данных
+   * Загрузка тикетов с передачей JWT токена
    */
   loadTickets(silent: boolean = false): void {
-    this.http.get<Ticket[]>(this.activeEndpointUrl).subscribe({
+    const headers = this.authService.getAuthHeaders();
+    let url = this.API_TICKETS_URL;
+    
+    // Если пользователь не залогинен, передаем его ник если он ввел в форме
+    if (!this.currentUser && this.newTicket.nickname) {
+      url += `?nickname=${encodeURIComponent(this.newTicket.nickname.trim())}`;
+    }
+
+    this.http.get<Ticket[]>(url, headers).subscribe({
       next: (data) => {
         if (Array.isArray(data)) {
-          // Объединяем локальный кэш с полученными удаленными данными
-          const map = new Map<string, Ticket>();
-          this.ticketsList.forEach((t) => map.set(t.id, t));
-          data.forEach((t) => map.set(t.id, t));
-
-          this.ticketsList = Array.from(map.values()).sort(
-            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-          this.saveLocalCache();
+          this.ticketsList = data;
           this.syncSelectedTicket();
         }
       },
       error: (err) => {
-        if (err.status === 404 || err.status === 400 || err.status === 0) {
-          this.recoverEndpoint();
+        if (!silent) {
+          console.warn('Ошибка загрузки тикетов:', err);
         }
       },
-    });
-  }
-
-  /**
-   * Автоматическое переключение на свежую базу данных при исчерпании лимита 100 запросов
-   */
-  private recoverEndpoint(): void {
-    if (this.isRecoveringEndpoint) return;
-    this.isRecoveringEndpoint = true;
-
-    // Сначала пробуем переключить на следующий резервный эндпоинт из списка
-    this.activeEndpointIndex = (this.activeEndpointIndex + 1) % this.ENDPOINTS.length;
-    this.activeEndpointUrl = this.ENDPOINTS[this.activeEndpointIndex];
-    localStorage.setItem('samurai_active_endpoint', this.activeEndpointUrl);
-
-    // Параллельно запрашиваем со страницы новую чистую динамическую точку
-    this.http.get('https://crudcrud.com', { responseType: 'text' }).subscribe({
-      next: (html) => {
-        const match = html.match(/https:\/\/crudcrud\.com\/api\/[a-f0-9]{32}/);
-        if (match && match[0]) {
-          this.activeEndpointUrl = `${match[0]}/tickets`;
-          localStorage.setItem('samurai_active_endpoint', this.activeEndpointUrl);
-          this.reuploadAllTickets();
-        }
-        this.isRecoveringEndpoint = false;
-      },
-      error: () => {
-        this.reuploadAllTickets();
-        this.isRecoveringEndpoint = false;
-      },
-    });
-  }
-
-  private reuploadAllTickets(): void {
-    this.ticketsList.forEach((t) => {
-      const { _id, ...cleanObj } = t;
-      this.http.post<Ticket>(this.activeEndpointUrl, cleanObj).subscribe({
-        next: (created) => {
-          t._id = created._id;
-        },
-        error: () => {},
-      });
     });
   }
 
   private syncSelectedTicket(): void {
     if (this.selectedTicket) {
-      const updated = this.ticketsList.find(
-        (t) => t._id === this.selectedTicket?._id || t.id === this.selectedTicket?.id
-      );
+      const updated = this.ticketsList.find((t) => t.id === this.selectedTicket?.id);
       if (updated) {
         this.selectedTicket = {
           ...updated,
@@ -319,88 +286,58 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   canUserReply(ticket: Ticket | null): boolean {
     if (!ticket) return false;
-    if (this.viewMode === 'admin' && this.isAdminAuthenticated) return true;
+    if (this.authService.isSupportOrAdmin) return true;
 
-    const userNick = (this.currentUserNickname || this.newTicket.nickname).trim().toLowerCase();
+    const userNick = (this.currentUser?.nickname || this.newTicket.nickname).trim().toLowerCase();
     const authorNick = ticket.nickname.trim().toLowerCase();
 
     return !!userNick && userNick === authorNick;
   }
 
   /**
-   * Создание нового обращения
+   * Создание нового обращения с JWT привязкой
    */
   submitTicket(): void {
-    if (!this.newTicket.nickname || !this.newTicket.subject || !this.newTicket.description) {
-      this.errorMessage = 'Заполните никнейм, тему и описание проблемы.';
+    const nickname = (this.currentUser?.nickname || this.newTicket.nickname).trim();
+    if (!nickname || !this.newTicket.subject || !this.newTicket.description) {
+      this.errorMessage = 'Заполните ваш никнейм, тему и описание проблемы.';
       return;
     }
-
-    this.currentUserNickname = this.newTicket.nickname.trim();
-    localStorage.setItem('samurai_user_nickname', this.currentUserNickname);
 
     this.errorMessage = '';
     this.isSubmitting = true;
 
-    const now = new Date().toISOString();
-    const ticketNumber = `TK-${Math.floor(10000 + Math.random() * 90000)}`;
-    const newTicketObj: Omit<Ticket, '_id'> = {
-      id: `t-${Date.now()}`,
-      ticketNumber,
-      nickname: this.currentUserNickname,
+    const dto = {
+      nickname,
       contact: this.newTicket.contact || 'Не указан',
       category: this.newTicket.category,
       priority: this.newTicket.priority,
       subject: this.newTicket.subject,
       description: this.newTicket.description,
-      status: 'Ожидает ответа',
-      createdAt: now,
-      updatedAt: now,
-      messages: [
-        {
-          id: `m-${Date.now()}-1`,
-          sender: this.currentUserNickname,
-          role: 'user',
-          text: this.newTicket.description,
-          timestamp: now,
-        },
-        {
-          id: `m-${Date.now()}-2`,
-          sender: 'Система Поддержки',
-          role: 'system',
-          text: `Тикет ${ticketNumber} успешно создан [AMQP Queue: support.created]`,
-          timestamp: now,
-        },
-      ],
     };
 
-    // Сразу сохраняем локально, чтобы у пользователя тикет появился мгновенно!
-    const localTicket: Ticket = { ...newTicketObj };
-    this.ticketsList.unshift(localTicket);
-    this.saveLocalCache();
+    const headers = this.authService.getAuthHeaders();
 
-    this.isSubmitting = false;
-    this.submitSuccess = true;
-    this.createdTicketInfo = localTicket;
-    this.resetForm();
-
-    // Отправляем во внешнюю базу данных
-    this.http.post<Ticket>(this.activeEndpointUrl, newTicketObj).subscribe({
+    this.http.post<Ticket>(this.API_TICKETS_URL, dto, headers).subscribe({
       next: (created) => {
-        localTicket._id = created._id;
-        this.saveLocalCache();
+        this.isSubmitting = false;
+        this.submitSuccess = true;
+        this.createdTicketInfo = created;
+        this.ticketsList.unshift(created);
+        this.resetForm();
+        this.activeTab = 'tracker';
+        this.openTicketDetails(created);
       },
       error: (err) => {
-        if (err.status === 404 || err.status === 400 || err.status === 0) {
-          this.recoverEndpoint();
-        }
+        this.isSubmitting = false;
+        this.errorMessage = err.error?.message || 'Ошибка создания тикета на сервере.';
       },
     });
   }
 
   resetForm(): void {
     this.newTicket = {
-      nickname: this.currentUserNickname || '',
+      nickname: this.currentUser?.nickname || '',
       contact: '',
       category: 'Технические проблемы',
       priority: 'Средний',
@@ -442,104 +379,72 @@ export class SupportComponent implements OnInit, OnDestroy {
     if (!this.replyText.trim() || !this.selectedTicket) return;
 
     if (!this.canUserReply(this.selectedTicket)) {
-      alert('Отвечать в этом тикете могут только Автор обращения и Администрация!');
+      alert('Отвечать в этом тикете могут только Автор обращения и Техподдержка!');
       return;
     }
 
-    const isSupportRole = this.viewMode === 'admin' && this.isAdminAuthenticated;
-    const senderName = isSupportRole ? (this.adminName || 'Агент Поддержки') : this.selectedTicket.nickname;
-    const role = isSupportRole ? ('support' as const) : ('user' as const);
-    const now = new Date().toISOString();
+    this.isReplying = true;
+    const isStaff = this.authService.isSupportOrAdmin;
+    const senderName = this.currentUser?.nickname || (isStaff ? 'Агент Поддержки' : this.selectedTicket.nickname);
+    const role = isStaff ? ('support' as const) : ('user' as const);
 
-    const newMsg: TicketMessage = {
-      id: `m-${Date.now()}`,
+    const dto = {
       sender: senderName,
       role: role,
       text: this.replyText.trim(),
-      timestamp: now,
     };
 
-    const targetTicket = this.selectedTicket;
-    targetTicket.messages.push(newMsg);
-    targetTicket.updatedAt = now;
-    targetTicket.status = isSupportRole ? 'В обработке' : 'Ожидает ответа';
-    this.selectedTicket = { ...targetTicket, messages: [...targetTicket.messages] };
-    this.saveLocalCache();
-    this.replyText = '';
+    const headers = this.authService.getAuthHeaders();
 
-    if (targetTicket._id) {
-      const { _id, ...body } = targetTicket;
-      this.http.put(`${this.activeEndpointUrl}/${_id}`, body).subscribe({
-        next: () => this.saveLocalCache(),
-        error: (err) => {
-          if (err.status === 404 || err.status === 400 || err.status === 0) this.recoverEndpoint();
-        },
-      });
-    } else {
-      // Если у тикета нет _id, создаем заново в базе
-      const { _id, ...body } = targetTicket;
-      this.http.post<Ticket>(this.activeEndpointUrl, body).subscribe({
-        next: (created) => {
-          targetTicket._id = created._id;
-          this.saveLocalCache();
-        },
-        error: (err) => {
-          if (err.status === 404 || err.status === 400 || err.status === 0) this.recoverEndpoint();
-        },
-      });
-    }
+    this.http.post<Ticket>(`${this.API_TICKETS_URL}/${this.selectedTicket.id}/messages`, dto, headers).subscribe({
+      next: (updated) => {
+        this.isReplying = false;
+        this.replyText = '';
+        this.selectedTicket = updated;
+        const idx = this.ticketsList.findIndex((t) => t.id === updated.id);
+        if (idx !== -1) {
+          this.ticketsList[idx] = updated;
+        }
+      },
+      error: (err) => {
+        this.isReplying = false;
+        alert(err.error?.message || 'Ошибка отправки ответа.');
+      },
+    });
   }
 
   changeStatus(newStatus: TicketStatus): void {
     if (!this.selectedTicket) return;
 
-    const now = new Date().toISOString();
-    const newMsg: TicketMessage = {
-      id: `m-${Date.now()}`,
-      sender: 'Система',
-      role: 'system',
-      text: `Статус тикета изменён на: "${newStatus}"`,
-      timestamp: now,
-    };
-
-    const targetTicket = this.selectedTicket;
-    targetTicket.status = newStatus;
-    targetTicket.updatedAt = now;
-    targetTicket.messages.push(newMsg);
-    this.selectedTicket = { ...targetTicket, messages: [...targetTicket.messages] };
-    this.saveLocalCache();
-
-    if (targetTicket._id) {
-      const { _id, ...body } = targetTicket;
-      this.http.put(`${this.activeEndpointUrl}/${_id}`, body).subscribe({
-        next: () => this.saveLocalCache(),
-        error: (err) => {
-          if (err.status === 404 || err.status === 400 || err.status === 0) this.recoverEndpoint();
+    const headers = this.authService.getAuthHeaders();
+    this.http
+      .patch<Ticket>(`${this.API_TICKETS_URL}/${this.selectedTicket.id}/status`, { status: newStatus }, headers)
+      .subscribe({
+        next: (updated) => {
+          this.selectedTicket = updated;
+          const idx = this.ticketsList.findIndex((t) => t.id === updated.id);
+          if (idx !== -1) {
+            this.ticketsList[idx] = updated;
+          }
         },
+        error: (err) => alert(err.error?.message || 'Ошибка изменения статуса.'),
       });
-    }
   }
 
   deleteTicket(ticketId: string, event?: Event): void {
     if (event) event.stopPropagation();
     if (!confirm('Вы действительно хотите закрыть и удалить этот тикет?')) return;
 
-    const targetTicket = this.ticketsList.find((t) => t.id === ticketId || t._id === ticketId);
-    const dbId = targetTicket?._id || ticketId;
-
-    if (targetTicket?._id) {
-      this.http.delete(`${this.activeEndpointUrl}/${targetTicket._id}`).subscribe({
-        next: () => {},
-        error: (err) => console.warn('Delete error:', err),
-      });
-    }
-
-    this.ticketsList = this.ticketsList.filter((t) => t.id !== ticketId && t._id !== ticketId && t._id !== dbId);
-    this.saveLocalCache();
-
-    if (this.selectedTicket?.id === ticketId || this.selectedTicket?._id === dbId) {
-      this.closeTicketDetails();
-    }
+    const headers = this.authService.getAuthHeaders();
+    this.http.delete(`${this.API_TICKETS_URL}/${ticketId}`, headers).subscribe({
+      next: () => {
+        this.ticketsList = this.ticketsList.filter((t) => t.id !== ticketId);
+        if (this.selectedTicket?.id === ticketId) {
+          this.closeTicketDetails();
+        }
+      },
+      error: (err) => alert(err.error?.message || 'Ошибка удаления тикета.'),
+    });
   }
 
   getStatusClass(status: TicketStatus): string {
