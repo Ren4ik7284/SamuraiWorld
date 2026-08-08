@@ -144,11 +144,22 @@ export default function handler(req, res) {
   // POST /api/auth/register
   if (method === 'POST' && path.endsWith('/register')) {
     const { nickname, email, password } = body || {};
-    if (!nickname || nickname.length < 3) {
-      return res.status(400).json({ message: 'Никнейм должен содержать не менее 3 символов' });
+
+    if (!nickname || /\s/.test(nickname)) {
+      return res.status(400).json({ message: 'Никнейм не может содержать пробелы!' });
     }
-    if (!password || password.length < 4) {
-      return res.status(400).json({ message: 'Пароль должен содержать не менее 4 символов' });
+    if (!/^[a-zA-Z0-9_]{3,16}$/.test(nickname)) {
+      return res.status(400).json({ message: 'Никнейм должен содержать от 3 до 16 символов (только латинские буквы, цифры и _)' });
+    }
+
+    if (!password || /\s/.test(password)) {
+      return res.status(400).json({ message: 'Пароль не может содержать пробелы!' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'Пароль должен содержать минимум 8 символов!' });
+    }
+    if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/.test(password)) {
+      return res.status(400).json({ message: 'Пароль может содержать только латинские буквы, цифры и стандартные символы!' });
     }
 
     const existing = users.find((u) => u.nickname.toLowerCase() === nickname.toLowerCase());

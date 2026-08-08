@@ -102,17 +102,47 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   submitAuth(): void {
-    if (!this.authNicknameInput || !this.authPasswordInput) {
-      this.authErrorMsg = 'Заполните никнейм и пароль';
+    const nick = (this.authNicknameInput || '').trim();
+    const pass = this.authPasswordInput || '';
+
+    if (!nick || !pass) {
+      this.authErrorMsg = 'Заполните никнейм и пароль!';
       return;
+    }
+
+    if (/\s/.test(this.authNicknameInput)) {
+      this.authErrorMsg = 'Никнейм не должен содержать пробелы!';
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]{3,16}$/.test(nick)) {
+      this.authErrorMsg = 'Никнейм должен содержать от 3 до 16 латинских букв, цифр или _ (без кириллицы и пробелов)!';
+      return;
+    }
+
+    if (/\s/.test(pass)) {
+      this.authErrorMsg = 'Пароль не должен содержать пробелы!';
+      return;
+    }
+
+    if (this.authMode === 'register') {
+      if (pass.length < 8) {
+        this.authErrorMsg = 'Пароль должен содержать минимум 8 символов!';
+        return;
+      }
+
+      if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/.test(pass)) {
+        this.authErrorMsg = 'Пароль должен содержать только латинские буквы, цифры и стандартные символы!';
+        return;
+      }
     }
 
     this.isAuthSubmitting = true;
     this.authErrorMsg = '';
 
     const req$ = this.authMode === 'login'
-      ? this.authService.login({ nickname: this.authNicknameInput, password: this.authPasswordInput })
-      : this.authService.register({ nickname: this.authNicknameInput, email: this.authEmailInput, password: this.authPasswordInput });
+      ? this.authService.login({ nickname: nick, password: pass })
+      : this.authService.register({ nickname: nick, email: this.authEmailInput, password: pass });
 
     req$.subscribe({
       next: () => {
@@ -124,7 +154,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.isAuthSubmitting = false;
-        this.authErrorMsg = err?.error?.message || 'Ошибка авторизации. Проверьте данные.';
+        this.authErrorMsg = err?.error?.message || 'Ошибка авторизации. Проверьте введенные данные.';
       }
     });
   }

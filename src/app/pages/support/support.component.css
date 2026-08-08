@@ -1037,15 +1037,61 @@
 
   /* Modals on Mobile */
   .modal-overlay {
-    padding: 10px;
-    align-items: flex-end; /* Mobile bottom sheet style on small screens */
+    padding: 8px;
+    align-items: center;
+    justify-content: center;
   }
 
   .modal-card {
-    padding: 20px 16px;
-    border-radius: 20px 20px 0 0;
+    padding: 16px 14px;
+    border-radius: 16px;
     max-height: 92vh;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    position: relative;
+    padding-right: 32px;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+
+  .modal-title {
+    font-size: 1.05rem;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .modal-actions-right {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-info-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .info-chip {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    max-width: 100%;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .auth-modal {
