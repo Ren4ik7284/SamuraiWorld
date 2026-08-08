@@ -406,10 +406,40 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px;
+  gap: 12px;
+  padding: 12px 14px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: var(--radius-sm);
-  margin-bottom: 12px;
+  border: 1px solid rgba(201, 146, 10, 0.25);
+  border-radius: 12px;
+  margin-bottom: 14px;
+}
+
+.navbar__drawer-user-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar__drawer-logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #f87171;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.navbar__drawer-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.35);
+  color: #fff;
 }
 
 .navbar__drawer-auth-buttons {

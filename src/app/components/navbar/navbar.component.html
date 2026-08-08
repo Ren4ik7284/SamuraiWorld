@@ -100,12 +100,17 @@
     <nav class="navbar__drawer-nav">
       <!-- User profile chip in mobile drawer -->
       <div class="navbar__drawer-user" *ngIf="currentUser; else drawerUnauth">
-        <img [src]="currentUser.avatarUrl || 'https://crafatar.com/avatars/Steve?overlay=true'" class="navbar__avatar" alt="avatar" />
-        <div class="navbar__user-details">
-          <span class="navbar__user-name">{{ currentUser.nickname }}</span>
-          <span class="navbar__user-role">{{ currentUser.role === 'admin' ? 'Администратор' : currentUser.role === 'support' ? 'Поддержка' : 'Игрок' }}</span>
+        <div class="navbar__drawer-user-meta">
+          <img [src]="currentUser.avatarUrl || 'https://crafatar.com/avatars/Steve?overlay=true'" class="navbar__avatar" alt="avatar" />
+          <div class="navbar__user-details">
+            <span class="navbar__user-name">{{ currentUser.nickname }}</span>
+            <span class="navbar__user-role">{{ currentUser.role === 'admin' ? 'Администратор' : currentUser.role === 'support' ? 'Поддержка' : 'Игрок' }}</span>
+          </div>
         </div>
-        <button class="navbar__logout-btn" (click)="logout()">Выйти</button>
+        <button class="navbar__drawer-logout-btn" (click)="logout()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>Выйти</span>
+        </button>
       </div>
 
       <ng-template #drawerUnauth>
@@ -205,14 +210,7 @@
         />
       </div>
 
-      <!-- Быстрый тестовый вход -->
-      <div class="auth-demo-hint">
-        <span>Тестовый вход в 1 клик:</span>
-        <div class="auth-demo-buttons">
-          <button type="button" (click)="fillDemoAccount('player')">Игрок (PlayerOne)</button>
-          <button type="button" (click)="fillDemoAccount('admin')">Админ (Admin_Samurai)</button>
-        </div>
-      </div>
+
 
       <div class="auth-modal-actions">
         <button type="button" class="btn-cancel" (click)="closeAuthModal()">Отмена</button>
