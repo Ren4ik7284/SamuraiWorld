@@ -1,6 +1,9 @@
 import crypto from 'crypto';
+import fs from 'fs';
+import path from 'path';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'samuraiworld_super_secret_jwt_key_2026';
+const TMP_TICKETS_FILE = path.join('/tmp', 'samurai_tickets_store.json');
 
 let globalTickets = [
   {
@@ -34,6 +37,35 @@ let globalTickets = [
     ],
   },
 ];
+
+function loadPersistedTickets() {
+  try {
+    if (fs.existsSync(TMP_TICKETS_FILE)) {
+      const data = fs.readFileSync(TMP_TICKETS_FILE, 'utf8');
+      const loaded = JSON.parse(data);
+      if (Array.isArray(loaded)) {
+        for (const t of loaded) {
+          if (!globalTickets.some((existing) => existing.id === t.id)) {
+            globalTickets.push(t);
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // Ignore tmp file read errors
+  }
+}
+
+function savePersistedTickets() {
+  try {
+    fs.writeFileSync(TMP_TICKETS_FILE, JSON.stringify(globalTickets, null, 2), 'utf8');
+  } catch (e) {
+    // Ignore tmp file write errors
+  }
+}
+
+// Initial load
+loadPersistedTickets();
 
 function base64urlDecode(str) {
   let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
@@ -82,29 +114,34 @@ export default function handler(req, res) {
     return;
   }
 
+  loadPersistedTickets();
   const { method, query, body, headers, url } = req;
   const user = verifyAccessToken(headers['authorization']);
 
   // Extract ID from URL if calling /api/support/tickets/:id
   const urlParts = url.split('?')[0].split('/');
   const lastPart = urlParts[urlParts.length - 1];
-  const ticketIdParam = (lastPart && lastPart !== 'tickets') ? lastPart : null;
+  const ticketIdParam = lastPart && lastPart !== 'tickets' ? lastPart : null;
 
-  // GET Tickets list
+  // GET Tickets list (Строгое разграничение прав доступа)
   if (method === 'GET' && !ticketIdParam) {
     let result = [...globalTickets];
 
     if (user) {
       if (user.role === 'admin' || user.role === 'support') {
-        // Admin sees all
+        // Админы и поддержка видят ВСЕ обращения
       } else {
-        // User sees only their tickets
+        // Зарегистрированный игрок видит ИСКЛЮЧИТЕЛЬНО свои тикеты
         result = result.filter(
           (t) => t.userId === user.sub || t.nickname.toLowerCase() === user.nickname.toLowerCase()
         );
       }
     } else if (query.nickname) {
+      // Незалогиненный видит только если явно запросил по своему нику
       result = result.filter((t) => t.nickname.toLowerCase() === query.nickname.toLowerCase());
+    } else {
+      // Для незалогиненных пользователей чужие тикеты СТРЫТЫ
+      result = [];
     }
 
     if (query.category) {
@@ -119,14 +156,25 @@ export default function handler(req, res) {
     );
   }
 
-  // GET Ticket by ID
+  // GET Ticket by ID (С проверкой прав доступа)
   if (method === 'GET' && ticketIdParam) {
-    const ticket = globalTickets.find((t) => t.id === ticketIdParam || t.ticketNumber.toLowerCase() === ticketIdParam.toLowerCase());
-    if (!ticket) return res.status(404).json({ error: 'Тикет не найден' });
+    const ticket = globalTickets.find(
+      (t) => t.id === ticketIdParam || t.ticketNumber.toLowerCase() === ticketIdParam.toLowerCase()
+    );
+    if (!ticket) return res.status(404).json({ message: 'Тикет не найден' });
+
+    // Проверка прав: читать тикет может либо автор, либо админ/поддержка
+    const isStaff = user?.role === 'admin' || user?.role === 'support';
+    const isOwner = user && (ticket.userId === user.sub || ticket.nickname.toLowerCase() === user.nickname.toLowerCase());
+
+    if (!isStaff && !isOwner) {
+      return res.status(403).json({ message: 'Доступ запрещён: этот тикет приватный' });
+    }
+
     return res.status(200).json(ticket);
   }
 
-  // POST Create Ticket
+  // POST Create Ticket (Привязка к JWT аккаунту)
   if (method === 'POST' && !url.includes('/messages')) {
     const dto = body || {};
     const nickname = user?.nickname || dto.nickname;
@@ -140,8 +188,8 @@ export default function handler(req, res) {
     const newTicket = {
       id: `t-${Date.now()}`,
       ticketNumber,
-      userId: user?.sub || dto.userId,
-      nickname,
+      userId: user?.sub || dto.userId || `guest-${Date.now()}`,
+      nickname: nickname.trim(),
       contact: dto.contact || 'Не указан',
       category: dto.category || 'Технические проблемы',
       priority: dto.priority || 'Средний',
@@ -160,15 +208,18 @@ export default function handler(req, res) {
         },
         {
           id: `m-${Date.now()}-2`,
-          sender: 'Система JWT',
+          sender: 'Система Безопасности JWT',
           role: 'system',
-          text: `Обращение ${ticketNumber} привязано к аккаунту ${nickname}`,
+          text: user
+            ? `Обращение ${ticketNumber} защищено и привязано к аккаунту ${nickname} (ID: ${user.sub}).`
+            : `Обращение ${ticketNumber} зарегистрировано.`,
           timestamp: now,
         },
       ],
     };
 
     globalTickets.unshift(newTicket);
+    savePersistedTickets();
     return res.status(201).json(newTicket);
   }
 
@@ -178,9 +229,15 @@ export default function handler(req, res) {
     const ticket = globalTickets.find((t) => t.id === id || t.ticketNumber === id);
     if (!ticket) return res.status(404).json({ message: 'Тикет не найден' });
 
-    const now = new Date().toISOString();
     const isStaff = user?.role === 'admin' || user?.role === 'support';
-    const senderRole = body?.role || (isStaff ? 'support' : 'user');
+    const isOwner = user && (ticket.userId === user.sub || ticket.nickname.toLowerCase() === user.nickname.toLowerCase());
+
+    if (!isStaff && !isOwner) {
+      return res.status(403).json({ message: 'Вы не можете писать в чужом тикете' });
+    }
+
+    const now = new Date().toISOString();
+    const senderRole = isStaff ? 'support' : 'user';
     const senderName = user?.nickname || body?.sender || ticket.nickname;
 
     const newMsg = {
@@ -195,11 +252,17 @@ export default function handler(req, res) {
     ticket.updatedAt = now;
     ticket.status = senderRole === 'support' ? 'В обработке' : 'Ожидает ответа';
 
+    savePersistedTickets();
     return res.status(200).json(ticket);
   }
 
-  // PATCH Update status /api/support/tickets/:id/status
+  // PATCH Update status /api/support/tickets/:id/status (Администраторы & Поддержка)
   if (method === 'PATCH' && url.includes('/status')) {
+    const isStaff = user?.role === 'admin' || user?.role === 'support';
+    if (!isStaff) {
+      return res.status(403).json({ message: 'Изменять статус могут только Админы и Поддержка' });
+    }
+
     const id = ticketIdParam || query.id;
     const ticket = globalTickets.find((t) => t.id === id || t.ticketNumber === id);
     if (!ticket) return res.status(404).json({ message: 'Тикет не найден' });
@@ -213,17 +276,24 @@ export default function handler(req, res) {
       id: `m-${Date.now()}`,
       sender: 'Система',
       role: 'system',
-      text: `Статус тикета изменён на: "${newStatus}"`,
+      text: `Статус тикета изменён на: "${newStatus}" агентом ${user.nickname}`,
       timestamp: now,
     });
 
+    savePersistedTickets();
     return res.status(200).json(ticket);
   }
 
-  // DELETE Ticket
+  // DELETE Ticket (Только Администраторы & Поддержка)
   if (method === 'DELETE') {
+    const isStaff = user?.role === 'admin' || user?.role === 'support';
+    if (!isStaff) {
+      return res.status(403).json({ message: 'Удалять тикеты могут только Администраторы и Поддержка' });
+    }
+
     const id = ticketIdParam || query.id || body?.id;
     globalTickets = globalTickets.filter((t) => t.id !== id && t.ticketNumber !== id);
+    savePersistedTickets();
     return res.status(200).json({ success: true, id });
   }
 
