@@ -8,6 +8,15 @@ const TMP_USERS_FILE = path.join('/tmp', 'samurai_users_store.json');
 
 let users = [
   {
+    id: 'usr-ren4ik284-admin',
+    nickname: 'Ren4ik284',
+    email: 'ren4ik284@samuraiworld.ru',
+    passwordHash: hashPassword('bebra228'),
+    role: 'admin',
+    avatarUrl: 'https://crafatar.com/avatars/Ren4ik284?overlay=true',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
     id: 'usr-admin-1',
     nickname: 'Admin_Samurai',
     email: 'admin@samuraiworld.ru',

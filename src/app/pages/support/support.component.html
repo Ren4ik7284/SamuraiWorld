@@ -5,8 +5,8 @@
     <div class="page-header__glow"></div>
     <div class="container">
 
-      <!-- View Mode Bar Switcher -->
-      <div class="view-mode-bar">
+      <!-- View Mode Bar Switcher (Виден ТОЛЬКО Администрации и Поддержке) -->
+      <div class="view-mode-bar" *ngIf="authService.isSupportOrAdmin">
         <span class="view-mode-label">Режим:</span>
         <button 
           class="view-mode-btn" 

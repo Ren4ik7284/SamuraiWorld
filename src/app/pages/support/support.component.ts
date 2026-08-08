@@ -137,7 +137,11 @@ export class SupportComponent implements OnInit, OnDestroy {
         this.newTicket.nickname = user.nickname;
         if (user.role === 'admin' || user.role === 'support') {
           this.viewMode = 'admin';
+        } else {
+          this.viewMode = 'user';
         }
+      } else {
+        this.viewMode = 'user';
       }
       this.loadTickets();
     });
