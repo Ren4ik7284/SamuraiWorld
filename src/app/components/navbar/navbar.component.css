@@ -618,9 +618,33 @@
   box-shadow: 0 4px 14px rgba(201, 146, 10, 0.4);
 }
 
+.navbar__mobile-auth {
+  display: none;
+}
+
+.navbar__mobile-auth-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 100px;
+  background: rgba(201, 146, 10, 0.15);
+  border: 1px solid rgba(201, 146, 10, 0.3);
+  color: var(--clr-gold-3);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.navbar__mobile-auth-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 900px) {
   .navbar__nav, .navbar__actions { display: none; }
+  .navbar__mobile-auth { display: flex; align-items: center; gap: 8px; }
   .navbar__burger { display: flex; }
   .navbar__inner { justify-content: space-between; }
 }

@@ -63,6 +63,17 @@
       </a>
     </div>
 
+    <!-- Compact Mobile Auth Icon (Mobile Header) -->
+    <div class="navbar__mobile-auth">
+      <button class="navbar__mobile-auth-btn" *ngIf="!currentUser" (click)="openAuthModal('login')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        <span>Вход</span>
+      </button>
+      <div class="navbar__mobile-user-chip" *ngIf="currentUser" (click)="logout()" title="Выйти">
+        <img [src]="currentUser.avatarUrl || 'https://crafatar.com/avatars/Steve?overlay=true'" class="navbar__avatar" alt="avatar" />
+      </div>
+    </div>
+
     <!-- Burger -->
     <button
       class="navbar__burger"
