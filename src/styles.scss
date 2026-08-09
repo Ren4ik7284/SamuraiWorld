@@ -289,3 +289,23 @@ button, a, input, select, textarea {
   .container { padding-inline: 14px; }
   .btn { width: 100%; justify-content: center; }
 }
+
+/* ===== GLOBAL RULE: HIDE MAIN SITE NAVBAR & LOGO/BURGER HEADER ON MOBILE WHEN TICKET IS OPEN ===== */
+@media (max-width: 768px) {
+  body.ticket-modal-open header.navbar,
+  body.ticket-modal-open .navbar,
+  body.ticket-modal-open .navbar__spacer,
+  body.ticket-modal-open .page-header,
+  body:has(.modal-overlay) header.navbar,
+  body:has(.modal-overlay) .navbar,
+  body:has(.modal-overlay) .navbar__spacer,
+  body:has(.modal-overlay) .page-header {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
