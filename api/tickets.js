@@ -103,6 +103,46 @@ function verifyAccessToken(authHeader) {
   }
 }
 
+function extractTicketId(req) {
+  const rawUrl = req.url || '';
+
+  // 1. Check req.query['0'] if Vercel rewrite passed capturing group (e.g. t-1001/messages)
+  if (req.query && req.query['0']) {
+    const parts = String(req.query['0']).split('/');
+    const first = parts[0];
+    if (first && first !== 'tickets' && first !== 'messages' && first !== 'status') {
+      return first;
+    }
+  }
+
+  // 2. Decode full URL string to check path or query parameters
+  const decodedUrl = decodeURIComponent(rawUrl);
+
+  const matchTickets = decodedUrl.match(/\/tickets\/([^/?&#]+)/i);
+  if (matchTickets && matchTickets[1] && matchTickets[1] !== 'tickets') {
+    return matchTickets[1];
+  }
+
+  const matchQueryParam = decodedUrl.match(/[?&]0=([^/&?#]+)/i);
+  if (matchQueryParam && matchQueryParam[1] && matchQueryParam[1] !== 'tickets') {
+    return matchQueryParam[1];
+  }
+
+  // 3. Fallback: URL path splitting
+  const pathOnly = decodedUrl.split('?')[0];
+  const parts = pathOnly.split('/').filter(Boolean);
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[i] === 'tickets' && i + 1 < parts.length) {
+      const next = parts[i + 1];
+      if (next !== 'messages' && next !== 'status') {
+        return next;
+      }
+    }
+  }
+
+  return null;
+}
+
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -121,11 +161,9 @@ export default function handler(req, res) {
   const { method, query, body, headers, url } = req;
   const user = verifyAccessToken(headers['authorization']);
 
-  // Correctly extract ID from URL (e.g. /api/support/tickets/:id, /api/support/tickets/:id/messages, /api/support/tickets/:id/status)
-  const cleanUrl = url.split('?')[0];
-  const ticketIdMatch = cleanUrl.match(/\/tickets\/([^/]+)/);
-  const rawId = ticketIdMatch ? ticketIdMatch[1] : null;
-  const ticketIdParam = rawId && rawId !== 'tickets' ? rawId : null;
+  const ticketIdParam = extractTicketId(req);
+  const isMessagesReq = (url || '').includes('/messages') || (query && String(query['0']).includes('/messages'));
+  const isStatusReq = (url || '').includes('/status') || (query && String(query['0']).includes('/status'));
 
   const isStaffUser = user?.role === 'admin' || user?.role === 'support' || user?.nickname?.toLowerCase() === 'ren4ik284';
 
@@ -180,7 +218,7 @@ export default function handler(req, res) {
   }
 
   // POST Create Ticket (Привязка к JWT аккаунту)
-  if (method === 'POST' && !url.includes('/messages')) {
+  if (method === 'POST' && !isMessagesReq) {
     const dto = body || {};
     const nickname = user?.nickname || dto.nickname;
     if (!nickname || !dto.subject || !dto.description) {
@@ -229,7 +267,7 @@ export default function handler(req, res) {
   }
 
   // POST Add message /api/support/tickets/:id/messages
-  if (method === 'POST' && url.includes('/messages')) {
+  if (method === 'POST' && isMessagesReq) {
     const id = ticketIdParam || query.id;
     const ticket = globalTickets.find(
       (t) => t.id === id || t.ticketNumber.toLowerCase() === (id || '').toLowerCase()
@@ -266,7 +304,7 @@ export default function handler(req, res) {
   }
 
   // PATCH Update status /api/support/tickets/:id/status (Администраторы & Поддержка)
-  if (method === 'PATCH' && url.includes('/status')) {
+  if (method === 'PATCH' && isStatusReq) {
     if (!isStaffUser) {
       return res.status(403).json({ message: 'Изменять статус могут только Админы и Поддержка' });
     }
