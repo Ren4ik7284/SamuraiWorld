@@ -227,10 +227,30 @@ export default function handler(req, res) {
 
   // GET Ticket by ID (С проверкой прав доступа)
   if (method === 'GET' && ticketIdParam) {
-    const ticket = globalTickets.find(
+    let ticket = globalTickets.find(
       (t) => t.id === ticketIdParam || t.ticketNumber.toLowerCase() === ticketIdParam.toLowerCase()
     );
-    if (!ticket) return res.status(404).json({ message: 'Тикет не найден' });
+    if (!ticket) {
+      const now = new Date().toISOString();
+      const ticketNumber = ticketIdParam.startsWith('TK-') ? ticketIdParam : `TK-${Math.floor(1000 + Math.random() * 9000)}`;
+      ticket = {
+        id: ticketIdParam,
+        ticketNumber: ticketNumber,
+        userId: user?.sub || `guest-${Date.now()}`,
+        nickname: user?.nickname || 'Игрок',
+        contact: 'Не указан',
+        category: 'Технические проблемы',
+        priority: 'Средний',
+        subject: `Обращение ${ticketNumber}`,
+        description: 'Обращение в техподдержку',
+        status: 'Ожидает ответа',
+        createdAt: now,
+        updatedAt: now,
+        messages: [],
+      };
+      globalTickets.unshift(ticket);
+      savePersistedTickets();
+    }
 
     // Проверка прав: читать тикет может либо автор, либо админ/поддержка
     const isOwner = user && (ticket.userId === user.sub || ticket.nickname.toLowerCase() === user.nickname.toLowerCase());
@@ -320,7 +340,7 @@ export default function handler(req, res) {
 
   // POST Add message /api/support/tickets/:id/messages
   if (method === 'POST' && isMessagesReq) {
-    const id = ticketIdParam || query.id;
+    const id = ticketIdParam || query.id || body?.ticketId || body?.id || (body?.ticketContext ? body.ticketContext.id : null);
     let ticket = globalTickets.find(
       (t) => t.id === id || t.ticketNumber.toLowerCase() === (id || '').toLowerCase()
     );
@@ -349,7 +369,30 @@ export default function handler(req, res) {
       }
     }
 
-    if (!ticket) return res.status(404).json({ message: 'Тикет не найден' });
+    if (!ticket) {
+      const now = new Date().toISOString();
+      const ticketId = (id && id !== 'messages') ? id : `t-${Date.now()}`;
+      const ticketNumber = ticketId.startsWith('TK-') ? ticketId : `TK-${Math.floor(1000 + Math.random() * 9000)}`;
+      const senderName = user?.nickname || body?.sender || 'Игрок';
+
+      ticket = {
+        id: ticketId,
+        ticketNumber: ticketNumber,
+        userId: user?.sub || `guest-${Date.now()}`,
+        nickname: senderName,
+        contact: 'Не указан',
+        category: 'Технические проблемы',
+        priority: 'Средний',
+        subject: `Обращение ${ticketNumber}`,
+        description: body?.text || 'Обращение',
+        status: isStaffUser ? 'В обработке' : 'Ожидает ответа',
+        createdAt: now,
+        updatedAt: now,
+        messages: [],
+      };
+      globalTickets.unshift(ticket);
+      savePersistedTickets();
+    }
 
     const requestSender = (body?.sender || user?.nickname || '').trim().toLowerCase();
     const isOwner =
@@ -386,7 +429,7 @@ export default function handler(req, res) {
       return res.status(403).json({ message: 'Изменять статус могут только Админы и Поддержка' });
     }
 
-    const id = ticketIdParam || query.id;
+    const id = ticketIdParam || query.id || body?.ticketId || body?.id || (body?.ticketContext ? body.ticketContext.id : null);
     let ticket = globalTickets.find(
       (t) => t.id === id || t.ticketNumber.toLowerCase() === (id || '').toLowerCase()
     );
@@ -414,7 +457,29 @@ export default function handler(req, res) {
       }
     }
 
-    if (!ticket) return res.status(404).json({ message: 'Тикет не найден' });
+    if (!ticket) {
+      const now = new Date().toISOString();
+      const ticketId = (id && id !== 'status') ? id : `t-${Date.now()}`;
+      const ticketNumber = ticketId.startsWith('TK-') ? ticketId : `TK-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      ticket = {
+        id: ticketId,
+        ticketNumber: ticketNumber,
+        userId: user?.sub || `guest-${Date.now()}`,
+        nickname: user?.nickname || 'Поддержка',
+        contact: 'Не указан',
+        category: 'Технические проблемы',
+        priority: 'Средний',
+        subject: `Обращение ${ticketNumber}`,
+        description: 'Обращение',
+        status: body?.status || 'В обработке',
+        createdAt: now,
+        updatedAt: now,
+        messages: [],
+      };
+      globalTickets.unshift(ticket);
+      savePersistedTickets();
+    }
 
     const now = new Date().toISOString();
     const newStatus = body?.status || 'В обработке';
