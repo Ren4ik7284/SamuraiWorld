@@ -114,12 +114,21 @@ function extractTicketId(req, parsedBody = {}) {
     }
   }
 
-  // 1. Check req.query['0'] if Vercel rewrite passed capturing group (e.g. t-1001/messages)
-  if (req.query && req.query['0']) {
-    const parts = String(req.query['0']).split('/');
-    const first = parts[0];
-    if (first && first !== 'tickets' && first !== 'messages' && first !== 'status' && first !== 'sync') {
-      return first;
+  // 1. Check req.query.path or req.query['0']
+  if (req.query) {
+    if (req.query.path) {
+      const pathStr = Array.isArray(req.query.path) ? req.query.path.join('/') : String(req.query.path);
+      const first = pathStr.split('/')[0];
+      if (first && !['tickets', 'messages', 'status', 'sync'].includes(first.toLowerCase())) {
+        return first;
+      }
+    }
+    if (req.query['0']) {
+      const parts = String(req.query['0']).split('/');
+      const first = parts[0];
+      if (first && !['tickets', 'messages', 'status', 'sync'].includes(first.toLowerCase())) {
+        return first;
+      }
     }
   }
 
