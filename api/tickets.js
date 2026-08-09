@@ -217,8 +217,37 @@ export default function handler(req, res) {
     return res.status(200).json(ticket);
   }
 
+  const isSyncReq = (url || '').includes('/sync') || (query && String(query['0']).includes('/sync'));
+
+  // POST Sync tickets from client /api/support/tickets/sync
+  if (method === 'POST' && isSyncReq) {
+    const clientTickets = Array.isArray(body?.tickets) ? body.tickets : [];
+    for (const ct of clientTickets) {
+      if (ct && ct.id && ct.nickname && ct.subject) {
+        const idx = globalTickets.findIndex((t) => t.id === ct.id);
+        if (idx !== -1) {
+          const existingMsgs = globalTickets[idx].messages || [];
+          const clientMsgs = ct.messages || [];
+          const msgMap = new Map();
+          for (const m of existingMsgs) msgMap.set(m.id, m);
+          for (const m of clientMsgs) msgMap.set(m.id, m);
+          globalTickets[idx].messages = Array.from(msgMap.values()).sort(
+            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          );
+          globalTickets[idx].updatedAt = new Date().toISOString();
+        } else {
+          globalTickets.unshift(ct);
+        }
+      }
+    }
+    savePersistedTickets();
+    return res.status(200).json(
+      globalTickets.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    );
+  }
+
   // POST Create Ticket (Привязка к JWT аккаунту)
-  if (method === 'POST' && !isMessagesReq) {
+  if (method === 'POST' && !isMessagesReq && !isSyncReq) {
     const dto = body || {};
     const nickname = user?.nickname || dto.nickname;
     if (!nickname || !dto.subject || !dto.description) {
@@ -269,9 +298,34 @@ export default function handler(req, res) {
   // POST Add message /api/support/tickets/:id/messages
   if (method === 'POST' && isMessagesReq) {
     const id = ticketIdParam || query.id;
-    const ticket = globalTickets.find(
+    let ticket = globalTickets.find(
       (t) => t.id === id || t.ticketNumber.toLowerCase() === (id || '').toLowerCase()
     );
+
+    // Self-healing fallback: restore ticket from client's ticketContext if missing due to serverless cold-start
+    if (!ticket && body?.ticketContext && typeof body.ticketContext === 'object') {
+      const ctx = body.ticketContext;
+      if (ctx.id && ctx.nickname) {
+        ticket = {
+          id: ctx.id,
+          ticketNumber: ctx.ticketNumber || `TK-${Math.floor(1000 + Math.random() * 9000)}`,
+          userId: ctx.userId || user?.sub || `guest-${Date.now()}`,
+          nickname: ctx.nickname,
+          contact: ctx.contact || 'Не указан',
+          category: ctx.category || 'Технические проблемы',
+          priority: ctx.priority || 'Средний',
+          subject: ctx.subject || 'Обращение',
+          description: ctx.description || '',
+          status: ctx.status || 'В обработке',
+          createdAt: ctx.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          messages: Array.isArray(ctx.messages) ? [...ctx.messages] : [],
+        };
+        globalTickets.unshift(ticket);
+        savePersistedTickets();
+      }
+    }
+
     if (!ticket) return res.status(404).json({ message: 'Тикет не найден' });
 
     const requestSender = (body?.sender || user?.nickname || '').trim().toLowerCase();
@@ -310,9 +364,33 @@ export default function handler(req, res) {
     }
 
     const id = ticketIdParam || query.id;
-    const ticket = globalTickets.find(
+    let ticket = globalTickets.find(
       (t) => t.id === id || t.ticketNumber.toLowerCase() === (id || '').toLowerCase()
     );
+
+    if (!ticket && body?.ticketContext && typeof body.ticketContext === 'object') {
+      const ctx = body.ticketContext;
+      if (ctx.id && ctx.nickname) {
+        ticket = {
+          id: ctx.id,
+          ticketNumber: ctx.ticketNumber || `TK-${Math.floor(1000 + Math.random() * 9000)}`,
+          userId: ctx.userId || user?.sub || `guest-${Date.now()}`,
+          nickname: ctx.nickname,
+          contact: ctx.contact || 'Не указан',
+          category: ctx.category || 'Технические проблемы',
+          priority: ctx.priority || 'Средний',
+          subject: ctx.subject || 'Обращение',
+          description: ctx.description || '',
+          status: ctx.status || 'В обработке',
+          createdAt: ctx.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          messages: Array.isArray(ctx.messages) ? [...ctx.messages] : [],
+        };
+        globalTickets.unshift(ticket);
+        savePersistedTickets();
+      }
+    }
+
     if (!ticket) return res.status(404).json({ message: 'Тикет не найден' });
 
     const now = new Date().toISOString();

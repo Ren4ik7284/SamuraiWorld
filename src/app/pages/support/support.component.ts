@@ -252,28 +252,100 @@ export class SupportComponent implements OnInit, OnDestroy {
   /**
    * Загрузка тикетов с передачей JWT токена
    */
+  readonly LOCAL_STORAGE_KEY = 'samurai_tickets_cache_v1';
+
+  private loadLocalTicketsCache(): Ticket[] {
+    try {
+      const data = localStorage.getItem(this.LOCAL_STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private saveLocalTicketsCache(tickets: Ticket[]): void {
+    try {
+      localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(tickets));
+    } catch {}
+  }
+
+  /**
+   * Загрузка и синхронизация тикетов с сервером и локальным кэшем
+   */
   loadTickets(silent: boolean = false): void {
     const headers = this.authService.getAuthHeaders();
     let url = this.API_TICKETS_URL;
     
-    // Если пользователь не залогинен, передаем его ник если он ввел в форме
     if (!this.currentUser && this.newTicket.nickname) {
       url += `?nickname=${encodeURIComponent(this.newTicket.nickname.trim())}`;
     }
 
+    const localCache = this.loadLocalTicketsCache();
+
+    if (localCache.length > 0) {
+      this.http.post<Ticket[]>(`${this.API_TICKETS_URL}/sync`, { tickets: localCache }, headers).subscribe({
+        next: (data) => {
+          if (Array.isArray(data)) {
+            this.updateTicketsList(data);
+          }
+        },
+        error: () => {
+          this.fetchTicketsGet(url, headers, silent, localCache);
+        },
+      });
+    } else {
+      this.fetchTicketsGet(url, headers, silent, localCache);
+    }
+  }
+
+  private fetchTicketsGet(url: string, headers: any, silent: boolean, localCache: Ticket[]): void {
     this.http.get<Ticket[]>(url, headers).subscribe({
       next: (data) => {
         if (Array.isArray(data)) {
-          this.ticketsList = data;
-          this.syncSelectedTicket();
+          this.updateTicketsList(data);
         }
       },
       error: (err) => {
         if (!silent) {
           console.warn('Ошибка загрузки тикетов:', err);
         }
+        if (localCache.length > 0) {
+          this.updateTicketsList(localCache);
+        }
       },
     });
+  }
+
+  private updateTicketsList(newList: Ticket[]): void {
+    const localCache = this.loadLocalTicketsCache();
+    const mergedMap = new Map<string, Ticket>();
+
+    for (const t of localCache) mergedMap.set(t.id, t);
+    for (const t of newList) {
+      if (mergedMap.has(t.id)) {
+        const existing = mergedMap.get(t.id)!;
+        const msgMap = new Map<string, TicketMessage>();
+        for (const m of existing.messages || []) msgMap.set(m.id, m);
+        for (const m of t.messages || []) msgMap.set(m.id, m);
+        
+        mergedMap.set(t.id, {
+          ...t,
+          messages: Array.from(msgMap.values()).sort(
+            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          ),
+        });
+      } else {
+        mergedMap.set(t.id, t);
+      }
+    }
+
+    const merged = Array.from(mergedMap.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    this.ticketsList = merged;
+    this.saveLocalTicketsCache(merged);
+    this.syncSelectedTicket();
   }
 
   private syncSelectedTicket(): void {
@@ -328,6 +400,7 @@ export class SupportComponent implements OnInit, OnDestroy {
         this.submitSuccess = true;
         this.createdTicketInfo = created;
         this.ticketsList.unshift(created);
+        this.saveLocalTicketsCache(this.ticketsList);
         this.resetForm();
         this.activeTab = 'tracker';
         this.openTicketDetails(created);
@@ -396,6 +469,7 @@ export class SupportComponent implements OnInit, OnDestroy {
       sender: senderName,
       role: role,
       text: this.replyText.trim(),
+      ticketContext: this.selectedTicket,
     };
 
     const headers = this.authService.getAuthHeaders();
@@ -408,7 +482,10 @@ export class SupportComponent implements OnInit, OnDestroy {
         const idx = this.ticketsList.findIndex((t) => t.id === updated.id);
         if (idx !== -1) {
           this.ticketsList[idx] = updated;
+        } else {
+          this.ticketsList.unshift(updated);
         }
+        this.saveLocalTicketsCache(this.ticketsList);
       },
       error: (err) => {
         this.isReplying = false;
@@ -421,15 +498,23 @@ export class SupportComponent implements OnInit, OnDestroy {
     if (!this.selectedTicket) return;
 
     const headers = this.authService.getAuthHeaders();
+    const dto = {
+      status: newStatus,
+      ticketContext: this.selectedTicket,
+    };
+
     this.http
-      .patch<Ticket>(`${this.API_TICKETS_URL}/${this.selectedTicket.id}/status`, { status: newStatus }, headers)
+      .patch<Ticket>(`${this.API_TICKETS_URL}/${this.selectedTicket.id}/status`, dto, headers)
       .subscribe({
         next: (updated) => {
           this.selectedTicket = updated;
           const idx = this.ticketsList.findIndex((t) => t.id === updated.id);
           if (idx !== -1) {
             this.ticketsList[idx] = updated;
+          } else {
+            this.ticketsList.unshift(updated);
           }
+          this.saveLocalTicketsCache(this.ticketsList);
         },
         error: (err) => alert(err.error?.message || 'Ошибка изменения статуса.'),
       });
@@ -443,6 +528,7 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.http.delete(`${this.API_TICKETS_URL}/${ticketId}`, headers).subscribe({
       next: () => {
         this.ticketsList = this.ticketsList.filter((t) => t.id !== ticketId);
+        this.saveLocalTicketsCache(this.ticketsList);
         if (this.selectedTicket?.id === ticketId) {
           this.closeTicketDetails();
         }
