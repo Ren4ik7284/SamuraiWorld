@@ -45,7 +45,10 @@ function loadPersistedTickets() {
       const loaded = JSON.parse(data);
       if (Array.isArray(loaded)) {
         for (const t of loaded) {
-          if (!globalTickets.some((existing) => existing.id === t.id)) {
+          const idx = globalTickets.findIndex((existing) => existing.id === t.id);
+          if (idx !== -1) {
+            globalTickets[idx] = t;
+          } else {
             globalTickets.push(t);
           }
         }
@@ -118,17 +121,19 @@ export default function handler(req, res) {
   const { method, query, body, headers, url } = req;
   const user = verifyAccessToken(headers['authorization']);
 
-  // Extract ID from URL if calling /api/support/tickets/:id
-  const urlParts = url.split('?')[0].split('/');
-  const lastPart = urlParts[urlParts.length - 1];
-  const ticketIdParam = lastPart && lastPart !== 'tickets' ? lastPart : null;
+  // Correctly extract ID from URL (e.g. /api/support/tickets/:id, /api/support/tickets/:id/messages, /api/support/tickets/:id/status)
+  const cleanUrl = url.split('?')[0];
+  const ticketIdMatch = cleanUrl.match(/\/tickets\/([^/]+)/);
+  const rawId = ticketIdMatch ? ticketIdMatch[1] : null;
+  const ticketIdParam = rawId && rawId !== 'tickets' ? rawId : null;
+
+  const isStaffUser = user?.role === 'admin' || user?.role === 'support' || user?.nickname?.toLowerCase() === 'ren4ik284';
 
   // GET Tickets list (Строгое разграничение прав доступа)
   if (method === 'GET' && !ticketIdParam) {
     let result = [...globalTickets];
 
     if (user) {
-      const isStaffUser = user.role === 'admin' || user.role === 'support' || user.nickname?.toLowerCase() === 'ren4ik284';
       if (isStaffUser) {
         // Админы и поддержка видят ВСЕ обращения
       } else {
@@ -165,10 +170,9 @@ export default function handler(req, res) {
     if (!ticket) return res.status(404).json({ message: 'Тикет не найден' });
 
     // Проверка прав: читать тикет может либо автор, либо админ/поддержка
-    const isStaff = user?.role === 'admin' || user?.role === 'support' || user?.nickname?.toLowerCase() === 'ren4ik284';
     const isOwner = user && (ticket.userId === user.sub || ticket.nickname.toLowerCase() === user.nickname.toLowerCase());
 
-    if (!isStaff && !isOwner) {
+    if (!isStaffUser && !isOwner) {
       return res.status(403).json({ message: 'Доступ запрещён: этот тикет приватный' });
     }
 
@@ -227,18 +231,22 @@ export default function handler(req, res) {
   // POST Add message /api/support/tickets/:id/messages
   if (method === 'POST' && url.includes('/messages')) {
     const id = ticketIdParam || query.id;
-    const ticket = globalTickets.find((t) => t.id === id || t.ticketNumber === id);
+    const ticket = globalTickets.find(
+      (t) => t.id === id || t.ticketNumber.toLowerCase() === (id || '').toLowerCase()
+    );
     if (!ticket) return res.status(404).json({ message: 'Тикет не найден' });
 
-    const isStaff = user?.role === 'admin' || user?.role === 'support';
-    const isOwner = user && (ticket.userId === user.sub || ticket.nickname.toLowerCase() === user.nickname.toLowerCase());
+    const requestSender = (body?.sender || user?.nickname || '').trim().toLowerCase();
+    const isOwner =
+      (user && (ticket.userId === user.sub || ticket.nickname.toLowerCase() === user.nickname.toLowerCase())) ||
+      (!user && requestSender && requestSender === ticket.nickname.trim().toLowerCase());
 
-    if (!isStaff && !isOwner) {
+    if (!isStaffUser && !isOwner) {
       return res.status(403).json({ message: 'Вы не можете писать в чужом тикете' });
     }
 
     const now = new Date().toISOString();
-    const senderRole = isStaff ? 'support' : 'user';
+    const senderRole = isStaffUser ? 'support' : 'user';
     const senderName = user?.nickname || body?.sender || ticket.nickname;
 
     const newMsg = {
@@ -259,13 +267,14 @@ export default function handler(req, res) {
 
   // PATCH Update status /api/support/tickets/:id/status (Администраторы & Поддержка)
   if (method === 'PATCH' && url.includes('/status')) {
-    const isStaff = user?.role === 'admin' || user?.role === 'support';
-    if (!isStaff) {
+    if (!isStaffUser) {
       return res.status(403).json({ message: 'Изменять статус могут только Админы и Поддержка' });
     }
 
     const id = ticketIdParam || query.id;
-    const ticket = globalTickets.find((t) => t.id === id || t.ticketNumber === id);
+    const ticket = globalTickets.find(
+      (t) => t.id === id || t.ticketNumber.toLowerCase() === (id || '').toLowerCase()
+    );
     if (!ticket) return res.status(404).json({ message: 'Тикет не найден' });
 
     const now = new Date().toISOString();
@@ -287,13 +296,14 @@ export default function handler(req, res) {
 
   // DELETE Ticket (Только Администраторы & Поддержка)
   if (method === 'DELETE') {
-    const isStaff = user?.role === 'admin' || user?.role === 'support';
-    if (!isStaff) {
+    if (!isStaffUser) {
       return res.status(403).json({ message: 'Удалять тикеты могут только Администраторы и Поддержка' });
     }
 
     const id = ticketIdParam || query.id || body?.id;
-    globalTickets = globalTickets.filter((t) => t.id !== id && t.ticketNumber !== id);
+    globalTickets = globalTickets.filter(
+      (t) => t.id !== id && t.ticketNumber.toLowerCase() !== (id || '').toLowerCase()
+    );
     savePersistedTickets();
     return res.status(200).json({ success: true, id });
   }
