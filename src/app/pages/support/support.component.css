@@ -1316,4 +1316,104 @@
   display: block;
 }
 
+/* ===== HIDE NAVBAR HEADER ON MOBILE PHONE WHEN TICKET IS OPEN ===== */
+@media (max-width: 768px) {
+  body.ticket-modal-open .navbar,
+  body.ticket-modal-open .navbar__spacer,
+  body:has(.modal-overlay) .navbar,
+  body:has(.modal-overlay) .navbar__spacer {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: 999999 !important;
+    background: rgba(10, 10, 15, 0.98) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+
+  .modal-card {
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 16px 14px 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+    background: #0d0e12 !important;
+    position: relative !important;
+  }
+
+  .modal-header {
+    flex-shrink: 0 !important;
+    padding-top: 10px !important;
+    padding-bottom: 14px !important;
+    padding-right: 50px !important;
+    border-bottom: 1px solid var(--clr-surface-border) !important;
+    margin-bottom: 12px !important;
+    position: relative !important;
+  }
+
+  .modal-close {
+    position: absolute !important;
+    top: 6px !important;
+    right: 6px !important;
+    width: 44px !important;
+    height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 32px !important;
+    line-height: 1 !important;
+    z-index: 1000000 !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 50% !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  .modal-close:active {
+    background: rgba(239, 68, 68, 0.5) !important;
+    transform: scale(0.92) !important;
+  }
+
+  .chat-container {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    padding-right: 4px !important;
+  }
+
+  .reply-container {
+    flex-shrink: 0 !important;
+    padding-top: 12px !important;
+    padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    background: #0d0e12 !important;
+  }
+}
+
 

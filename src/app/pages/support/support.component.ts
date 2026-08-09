@@ -439,11 +439,17 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   openTicketDetails(ticket: Ticket): void {
     this.selectedTicket = ticket;
+    if (typeof document !== 'undefined') {
+      document.body.classList.add('ticket-modal-open');
+    }
   }
 
   closeTicketDetails(): void {
     this.selectedTicket = null;
     this.replyText = '';
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('ticket-modal-open');
+    }
   }
 
   sendReply(): void {
