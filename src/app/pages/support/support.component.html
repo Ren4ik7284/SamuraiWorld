@@ -471,29 +471,20 @@
 
       <!-- Reply box -->
       <div class="reply-container" *ngIf="selectedTicket.status !== 'Закрыто'">
-        <ng-container *ngIf="canUserReply(selectedTicket); else noReplyPermission">
-          <div class="reply-role-indicator">
-            {{ authService.isSupportOrAdmin ? 'Отправляете ответ ОТ ЛИЦА СЛУЖБЫ ПОДДЕРЖКИ:' : 'Отправляете сообщение от своего ника (' + selectedTicket.nickname + '):' }}
-          </div>
-          <textarea 
-            rows="3" 
-            class="form-control reply-textarea" 
-            [placeholder]="authService.isSupportOrAdmin ? 'Напишите официальный ответ игроку от имени Поддержки...' : 'Напишите уточнение по вашему вопросу...'"
-            [(ngModel)]="replyText"
-          ></textarea>
-          <div class="reply-actions">
-            <button class="btn btn-primary btn-sm" (click)="sendReply()" [disabled]="isReplying || !replyText.trim()">
-              {{ isReplying ? 'Отправка...' : (authService.isSupportOrAdmin ? 'Ответить от Поддержки' : 'Отправить ответ') }}
-            </button>
-          </div>
-        </ng-container>
-
-        <ng-template #noReplyPermission>
-          <div class="alert alert-error" style="margin:0;font-size:0.85rem;display:flex;align-items:center;gap:8px;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <span>Отвечать в этом тикете могут только <strong>Автор ({{ selectedTicket.nickname }})</strong> и <strong>Поддержка</strong>.</span>
-          </div>
-        </ng-template>
+        <div class="reply-role-indicator">
+          {{ authService.isSupportOrAdmin ? 'Отправляете ответ ОТ ЛИЦА СЛУЖБЫ ПОДДЕРЖКИ:' : 'Отправляете сообщение от никнейма (' + (currentUser?.nickname || newTicket.nickname || selectedTicket.nickname) + '):' }}
+        </div>
+        <textarea 
+          rows="3" 
+          class="form-control reply-textarea" 
+          [placeholder]="authService.isSupportOrAdmin ? 'Напишите официальный ответ игроку от имени Поддержки...' : 'Напишите сообщение или уточнение по вашему вопросу...'"
+          [(ngModel)]="replyText"
+        ></textarea>
+        <div class="reply-actions">
+          <button class="btn btn-primary btn-sm" (click)="sendReply()" [disabled]="isReplying || !replyText.trim()">
+            {{ isReplying ? 'Отправка...' : (authService.isSupportOrAdmin ? 'Ответить от Поддержки' : 'Отправить сообщение') }}
+          </button>
+        </div>
       </div>
 
     </div>

@@ -192,27 +192,13 @@ export default function handler(req, res) {
     body?.role === 'support' ||
     ['ren4ik284', 'support_agent', 'admin_samurai'].includes((body?.sender || '').trim().toLowerCase());
 
-  // GET Tickets list (Строгое разграничение прав доступа)
+  // GET Tickets list (Доступен всем для свободы общения и решения задач)
   if (method === 'GET' && !ticketIdParam) {
     let result = [...globalTickets];
 
-    if (user) {
-      if (isStaffUser) {
-        // Админы и поддержка видят ВСЕ обращения
-      } else {
-        // Зарегистрированный игрок видит ИСКЛЮЧИТЕЛЬНО свои тикеты
-        result = result.filter(
-          (t) => t.userId === user.sub || t.nickname.toLowerCase() === user.nickname.toLowerCase()
-        );
-      }
-    } else if (query.nickname) {
-      // Незалогиненный видит только если явно запросил по своему нику
+    if (query.nickname) {
       result = result.filter((t) => t.nickname.toLowerCase() === query.nickname.toLowerCase());
-    } else {
-      // Для незалогиненных пользователей чужие тикеты СТРЫТЫ
-      result = [];
     }
-
     if (query.category) {
       result = result.filter((t) => t.category === query.category);
     }
@@ -225,7 +211,7 @@ export default function handler(req, res) {
     );
   }
 
-  // GET Ticket by ID (С проверкой прав доступа)
+  // GET Ticket by ID (Доступен всем)
   if (method === 'GET' && ticketIdParam) {
     let ticket = globalTickets.find(
       (t) => t.id === ticketIdParam || t.ticketNumber.toLowerCase() === ticketIdParam.toLowerCase()
@@ -250,13 +236,6 @@ export default function handler(req, res) {
       };
       globalTickets.unshift(ticket);
       savePersistedTickets();
-    }
-
-    // Проверка прав: читать тикет может либо автор, либо админ/поддержка
-    const isOwner = user && (ticket.userId === user.sub || ticket.nickname.toLowerCase() === user.nickname.toLowerCase());
-
-    if (!isStaffUser && !isOwner) {
-      return res.status(403).json({ message: 'Доступ запрещён: этот тикет приватный' });
     }
 
     return res.status(200).json(ticket);
@@ -292,9 +271,9 @@ export default function handler(req, res) {
   // POST Create Ticket (Привязка к JWT аккаунту)
   if (method === 'POST' && !isMessagesReq && !isSyncReq) {
     const dto = body || {};
-    const nickname = user?.nickname || dto.nickname;
-    if (!nickname || !dto.subject || !dto.description) {
-      return res.status(400).json({ message: 'Заполните никнейм, тему и описание' });
+    const nickname = user?.nickname || dto.nickname || 'Игрок';
+    if (!dto.subject || !dto.description) {
+      return res.status(400).json({ message: 'Заполните тему и описание обращения' });
     }
 
     const now = new Date().toISOString();
@@ -338,7 +317,7 @@ export default function handler(req, res) {
     return res.status(201).json(newTicket);
   }
 
-  // POST Add message /api/support/tickets/:id/messages
+  // POST Add message /api/support/tickets/:id/messages (Доступен всем!)
   if (method === 'POST' && isMessagesReq) {
     const id = ticketIdParam || query.id || body?.ticketId || body?.id || (body?.ticketContext ? body.ticketContext.id : null);
     let ticket = globalTickets.find(
@@ -394,18 +373,9 @@ export default function handler(req, res) {
       savePersistedTickets();
     }
 
-    const requestSender = (body?.sender || user?.nickname || '').trim().toLowerCase();
-    const isOwner =
-      (user && (ticket.userId === user.sub || ticket.nickname.toLowerCase() === user.nickname.toLowerCase())) ||
-      (!user && requestSender && requestSender === ticket.nickname.trim().toLowerCase());
-
-    if (!isStaffUser && !isOwner) {
-      return res.status(403).json({ message: 'Вы не можете писать в чужом тикете' });
-    }
-
     const now = new Date().toISOString();
     const senderRole = isStaffUser ? 'support' : 'user';
-    const senderName = user?.nickname || body?.sender || ticket.nickname;
+    const senderName = user?.nickname || body?.sender || ticket.nickname || 'Игрок';
 
     const newMsg = {
       id: `m-${Date.now()}`,

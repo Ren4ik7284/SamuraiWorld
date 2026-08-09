@@ -361,20 +361,14 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   canUserReply(ticket: Ticket | null): boolean {
-    if (!ticket) return false;
-    if (this.authService.isSupportOrAdmin) return true;
-
-    const userNick = (this.currentUser?.nickname || this.newTicket.nickname).trim().toLowerCase();
-    const authorNick = ticket.nickname.trim().toLowerCase();
-
-    return !!userNick && userNick === authorNick;
+    return !!ticket;
   }
 
   /**
    * Создание нового обращения с JWT привязкой
    */
   submitTicket(): void {
-    const nickname = (this.currentUser?.nickname || this.newTicket.nickname).trim();
+    const nickname = (this.currentUser?.nickname || this.newTicket.nickname || 'Игрок').trim();
     if (!nickname || !this.newTicket.subject || !this.newTicket.description) {
       this.errorMessage = 'Заполните ваш никнейм, тему и описание проблемы.';
       return;
@@ -454,11 +448,6 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   sendReply(): void {
     if (!this.replyText.trim() || !this.selectedTicket) return;
-
-    if (!this.canUserReply(this.selectedTicket)) {
-      alert('Отвечать в этом тикете могут только Автор обращения и Техподдержка!');
-      return;
-    }
 
     this.isReplying = true;
     const isStaff = this.authService.isSupportOrAdmin;
