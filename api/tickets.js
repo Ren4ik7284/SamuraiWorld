@@ -104,56 +104,39 @@ function verifyAccessToken(authHeader) {
 }
 
 function extractTicketId(req, parsedBody = {}) {
-  const rawUrl = req.url || '';
-
-  // 0. Check explicit ticketId in parsed body or query
+  // 0. Check explicit ticketId in parsed body
   if (parsedBody && (parsedBody.ticketId || parsedBody.id)) {
     const bId = String(parsedBody.ticketId || parsedBody.id).trim();
-    if (bId && bId !== 'tickets' && bId !== 'messages' && bId !== 'status' && bId !== 'sync') {
+    if (bId && !['tickets', 'messages', 'status', 'sync'].includes(bId.toLowerCase())) {
       return bId;
     }
   }
 
-  // 1. Check req.query.path or req.query['0']
+  // 1. Check req.query values (supports query.path, query['0'], query.id, etc.)
   if (req.query) {
-    if (req.query.path) {
-      const pathStr = Array.isArray(req.query.path) ? req.query.path.join('/') : String(req.query.path);
-      const first = pathStr.split('/')[0];
-      if (first && !['tickets', 'messages', 'status', 'sync'].includes(first.toLowerCase())) {
-        return first;
+    const queryVals = Object.values(req.query).flatMap((v) => (Array.isArray(v) ? v : [String(v)]));
+    for (const val of queryVals) {
+      const parts = String(val).split('/');
+      for (const p of parts) {
+        if (
+          p &&
+          !['tickets', 'messages', 'status', 'sync', 'api', 'support', 'undefined', 'null'].includes(p.toLowerCase())
+        ) {
+          return p;
+        }
       }
     }
-    if (req.query['0']) {
-      const parts = String(req.query['0']).split('/');
-      const first = parts[0];
-      if (first && !['tickets', 'messages', 'status', 'sync'].includes(first.toLowerCase())) {
-        return first;
-      }
-    }
   }
 
-  // 2. Decode full URL string to check path or query parameters
-  const decodedUrl = decodeURIComponent(rawUrl);
-
-  const matchTickets = decodedUrl.match(/\/tickets\/([^/?&#]+)/i);
-  if (matchTickets && matchTickets[1] && !['tickets', 'messages', 'status', 'sync'].includes(matchTickets[1].toLowerCase())) {
-    return matchTickets[1];
-  }
-
-  const matchQueryParam = decodedUrl.match(/[?&]0=([^/&?#]+)/i);
-  if (matchQueryParam && matchQueryParam[1] && !['tickets', 'messages', 'status', 'sync'].includes(matchQueryParam[1].toLowerCase())) {
-    return matchQueryParam[1];
-  }
-
-  // 3. Fallback: URL path splitting
-  const pathOnly = decodedUrl.split('?')[0];
-  const parts = pathOnly.split('/').filter(Boolean);
-  for (let i = 0; i < parts.length; i++) {
-    if (parts[i] === 'tickets' && i + 1 < parts.length) {
-      const next = parts[i + 1];
-      if (!['tickets', 'messages', 'status', 'sync'].includes(next.toLowerCase())) {
-        return next;
-      }
+  // 2. Decode full URL string
+  const decodedUrl = decodeURIComponent(req.url || '');
+  const parts = decodedUrl.split('?')[0].split('/').filter(Boolean);
+  for (const p of parts) {
+    if (
+      p &&
+      !['tickets', 'messages', 'status', 'sync', 'api', 'support', 'tickets.js'].includes(p.toLowerCase())
+    ) {
+      return p;
     }
   }
 
@@ -190,9 +173,11 @@ export default function handler(req, res) {
   const user = verifyAccessToken(headers['authorization']);
 
   const ticketIdParam = extractTicketId(req, body);
-  const isMessagesReq = (url || '').includes('messages') || (query && String(query['0']).includes('messages'));
-  const isStatusReq = (url || '').includes('status') || (query && String(query['0']).includes('status'));
-  const isSyncReq = (url || '').includes('sync') || (query && String(query['0']).includes('sync'));
+
+  const fullUrlAndQuery = (url || '') + ' ' + JSON.stringify(query);
+  const isMessagesReq = fullUrlAndQuery.includes('messages');
+  const isStatusReq = fullUrlAndQuery.includes('status');
+  const isSyncReq = fullUrlAndQuery.includes('sync');
 
   const isStaffUser =
     user?.role === 'admin' ||
