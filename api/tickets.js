@@ -8,8 +8,31 @@ const TMP_TICKETS_FILE = path.join('/tmp', 'samurai_tickets_store.json');
 let globalTickets = [];
 
 function loadPersistedTickets() {
-  globalTickets = [];
-  savePersistedTickets();
+  try {
+    if (fs.existsSync(TMP_TICKETS_FILE)) {
+      const data = fs.readFileSync(TMP_TICKETS_FILE, 'utf8');
+      const loaded = JSON.parse(data);
+      if (Array.isArray(loaded)) {
+        for (const t of loaded) {
+          if (!t || !t.id) continue;
+          if (['playerone', 'support_agent', 'admin_samurai'].includes(t.nickname?.toLowerCase())) {
+            continue;
+          }
+          const idx = globalTickets.findIndex((existing) => existing.id === t.id);
+          if (idx !== -1) {
+            globalTickets[idx] = t;
+          } else {
+            globalTickets.push(t);
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // Ignore tmp file read errors
+  }
+
+  // Очищаем только старые тестовые вымышленные аккаунты
+  globalTickets = globalTickets.filter((t) => !['playerone', 'support_agent', 'admin_samurai'].includes(t.nickname?.toLowerCase()));
 }
 
 function savePersistedTickets() {

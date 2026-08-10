@@ -18,6 +18,11 @@ export default function handler(req, res) {
     politicalSystem: 'Демократическая Республика',
     playersOnline: 14,
     maxPlayers: 60,
+    hardware: {
+      cpu: 'AMD Ryzen 7 5700X (3 ядра)',
+      ram: '8 ГБ DDR4',
+      storage: '80 ГБ M.2 NVMe'
+    },
     onlinePlayers: [
       { name: 'Ren4ik284', id: '1', skinUrl: 'https://crafatar.com/avatars/Ren4ik284?overlay=true' },
       { name: 'Mydaf0n62', id: '2', skinUrl: 'https://crafatar.com/avatars/Mydaf0n62?overlay=true' }
