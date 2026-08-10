@@ -10,7 +10,7 @@ import { RouterModule } from '@angular/router';
     <div class="page" style="padding: 100px 0 60px;">
       <div class="container" style="max-width: 900px;">
         <header style="margin-bottom: 40px; text-align: center;">
-          <p class="section-eyebrow" style="color: #38bdf8; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 12px;">Документация</p>
+          <p class="section-eyebrow" style="color: #f0c040; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; margin-bottom: 12px;">Документация</p>
           <h1 style="font-family: var(--font-display); font-size: 2.4rem; font-weight: 800; color: #f8fafc; margin-bottom: 12px;">Политика Конфиденциальности</h1>
           <p style="color: #94a3b8; font-size: 0.95rem;">Дата последнего обновления: 10 августа 2026 года</p>
         </header>
@@ -53,9 +53,9 @@ import { RouterModule } from '@angular/router';
             <h2 style="font-size: 1.3rem; color: #f8fafc; margin-bottom: 12px; font-weight: 700;">5. Контакты службы поддержки</h2>
             <p>По всем вопросам, связанным с обработкой персональных данных и работой Сервиса, вы можете связаться со службой поддержки:</p>
             <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: 10px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.08);">
-              <div>🔹 <strong>Тикет-система:</strong> <a routerLink="/support" style="color: #38bdf8;">Создать обращение</a></div>
-              <div style="margin-top: 6px;">🔹 <strong>Telegram Администратора:</strong> <a href="https://t.me/Ren4ik284" target="_blank" style="color: #38bdf8;">&#64;Ren4ik284</a></div>
-              <div style="margin-top: 6px;">🔹 <strong>Email технической поддержки:</strong> <a href="mailto:support@samuraiworld.ru" style="color: #38bdf8;">support&#64;samuraiworld.ru</a></div>
+              <div>🔹 <strong>Тикет-система:</strong> <a routerLink="/support" style="color: #f0c040;">Создать обращение</a></div>
+              <div style="margin-top: 6px;">🔹 <strong>Telegram Администратора:</strong> <a href="https://t.me/Ren4ik284" target="_blank" style="color: #f0c040;">&#64;Ren4ik284</a></div>
+              <div style="margin-top: 6px;">🔹 <strong>Email технической поддержки:</strong> <a href="mailto:support@samuraiworld.ru" style="color: #f0c040;">support&#64;samuraiworld.ru</a></div>
             </div>
           </section>
         </article>
