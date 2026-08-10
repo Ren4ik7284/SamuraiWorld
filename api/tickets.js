@@ -182,9 +182,9 @@ export default function handler(req, res) {
   const isStaffUser =
     user?.role === 'admin' ||
     user?.role === 'support' ||
-    user?.nickname?.toLowerCase() === 'ren4ik284' ||
+    ['ren4ik284', 'mydaf0n62'].includes(user?.nickname?.toLowerCase()) ||
     body?.role === 'support' ||
-    ['ren4ik284', 'support_agent', 'admin_samurai'].includes((body?.sender || '').trim().toLowerCase());
+    ['ren4ik284', 'mydaf0n62', 'support_agent', 'admin_samurai'].includes((body?.sender || '').trim().toLowerCase());
 
   // GET Tickets list (Доступен всем для свободы общения и решения задач)
   if (method === 'GET' && !ticketIdParam) {

@@ -48,7 +48,7 @@ export class AuthService {
     if (savedUserStr && accessToken) {
       try {
         const savedUser: User = JSON.parse(savedUserStr);
-        if (savedUser.nickname?.toLowerCase() === 'ren4ik284') {
+        if (['ren4ik284', 'mydaf0n62'].includes(savedUser.nickname?.toLowerCase())) {
           savedUser.role = 'admin';
           localStorage.setItem(this.userKey, JSON.stringify(savedUser));
         }
@@ -84,7 +84,7 @@ export class AuthService {
 
   public get isSupportOrAdmin(): boolean {
     const user = this.currentUserValue;
-    return !!user && (user.role === 'admin' || user.role === 'support' || user.nickname?.toLowerCase() === 'ren4ik284');
+    return !!user && (user.role === 'admin' || user.role === 'support' || ['ren4ik284', 'mydaf0n62'].includes(user.nickname?.toLowerCase()));
   }
 
   /**
@@ -216,7 +216,7 @@ export class AuthService {
   }
 
   private handleAuthSuccess(res: AuthResponse, password?: string): void {
-    if (res.user?.nickname?.toLowerCase() === 'ren4ik284') {
+    if (['ren4ik284', 'mydaf0n62'].includes(res.user?.nickname?.toLowerCase())) {
       res.user.role = 'admin';
     }
     if (res.tokens?.accessToken) {

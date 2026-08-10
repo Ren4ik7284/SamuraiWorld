@@ -17,6 +17,15 @@ let users = [
     createdAt: '2026-01-01T00:00:00.000Z',
   },
   {
+    id: 'usr-mydaf0n62-admin',
+    nickname: 'Mydaf0n62',
+    email: 'mydaf0n62@samuraiworld.ru',
+    passwordHash: hashPassword('admin123'),
+    role: 'admin',
+    avatarUrl: 'https://crafatar.com/avatars/Mydaf0n62?overlay=true',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
     id: 'usr-admin-1',
     nickname: 'Admin_Samurai',
     email: 'admin@samuraiworld.ru',
@@ -52,7 +61,7 @@ function loadPersistedUsers() {
       const loaded = JSON.parse(data);
       if (Array.isArray(loaded)) {
         for (const u of loaded) {
-          if (u.nickname?.toLowerCase() === 'ren4ik284') {
+          if (['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase())) {
             u.role = 'admin';
           }
           if (!users.some((existing) => existing.id === u.id || existing.nickname.toLowerCase() === u.nickname.toLowerCase())) {
@@ -65,9 +74,9 @@ function loadPersistedUsers() {
     // Ignore tmp file read errors
   }
 
-  // Ensure Ren4ik284 in memory is always admin
+  // Ensure Ren4ik284 & Mydaf0n62 in memory are always admin
   users.forEach((u) => {
-    if (u.nickname?.toLowerCase() === 'ren4ik284') {
+    if (['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase())) {
       u.role = 'admin';
     }
   });
@@ -229,13 +238,13 @@ export default function handler(req, res) {
       return res.status(409).json({ message: `Пользователь "${nickname}" уже существует` });
     }
 
-    const isRen4ik = nickname.trim().toLowerCase() === 'ren4ik284';
+    const isAdminNick = ['ren4ik284', 'mydaf0n62'].includes(nickname.trim().toLowerCase());
     const newUser = {
       id: `usr-${Date.now()}`,
       nickname: nickname.trim(),
       email: email || `${nickname.toLowerCase()}@samuraiworld.local`,
       passwordHash: hashPassword(password),
-      role: isRen4ik ? 'admin' : 'user',
+      role: isAdminNick ? 'admin' : 'user',
       avatarUrl: `https://crafatar.com/avatars/${encodeURIComponent(nickname)}?overlay=true`,
       createdAt: new Date().toISOString(),
     };
@@ -267,7 +276,7 @@ export default function handler(req, res) {
           nickname: nickname.trim(),
           email: clientUser.email || `${cleanNick}@samuraiworld.local`,
           passwordHash: pwdHash,
-          role: cleanNick === 'ren4ik284' ? 'admin' : clientUser.role || 'user',
+          role: ['ren4ik284', 'mydaf0n62'].includes(cleanNick) ? 'admin' : clientUser.role || 'user',
           avatarUrl: clientUser.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(nickname)}?overlay=true`,
           createdAt: clientUser.createdAt || new Date().toISOString(),
         };
@@ -280,7 +289,7 @@ export default function handler(req, res) {
       return res.status(401).json({ message: 'Неверный никнейм или пароль' });
     }
 
-    if (cleanNick === 'ren4ik284') {
+    if (['ren4ik284', 'mydaf0n62'].includes(cleanNick)) {
       user.role = 'admin';
     }
 
@@ -308,7 +317,7 @@ export default function handler(req, res) {
         nickname: payload.nickname,
         email: payload.email,
         passwordHash: payload.pwdHash || '',
-        role: payload.nickname.toLowerCase() === 'ren4ik284' ? 'admin' : payload.role || 'user',
+        role: ['ren4ik284', 'mydaf0n62'].includes(payload.nickname.toLowerCase()) ? 'admin' : payload.role || 'user',
         avatarUrl: payload.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(payload.nickname)}?overlay=true`,
         createdAt: payload.createdAt || new Date().toISOString(),
       };
@@ -320,7 +329,7 @@ export default function handler(req, res) {
       return res.status(401).json({ message: 'Пользователь не найден' });
     }
 
-    if (user.nickname.toLowerCase() === 'ren4ik284') {
+    if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
     }
 
@@ -350,7 +359,7 @@ export default function handler(req, res) {
         nickname: payload.nickname,
         email: payload.email,
         passwordHash: payload.pwdHash || '',
-        role: payload.nickname.toLowerCase() === 'ren4ik284' ? 'admin' : payload.role || 'user',
+        role: ['ren4ik284', 'mydaf0n62'].includes(payload.nickname.toLowerCase()) ? 'admin' : payload.role || 'user',
         avatarUrl: payload.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(payload.nickname)}?overlay=true`,
         createdAt: payload.createdAt || new Date().toISOString(),
       };
@@ -362,7 +371,7 @@ export default function handler(req, res) {
       return res.status(404).json({ message: 'Пользователь не найден' });
     }
 
-    if (user.nickname.toLowerCase() === 'ren4ik284') {
+    if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
     }
 
