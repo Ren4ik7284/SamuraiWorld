@@ -227,7 +227,7 @@
 
 <!-- МОДАЛЬНОЕ ОКНО СМЕНЫ АВАТАРКИ -->
 <div class="auth-modal-overlay" *ngIf="showAvatarModal" (click)="closeAvatarModal()">
-  <div class="auth-modal-card" (click)="$event.stopPropagation()" style="max-width: 480px;">
+  <div class="auth-modal-card" (click)="$event.stopPropagation()" style="max-width: 460px;">
     <div class="auth-modal-header">
       <h3>🖼️ Смена аватарки профиля</h3>
       <button class="auth-modal-close" (click)="closeAvatarModal()">&times;</button>
@@ -243,35 +243,43 @@
     <!-- Текущий предпросмотр -->
     <div style="text-align: center; margin: 16px 0;">
       <img 
-        [src]="customAvatarUrlInput || 'https://crafatar.com/avatars/Steve?overlay=true'" 
-        style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #38bdf8; object-fit: cover; background: #0f172a; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);" 
+        [src]="customAvatarUrlInput || DEFAULT_AVATAR" 
+        style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #38bdf8; object-fit: cover; background: #0f172a; box-shadow: 0 0 20px rgba(56, 189, 248, 0.35);" 
         alt="Preview Avatar"
       />
-      <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 6px;">Предпросмотр аватарки</div>
+      <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 6px;">Предпросмотр вашей аватарки</div>
     </div>
 
-    <!-- Набор готовых вариантов -->
-    <div style="margin-bottom: 16px;">
-      <label style="font-size: 0.8rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 8px;">Выберите готовый аватар:</label>
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-        <button 
-          type="button" 
-          *ngFor="let p of avatarPresets" 
-          (click)="selectPresetAvatar(p.url)" 
-          style="background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 8px 4px; color: #f8fafc; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s;"
-        >
-          {{ p.label }}
-        </button>
-      </div>
+    <!-- Загрузка из галереи (Файл с телефона / ПК) -->
+    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+      <input type="file" #fileInput accept="image/*" (change)="onFileSelected($event)" style="display: none;" />
+      
+      <button 
+        type="button" 
+        class="btn btn-primary" 
+        (click)="fileInput.click()"
+        style="width: 100%; justify-content: center; font-size: 0.95rem; font-weight: 700; padding: 12px;"
+      >
+        📁 Загрузить фото из галереи / файла
+      </button>
+
+      <button 
+        type="button" 
+        class="btn btn-outline" 
+        (click)="resetToDefaultAvatar()"
+        style="width: 100%; justify-content: center; font-size: 0.85rem; border-color: rgba(255,255,255,0.15); color: #cbd5e1;"
+      >
+        👤 Сбросить на стандартный серый аватар
+      </button>
     </div>
 
     <!-- Поле ввода своей ссылки -->
     <div class="auth-field">
-      <label>Или вставьте ЛЮБУЮ свою ссылку на картинку (PNG, JPG, WebP, SVG):</label>
+      <label style="font-size: 0.8rem; color: #94a3b8;">Или вставьте ссылку на изображение:</label>
       <input 
         type="url" 
         class="auth-input" 
-        placeholder="https://example.com/my-photo.jpg" 
+        placeholder="https://example.com/photo.jpg" 
         [(ngModel)]="customAvatarUrlInput" 
         name="customAvatarUrl"
       />

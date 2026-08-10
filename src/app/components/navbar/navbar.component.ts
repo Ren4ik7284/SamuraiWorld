@@ -165,24 +165,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.closeMobileMenu();
   }
 
-  // ===== СМЕНА АВАТАРКИ =====
+  // ===== СМЕНА АВАТАРКИ ИЗ ГАЛЕРЕИ ИЛИ УМОЛЧАНИЮ =====
+  readonly DEFAULT_AVATAR = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.03-4.84-2.6.03-1.61 3.22-2.4 4.84-2.4 1.61 0 4.81.79 4.84 2.4C15.8 18.97 14.03 20 12 20z"/></svg>';
+
   showAvatarModal = false;
   customAvatarUrlInput = '';
   avatarSuccessMsg = '';
   avatarErrorMsg = '';
 
-  avatarPresets = [
-    { label: 'Minecraft Скин', url: '' },
-    { label: 'Самурай Робот', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=SamuraiRed' },
-    { label: 'Золотой Воин', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=GoldCrown' },
-    { label: 'Кибер Дракон', url: 'https://api.dicebear.com/7.x/identicon/svg?seed=SamuraiWorld' },
-    { label: 'Pixel Аватар', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=SamuraiCat' },
-    { label: 'Герой Аниме', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=SamuraiHero' }
-  ];
-
   openAvatarModal(): void {
     if (!this.currentUser) return;
-    this.customAvatarUrlInput = this.currentUser.avatarUrl || '';
+    this.customAvatarUrlInput = this.currentUser.avatarUrl || this.DEFAULT_AVATAR;
     this.avatarSuccessMsg = '';
     this.avatarErrorMsg = '';
     this.showAvatarModal = true;
@@ -192,27 +185,51 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.showAvatarModal = false;
   }
 
-  selectPresetAvatar(url: string): void {
-    let targetUrl = url;
-    if (!targetUrl && this.currentUser?.nickname) {
-      targetUrl = `https://crafatar.com/avatars/${encodeURIComponent(this.currentUser.nickname)}?overlay=true`;
+  resetToDefaultAvatar(): void {
+    this.customAvatarUrlInput = this.DEFAULT_AVATAR;
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+      this.avatarErrorMsg = 'Выберите изображение (PNG, JPG, WebP)!';
+      return;
     }
-    this.customAvatarUrlInput = targetUrl;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const maxDim = 256;
+        canvas.width = maxDim;
+        canvas.height = maxDim;
+
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, maxDim, maxDim);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          this.customAvatarUrlInput = compressedDataUrl;
+          this.avatarErrorMsg = '';
+        }
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
   }
 
   saveAvatar(): void {
-    const url = (this.customAvatarUrlInput || '').trim();
-    if (!url) {
-      this.avatarErrorMsg = 'Укажите верную ссылку на аватарку!';
-      return;
-    }
+    const url = (this.customAvatarUrlInput || '').trim() || this.DEFAULT_AVATAR;
 
     this.authService.updateAvatar(url).subscribe({
       next: () => {
         this.avatarSuccessMsg = 'Аватарка успешно обновлена!';
         setTimeout(() => {
           this.closeAvatarModal();
-        }, 1000);
+        }, 800);
       },
       error: () => {
         this.avatarErrorMsg = 'Ошибка обновления аватарки';

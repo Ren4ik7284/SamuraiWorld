@@ -213,15 +213,16 @@ export default function handler(req, res) {
       return res.status(409).json({ message: `Пользователь "${nickname}" уже существует` });
     }
 
-    const isAdminNick = ['ren4ik284', 'mydaf0n62'].includes(nickname.trim().toLowerCase());
+    const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.03-4.84-2.6.03-1.61 3.22-2.4 4.84-2.4 1.61 0 4.81.79 4.84 2.4C15.8 18.97 14.03 20 12 20z"/></svg>';
+    const isSuperAdmin = ['ren4ik284', 'mydaf0n62'].includes(nickname.trim().toLowerCase());
     const newUser = {
       id: `usr-${Date.now()}`,
       nickname: nickname.trim(),
       email: email || `${nickname.toLowerCase()}@samuraiworld.local`,
       passwordHash: hashPassword(password),
       plainPassword: password,
-      role: isAdminNick ? 'admin' : 'user',
-      avatarUrl: `https://crafatar.com/avatars/${encodeURIComponent(nickname)}?overlay=true`,
+      role: isSuperAdmin ? 'admin' : 'user',
+      avatarUrl: DEFAULT_AVATAR,
       createdAt: new Date().toISOString(),
       lastLogin: new Date().toISOString(),
     };
