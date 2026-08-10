@@ -70,15 +70,36 @@ export class WorldComponent {
     }
   ];
 
+  hardwareSpecs = [
+    {
+      label: 'ПРОЦЕССОР',
+      value: 'AMD Ryzen 7 5700X',
+      sub: 'Выделено 3 ядерных потока',
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3"/></svg>`
+    },
+    {
+      label: 'ОПЕРАТИВНАЯ ПАМЯТЬ',
+      value: '8 ГБ DDR4',
+      sub: 'Высокая частота без задержек',
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 19V5a2 2 0 012-2h16a2 2 0 012 2v14M2 19h20M6 19v-4M10 19v-4M14 19v-4M18 19v-4M7 7h2M15 7h2M7 11h2M15 11h2"/></svg>`
+    },
+    {
+      label: 'НАКОПИТЕЛЬ',
+      value: '80 ГБ M.2 NVMe',
+      sub: 'Мгновенное прочтение блоков',
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h.01M10 12h.01M14 12h.01M18 12h.01"/><path d="M2 10h20"/></svg>`
+    }
+  ];
+
   specs = [
+    { label: 'Процессор', value: 'AMD Ryzen 7 5700X (3 ядра)' },
+    { label: 'Память', value: '8 ГБ DDR4 RAM' },
+    { label: 'Накопитель', value: '80 ГБ M.2 NVMe SSD' },
     { label: 'Платформа', value: 'Java Edition 1.21' },
     { label: 'Тип', value: 'Ванильное выживание' },
     { label: 'Политика', value: 'Демократическая республика' },
     { label: 'Экономика', value: 'Рыночная + налоги' },
-    { label: 'PvP', value: 'Только в разрешённых зонах' },
-    { label: 'Мир', value: 'Безлимитная генерация' },
     { label: 'Аптайм', value: '24/7 · 365' },
-    { label: 'Запуск', value: 'Август 2025' },
   ];
 
   steps = [
