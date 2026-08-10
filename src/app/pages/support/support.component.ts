@@ -13,7 +13,7 @@ export type TicketCategory =
   | 'Идеи & Баг-репорты';
 
 export type TicketPriority = 'Низкий' | 'Средний' | 'Высокий' | 'Критический';
-export type TicketStatus = 'Ожидает ответа' | 'В обработке' | 'Решено' | 'Закрыто';
+export type TicketStatus = 'В работе' | 'Выполненные' | 'Нерешенные' | 'Ожидает ответа' | 'В обработке' | 'Решено' | 'Закрыто';
 
 export interface TicketMessage {
   id: string;
@@ -597,16 +597,19 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   getStatusClass(status: TicketStatus): string {
     switch (status) {
+      case 'Нерешенные':
       case 'Ожидает ответа':
         return 'status-pending';
+      case 'В работе':
       case 'В обработке':
         return 'status-progress';
+      case 'Выполненные':
       case 'Решено':
         return 'status-resolved';
       case 'Закрыто':
         return 'status-closed';
       default:
-        return '';
+        return 'status-progress';
     }
   }
 }

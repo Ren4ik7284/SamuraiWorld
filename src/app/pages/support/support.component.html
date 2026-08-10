@@ -335,24 +335,24 @@
             </button>
             <button 
               class="filter-btn" 
-              [class.filter-btn--active]="adminFilterStatus === 'Ожидает ответа'"
-              (click)="adminFilterStatus = 'Ожидает ответа'"
+              [class.filter-btn--active]="adminFilterStatus === 'Нерешенные' || adminFilterStatus === 'Ожидает ответа'"
+              (click)="adminFilterStatus = 'Нерешенные'"
             >
-              Ожидают ответа
+              Нерешенные
             </button>
             <button 
               class="filter-btn" 
-              [class.filter-btn--active]="adminFilterStatus === 'В обработке'"
-              (click)="adminFilterStatus = 'В обработке'"
+              [class.filter-btn--active]="adminFilterStatus === 'В работе' || adminFilterStatus === 'В обработке'"
+              (click)="adminFilterStatus = 'В работе'"
             >
-              В обработке
+              В работе
             </button>
             <button 
               class="filter-btn" 
-              [class.filter-btn--active]="adminFilterStatus === 'Решено'"
-              (click)="adminFilterStatus = 'Решено'"
+              [class.filter-btn--active]="adminFilterStatus === 'Выполненные' || adminFilterStatus === 'Решено'"
+              (click)="adminFilterStatus = 'Выполненные'"
             >
-              Решенные
+              Выполненные
             </button>
           </div>
 
@@ -445,13 +445,13 @@
         <span class="status-badge" [ngClass]="getStatusClass(selectedTicket.status)">{{ selectedTicket.status }}</span>
       </div>
 
-      <!-- Admin Status Changer Controls -->
-      <div class="status-changer-bar" *ngIf="authService.isSupportOrAdmin">
+      <!-- Status Changer Controls -->
+      <div class="status-changer-bar">
         <span class="form-label" style="font-size:0.78rem;">Изменить статус:</span>
-        <button class="btn-status status-pending" (click)="changeStatus('Ожидает ответа')">Ожидает ответа</button>
-        <button class="btn-status status-progress" (click)="changeStatus('В обработке')">В обработке</button>
-        <button class="btn-status status-resolved" (click)="changeStatus('Решено')">Решено</button>
-        <button class="btn-status status-closed" (click)="changeStatus('Закрыто')">Закрыть</button>
+        <button class="btn-status status-pending" [class.btn-status--active]="selectedTicket.status === 'Нерешенные' || selectedTicket.status === 'Ожидает ответа'" (click)="changeStatus('Нерешенные')">🔴 Нерешенные</button>
+        <button class="btn-status status-progress" [class.btn-status--active]="selectedTicket.status === 'В работе' || selectedTicket.status === 'В обработке'" (click)="changeStatus('В работе')">🟡 В работе</button>
+        <button class="btn-status status-resolved" [class.btn-status--active]="selectedTicket.status === 'Выполненные' || selectedTicket.status === 'Решено'" (click)="changeStatus('Выполненные')">🟢 Выполненные</button>
+        <button class="btn-status status-closed" [class.btn-status--active]="selectedTicket.status === 'Закрыто'" (click)="changeStatus('Закрыто')">⚙️ Закрыто</button>
       </div>
 
       <!-- Messages timeline -->

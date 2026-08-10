@@ -387,12 +387,8 @@ export default function handler(req, res) {
     return res.status(200).json(ticket);
   }
 
-  // PATCH Update status /api/support/tickets/:id/status (Администраторы & Поддержка)
+  // PATCH Update status /api/support/tickets/:id/status
   if (method === 'PATCH' && isStatusReq) {
-    if (!isStaffUser) {
-      return res.status(403).json({ message: 'Изменять статус могут только Админы и Поддержка' });
-    }
-
     const id = ticketIdParam || query.id || body?.ticketId || body?.id || (body?.ticketContext ? body.ticketContext.id : null);
     let ticket = globalTickets.find(
       (t) => t.id === id || t.ticketNumber.toLowerCase() === (id || '').toLowerCase()

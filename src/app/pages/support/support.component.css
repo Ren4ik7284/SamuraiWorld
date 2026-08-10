@@ -657,6 +657,12 @@
   transform: scale(1.05);
 }
 
+.btn-status--active {
+  box-shadow: 0 0 12px currentColor, 0 0 0 2px rgba(255,255,255,0.4);
+  transform: scale(1.05);
+  font-weight: 700;
+}
+
 .reply-role-indicator {
   font-size: 0.78rem;
   font-weight: 600;
