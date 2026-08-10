@@ -176,8 +176,9 @@
                 </select>
               </div>
 
-              <div class="form-group">
-                <label class="form-label">Приоритет обращения</label>
+              <!-- Priority Selection (Restricted strictly to Support & Admin) -->
+              <div class="form-group" *ngIf="authService.isSupportOrAdmin">
+                <label class="form-label">Приоритет обращения (Администрация)</label>
                 <div class="priority-selector">
                   <button 
                     type="button" 
@@ -427,7 +428,7 @@
           <h3 class="modal-title">{{ selectedTicket.subject }}</h3>
         </div>
         <div class="modal-actions-right">
-          <button class="btn-delete btn-delete-head" (click)="deleteTicket(selectedTicket.id)">
+          <button class="btn-delete btn-delete-head" *ngIf="authService.isSupportOrAdmin" (click)="deleteTicket(selectedTicket.id)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M18 6L6 18M6 6l12 12"/></svg>
             Удалить тикет
           </button>
@@ -445,9 +446,9 @@
         <span class="status-badge" [ngClass]="getStatusClass(selectedTicket.status)">{{ selectedTicket.status }}</span>
       </div>
 
-      <!-- Status Changer Controls -->
-      <div class="status-changer-bar">
-        <span class="form-label" style="font-size:0.78rem;">Изменить статус:</span>
+      <!-- Status Changer Controls (ТОЛЬКО для Администраторов и Поддержки) -->
+      <div class="status-changer-bar" *ngIf="authService.isSupportOrAdmin">
+        <span class="form-label" style="font-size:0.78rem;">Изменить статус (Администрация):</span>
         <button class="btn-status status-pending" [class.btn-status--active]="selectedTicket.status === 'Нерешенные' || selectedTicket.status === 'Ожидает ответа'" (click)="changeStatus('Нерешенные')">🔴 Нерешенные</button>
         <button class="btn-status status-progress" [class.btn-status--active]="selectedTicket.status === 'В работе' || selectedTicket.status === 'В обработке'" (click)="changeStatus('В работе')">🟡 В работе</button>
         <button class="btn-status status-resolved" [class.btn-status--active]="selectedTicket.status === 'Выполненные' || selectedTicket.status === 'Решено'" (click)="changeStatus('Выполненные')">🟢 Выполненные</button>

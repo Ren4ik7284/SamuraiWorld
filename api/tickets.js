@@ -280,7 +280,7 @@ export default function handler(req, res) {
       nickname: nickname.trim(),
       contact: dto.contact || 'Не указан',
       category: dto.category || 'Технические проблемы',
-      priority: dto.priority || 'Средний',
+      priority: isStaffUser ? (dto.priority || 'Средний') : 'Средний',
       subject: dto.subject,
       description: dto.description,
       status: 'Ожидает ответа',
@@ -387,8 +387,12 @@ export default function handler(req, res) {
     return res.status(200).json(ticket);
   }
 
-  // PATCH Update status /api/support/tickets/:id/status
+  // PATCH Update status /api/support/tickets/:id/status (Строго для Администрации)
   if (method === 'PATCH' && isStatusReq) {
+    if (!isStaffUser) {
+      return res.status(403).json({ message: 'Изменение статуса тикета разрешено только Администраторам!' });
+    }
+
     const id = ticketIdParam || query.id || body?.ticketId || body?.id || (body?.ticketContext ? body.ticketContext.id : null);
     let ticket = globalTickets.find(
       (t) => t.id === id || t.ticketNumber.toLowerCase() === (id || '').toLowerCase()
@@ -459,8 +463,12 @@ export default function handler(req, res) {
     return res.status(200).json(ticket);
   }
 
-  // DELETE Ticket
+  // DELETE Ticket (Строго для Администрации)
   if (method === 'DELETE') {
+    if (!isStaffUser) {
+      return res.status(403).json({ message: 'Удаление тикетов разрешено только Администраторам!' });
+    }
+
     const id = ticketIdParam || query.id || body?.id;
     if (id) {
       globalTickets = globalTickets.filter(

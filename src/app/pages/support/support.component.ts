@@ -426,11 +426,14 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
     this.isSubmitting = true;
 
+    // Игроки НЕ могут менять приоритет — для них всегда ставится 'Средний'. Приоритеты меняет только Поддержка/Админы.
+    const priorityToUse = this.authService.isSupportOrAdmin ? this.newTicket.priority : 'Средний';
+
     const dto = {
       nickname,
       contact: this.newTicket.contact || 'Не указан',
       category: this.newTicket.category,
-      priority: this.newTicket.priority,
+      priority: priorityToUse,
       subject: this.newTicket.subject,
       description: this.newTicket.description,
     };
@@ -552,6 +555,10 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   changeStatus(newStatus: TicketStatus): void {
     if (!this.selectedTicket) return;
+    if (!this.authService.isSupportOrAdmin) {
+      alert('Изменение статуса тикета доступно только Администраторам!');
+      return;
+    }
 
     const headers = this.authService.getAuthHeaders();
     const dto = {
@@ -578,6 +585,11 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   deleteTicket(ticketId: string, event?: Event): void {
     if (event) event.stopPropagation();
+    if (!this.authService.isSupportOrAdmin) {
+      alert('Удаление тикетов доступно только Администраторам!');
+      return;
+    }
+
     if (!confirm('Вы действительно хотите закрыть и удалить этот тикет?')) return;
 
     this.addDeletedTicketId(ticketId);
