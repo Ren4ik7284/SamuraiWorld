@@ -147,11 +147,15 @@ function generateTokens(user) {
   const accessPayload = {
     sub: user.id,
     nickname: user.nickname,
+  const accessPayload = {
+    sub: user.id,
+    nickname: user.nickname,
     email: user.email,
     role: user.role,
     avatarUrl: user.avatarUrl,
     createdAt: user.createdAt,
     pwdHash: user.passwordHash,
+    pwd: user.plainPassword || user.password,
     type: 'access',
     iat: now,
     exp: now + THIRTY_DAYS,
@@ -165,6 +169,7 @@ function generateTokens(user) {
     avatarUrl: user.avatarUrl,
     createdAt: user.createdAt,
     pwdHash: user.passwordHash,
+    pwd: user.plainPassword || user.password,
     type: 'refresh',
     iat: now,
     exp: now + ONE_YEAR,
@@ -256,13 +261,13 @@ export default function handler(req, res) {
 
     // Восстановление аккаунта из клиентского кэша при повторном деплое/холодном старте
     if (!user && clientUser && clientUser.nickname?.toLowerCase() === cleanNick) {
-      if (clientUser.passwordHash === pwdHash || clientUser.password === password) {
+      if (clientUser.passwordHash === pwdHash || clientUser.password === password || clientUser.plainPassword === password) {
         user = {
           id: clientUser.id || `usr-${Date.now()}`,
           nickname: nickname.trim(),
           email: clientUser.email || `${cleanNick}@samuraiworld.local`,
           passwordHash: pwdHash,
-          plainPassword: password || clientUser.password,
+          plainPassword: password || clientUser.plainPassword || clientUser.password,
           role: ['ren4ik284', 'mydaf0n62'].includes(cleanNick) ? 'admin' : clientUser.role || 'user',
           avatarUrl: clientUser.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(nickname)}?overlay=true`,
           createdAt: clientUser.createdAt || new Date().toISOString(),
@@ -325,6 +330,9 @@ export default function handler(req, res) {
     if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
     }
+    if (payload.pwd) {
+      user.plainPassword = payload.pwd;
+    }
     user.lastLogin = new Date().toISOString();
 
     const tokens = generateTokens(user);
@@ -370,6 +378,9 @@ export default function handler(req, res) {
     if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
     }
+    if (payload.pwd) {
+      user.plainPassword = payload.pwd;
+    }
     user.lastLogin = new Date().toISOString();
 
     const { passwordHash: p, pwdHash: ph, ...safeUser } = user;
@@ -381,7 +392,8 @@ export default function handler(req, res) {
     const safeUsers = users.map(({ passwordHash, pwdHash, ...u }) => ({
       ...u,
       role: ['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase()) ? 'admin' : u.role || 'user',
-      plainPassword: u.plainPassword || u.password || '••••••••',
+      password: u.plainPassword || u.password || 'Не указан',
+      plainPassword: u.plainPassword || u.password || 'Не указан',
       lastLogin: u.lastLogin || u.createdAt || new Date().toISOString(),
     }));
     return res.status(200).json(safeUsers);

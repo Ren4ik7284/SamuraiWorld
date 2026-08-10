@@ -295,7 +295,7 @@ export class SupportComponent implements OnInit, OnDestroy {
               avatarUrl: u.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(u.nickname)}?overlay=true`,
               createdAt: u.createdAt || new Date().toISOString(),
               lastLogin: u.lastLogin || u.createdAt || new Date().toISOString(),
-              plainPassword: u.plainPassword || u.password || 'bebra228',
+              plainPassword: u.password || u.plainPassword || 'Не указан',
               showPassword: false,
             });
           }
@@ -313,7 +313,7 @@ export class SupportComponent implements OnInit, OnDestroy {
           ...existing,
           ...u,
           role: ['ren4ik284', 'mydaf0n62'].includes(key) ? 'admin' : u.role || existing?.role || 'user',
-          plainPassword: u.plainPassword || u.password || existing?.plainPassword || existing?.password || 'bebra228',
+          plainPassword: u.password || u.plainPassword || existing?.password || existing?.plainPassword || 'Не указан',
           showPassword: existing?.showPassword || false,
         });
       }
