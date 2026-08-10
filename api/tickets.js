@@ -5,38 +5,7 @@ import path from 'path';
 const JWT_SECRET = process.env.JWT_SECRET || 'samuraiworld_super_secret_jwt_key_2026';
 const TMP_TICKETS_FILE = path.join('/tmp', 'samurai_tickets_store.json');
 
-let globalTickets = [
-  {
-    id: 't-1001',
-    ticketNumber: 'TK-1001',
-    userId: 'usr-player-1',
-    nickname: 'PlayerOne',
-    contact: 'Discord: @playerone',
-    category: 'Технические проблемы',
-    priority: 'Высокий',
-    subject: 'Не могу зайти на спавн после обновления',
-    description: 'При входе на спавн кикает с ошибкой Internal Server Error.',
-    status: 'В обработке',
-    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
-    updatedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
-    messages: [
-      {
-        id: 'm-1',
-        sender: 'PlayerOne',
-        role: 'user',
-        text: 'При входе на спавн кикает с ошибкой Internal Server Error.',
-        timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
-      },
-      {
-        id: 'm-2',
-        sender: 'Support_Agent',
-        role: 'support',
-        text: 'Здравствуйте! Перезагрузили чанк спавна. Попробуйте войти снова.',
-        timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-      },
-    ],
-  },
-];
+let globalTickets = [];
 
 function loadPersistedTickets() {
   try {
@@ -45,6 +14,9 @@ function loadPersistedTickets() {
       const loaded = JSON.parse(data);
       if (Array.isArray(loaded)) {
         for (const t of loaded) {
+          if (['playerone', 'support_agent', 'admin_samurai'].includes(t.nickname?.toLowerCase())) {
+            continue;
+          }
           const idx = globalTickets.findIndex((existing) => existing.id === t.id);
           if (idx !== -1) {
             globalTickets[idx] = t;
@@ -57,6 +29,9 @@ function loadPersistedTickets() {
   } catch (e) {
     // Ignore tmp file read errors
   }
+
+  // Очищаем тестовые тикеты
+  globalTickets = globalTickets.filter((t) => !['playerone', 'support_agent', 'admin_samurai'].includes(t.nickname?.toLowerCase()));
 }
 
 function savePersistedTickets() {

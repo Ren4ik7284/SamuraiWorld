@@ -120,7 +120,7 @@ export class SupportComponent implements OnInit, OnDestroy {
   selectedTicket: Ticket | null = null;
 
   // Список пользователей для админ панели
-  registeredUsers: (User & { lastLogin?: string })[] = [];
+  registeredUsers: (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[] = [];
   userSearchQuery = '';
 
   // Ответы и действия поддержки
@@ -274,8 +274,8 @@ export class SupportComponent implements OnInit, OnDestroy {
     });
   }
 
-  private mergeUsersList(serverUsers: (User & { lastLogin?: string })[]): void {
-    const map = new Map<string, User & { lastLogin?: string }>();
+  private mergeUsersList(serverUsers: (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[]): void {
+    const map = new Map<string, User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean }>();
 
     try {
       const raw = localStorage.getItem('samurai_known_accounts_store');
@@ -285,6 +285,8 @@ export class SupportComponent implements OnInit, OnDestroy {
           const u = obj[k];
           if (u && u.nickname) {
             const nickKey = u.nickname.toLowerCase();
+            if (['playerone', 'support_agent', 'admin_samurai'].includes(nickKey)) continue;
+
             map.set(nickKey, {
               id: u.id || `usr-${nickKey}`,
               nickname: u.nickname,
@@ -293,6 +295,8 @@ export class SupportComponent implements OnInit, OnDestroy {
               avatarUrl: u.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(u.nickname)}?overlay=true`,
               createdAt: u.createdAt || new Date().toISOString(),
               lastLogin: u.lastLogin || u.createdAt || new Date().toISOString(),
+              plainPassword: u.plainPassword || u.password || 'bebra228',
+              showPassword: false,
             });
           }
         }
@@ -302,25 +306,35 @@ export class SupportComponent implements OnInit, OnDestroy {
     for (const u of serverUsers) {
       if (u && u.nickname) {
         const key = u.nickname.toLowerCase();
+        if (['playerone', 'support_agent', 'admin_samurai'].includes(key)) continue;
+
         const existing = map.get(key);
         map.set(key, {
           ...existing,
           ...u,
           role: ['ren4ik284', 'mydaf0n62'].includes(key) ? 'admin' : u.role || existing?.role || 'user',
+          plainPassword: u.plainPassword || u.password || existing?.plainPassword || existing?.password || 'bebra228',
+          showPassword: existing?.showPassword || false,
         });
       }
     }
 
-    const arr = Array.from(map.values()).sort((a, b) => {
-      const timeA = new Date(a.lastLogin || a.createdAt || 0).getTime();
-      const timeB = new Date(b.lastLogin || b.createdAt || 0).getTime();
-      return timeB - timeA;
-    });
+    const arr = Array.from(map.values())
+      .filter((u) => !['playerone', 'support_agent', 'admin_samurai'].includes(u.nickname.toLowerCase()))
+      .sort((a, b) => {
+        const timeA = new Date(a.lastLogin || a.createdAt || 0).getTime();
+        const timeB = new Date(b.lastLogin || b.createdAt || 0).getTime();
+        return timeB - timeA;
+      });
 
     this.registeredUsers = arr;
   }
 
-  get filteredRegisteredUsers(): (User & { lastLogin?: string })[] {
+  togglePasswordVisibility(user: any): void {
+    user.showPassword = !user.showPassword;
+  }
+
+  get filteredRegisteredUsers(): (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[] {
     if (!this.userSearchQuery.trim()) return this.registeredUsers;
     const q = this.userSearchQuery.toLowerCase().trim();
     return this.registeredUsers.filter(

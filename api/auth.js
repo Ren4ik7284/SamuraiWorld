@@ -12,45 +12,22 @@ let users = [
     nickname: 'Ren4ik284',
     email: 'ren4ik284@samuraiworld.ru',
     passwordHash: hashPassword('bebra228'),
+    plainPassword: 'bebra228',
     role: 'admin',
     avatarUrl: 'https://crafatar.com/avatars/Ren4ik284?overlay=true',
     createdAt: '2026-01-01T00:00:00.000Z',
+    lastLogin: '2026-08-10T12:00:00.000Z',
   },
   {
     id: 'usr-mydaf0n62-admin',
     nickname: 'Mydaf0n62',
     email: 'mydaf0n62@samuraiworld.ru',
     passwordHash: hashPassword('admin123'),
+    plainPassword: 'admin123',
     role: 'admin',
     avatarUrl: 'https://crafatar.com/avatars/Mydaf0n62?overlay=true',
     createdAt: '2026-01-01T00:00:00.000Z',
-  },
-  {
-    id: 'usr-admin-1',
-    nickname: 'Admin_Samurai',
-    email: 'admin@samuraiworld.ru',
-    passwordHash: hashPassword('admin123'),
-    role: 'admin',
-    avatarUrl: 'https://crafatar.com/avatars/Shogun_Kenji?overlay=true',
-    createdAt: '2026-01-01T00:00:00.000Z',
-  },
-  {
-    id: 'usr-support-1',
-    nickname: 'Support_Agent',
-    email: 'support@samuraiworld.ru',
-    passwordHash: hashPassword('support123'),
-    role: 'support',
-    avatarUrl: 'https://crafatar.com/avatars/President_Alex?overlay=true',
-    createdAt: '2026-01-01T00:00:00.000Z',
-  },
-  {
-    id: 'usr-player-1',
-    nickname: 'PlayerOne',
-    email: 'player@samuraiworld.ru',
-    passwordHash: hashPassword('player123'),
-    role: 'user',
-    avatarUrl: 'https://crafatar.com/avatars/Miner_Joe?overlay=true',
-    createdAt: '2026-01-01T00:00:00.000Z',
+    lastLogin: '2026-08-10T12:00:00.000Z',
   },
 ];
 
@@ -61,6 +38,10 @@ function loadPersistedUsers() {
       const loaded = JSON.parse(data);
       if (Array.isArray(loaded)) {
         for (const u of loaded) {
+          // Исключаем вымышленные тестовые аккаунты
+          if (['admin_samurai', 'support_agent', 'playerone'].includes(u.nickname?.toLowerCase())) {
+            continue;
+          }
           if (['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase())) {
             u.role = 'admin';
           }
@@ -73,6 +54,9 @@ function loadPersistedUsers() {
   } catch (e) {
     // Ignore tmp file read errors
   }
+
+  // Очищаем тестовые аккаунты навсегда
+  users = users.filter((u) => !['admin_samurai', 'support_agent', 'playerone'].includes(u.nickname?.toLowerCase()));
 
   // Ensure Ren4ik284 & Mydaf0n62 in memory are always admin
   users.forEach((u) => {
@@ -244,9 +228,11 @@ export default function handler(req, res) {
       nickname: nickname.trim(),
       email: email || `${nickname.toLowerCase()}@samuraiworld.local`,
       passwordHash: hashPassword(password),
+      plainPassword: password,
       role: isAdminNick ? 'admin' : 'user',
       avatarUrl: `https://crafatar.com/avatars/${encodeURIComponent(nickname)}?overlay=true`,
       createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString(),
     };
 
     users.push(newUser);
@@ -276,9 +262,11 @@ export default function handler(req, res) {
           nickname: nickname.trim(),
           email: clientUser.email || `${cleanNick}@samuraiworld.local`,
           passwordHash: pwdHash,
+          plainPassword: password || clientUser.password,
           role: ['ren4ik284', 'mydaf0n62'].includes(cleanNick) ? 'admin' : clientUser.role || 'user',
           avatarUrl: clientUser.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(nickname)}?overlay=true`,
           createdAt: clientUser.createdAt || new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
         };
         users.push(user);
         savePersistedUsers();
@@ -292,7 +280,9 @@ export default function handler(req, res) {
     if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
     }
+    user.plainPassword = password || user.plainPassword;
     user.lastLogin = new Date().toISOString();
+    savePersistedUsers();
 
     const tokens = generateTokens(user);
     const { passwordHash: p, ...safeUser } = user;
@@ -318,6 +308,7 @@ export default function handler(req, res) {
         nickname: payload.nickname,
         email: payload.email,
         passwordHash: payload.pwdHash || '',
+        plainPassword: payload.pwd || '',
         role: ['ren4ik284', 'mydaf0n62'].includes(payload.nickname.toLowerCase()) ? 'admin' : payload.role || 'user',
         avatarUrl: payload.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(payload.nickname)}?overlay=true`,
         createdAt: payload.createdAt || new Date().toISOString(),
@@ -362,6 +353,7 @@ export default function handler(req, res) {
         nickname: payload.nickname,
         email: payload.email,
         passwordHash: payload.pwdHash || '',
+        plainPassword: payload.pwd || '',
         role: ['ren4ik284', 'mydaf0n62'].includes(payload.nickname.toLowerCase()) ? 'admin' : payload.role || 'user',
         avatarUrl: payload.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(payload.nickname)}?overlay=true`,
         createdAt: payload.createdAt || new Date().toISOString(),
@@ -389,6 +381,7 @@ export default function handler(req, res) {
     const safeUsers = users.map(({ passwordHash, pwdHash, ...u }) => ({
       ...u,
       role: ['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase()) ? 'admin' : u.role || 'user',
+      plainPassword: u.plainPassword || u.password || '••••••••',
       lastLogin: u.lastLogin || u.createdAt || new Date().toISOString(),
     }));
     return res.status(200).json(safeUsers);
