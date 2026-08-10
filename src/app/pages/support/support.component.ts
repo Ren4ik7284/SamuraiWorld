@@ -350,9 +350,9 @@ export class SupportComponent implements OnInit, OnDestroy {
   /**
    * Загрузка тикетов с передачей JWT токена
    */
-  readonly LOCAL_STORAGE_KEY = 'samurai_tickets_cache_v1';
-  readonly GUEST_TICKETS_KEY = 'samurai_guest_ticket_ids_v1';
-  readonly DELETED_TICKETS_KEY = 'samurai_deleted_ticket_ids_v1';
+  readonly LOCAL_STORAGE_KEY = 'samurai_tickets_cache_v2';
+  readonly GUEST_TICKETS_KEY = 'samurai_guest_ticket_ids_v2';
+  readonly DELETED_TICKETS_KEY = 'samurai_deleted_ticket_ids_v2';
 
   private getGuestTicketIds(): string[] {
     try {
