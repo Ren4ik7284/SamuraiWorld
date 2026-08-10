@@ -5,6 +5,8 @@
   "rewrites": [
     { "source": "/api/auth/:path*", "destination": "/api/auth.js" },
     { "source": "/api/auth", "destination": "/api/auth.js" },
+    { "source": "/api/info", "destination": "/api/info.js" },
+    { "source": "/api/news", "destination": "/api/news.js" },
     { "source": "/api/support/tickets/:path*", "destination": "/api/tickets.js" },
     { "source": "/api/support/tickets", "destination": "/api/tickets.js" },
     { "source": "/api/tickets/:path*", "destination": "/api/tickets.js" },
