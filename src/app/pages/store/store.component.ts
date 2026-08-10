@@ -240,11 +240,16 @@ export class StoreComponent implements OnInit, OnDestroy {
     });
   }
 
-  getAvatarUrl(nick: string): string {
-    const cleanNick = (nick || '').trim();
-    if (!cleanNick || cleanNick.length < 3) {
-      return 'https://crafatar.com/avatars/Steve?overlay=true';
+  readonly DEFAULT_AVATAR = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.03-4.84-2.6.03-1.61 3.22-2.4 4.84-2.4 1.61 0 4.81.79 4.84 2.4C15.8 18.97 14.03 20 12 20z"/></svg>';
+
+  getUserAvatar(): string {
+    if (this.currentUser?.avatarUrl) {
+      return this.currentUser.avatarUrl;
     }
-    return `https://crafatar.com/avatars/${cleanNick}?overlay=true`;
+    return this.DEFAULT_AVATAR;
+  }
+
+  getAvatarUrl(nick: string): string {
+    return this.getUserAvatar();
   }
 }
