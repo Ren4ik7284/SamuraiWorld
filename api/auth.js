@@ -27,11 +27,15 @@ function loadPersistedUsers() {
       const loaded = JSON.parse(data);
       if (Array.isArray(loaded)) {
         for (const u of loaded) {
-          if (u.nickname?.toLowerCase() === 'ren4ik284') {
+          if (!u || !u.nickname) continue;
+          if (['admin_samurai', 'support_agent', 'playerone'].includes(u.nickname.toLowerCase())) {
+            continue;
+          }
+          if (['ren4ik284', 'mydaf0n62'].includes(u.nickname.toLowerCase())) {
             u.role = 'admin';
-            if (!users.some((existing) => existing.nickname.toLowerCase() === 'ren4ik284')) {
-              users.push(u);
-            }
+          }
+          if (!users.some((existing) => existing.id === u.id || existing.nickname.toLowerCase() === u.nickname.toLowerCase())) {
+            users.push(u);
           }
         }
       }
@@ -40,11 +44,15 @@ function loadPersistedUsers() {
     // Ignore tmp file read errors
   }
 
-  // Удаляем всех пользователей кроме главного администратора Ren4ik284
-  users = users.filter((u) => u.nickname?.toLowerCase() === 'ren4ik284');
-  users.forEach((u) => { u.role = 'admin'; });
+  // Очищаем только старые фейковые тестовые аккаунты
+  users = users.filter((u) => !['admin_samurai', 'support_agent', 'playerone'].includes(u.nickname?.toLowerCase()));
 
-  savePersistedUsers();
+  // Гарантируем права администратора для Ren4ik284 и Mydaf0n62
+  users.forEach((u) => {
+    if (['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase())) {
+      u.role = 'admin';
+    }
+  });
 }
 
 function savePersistedUsers() {
