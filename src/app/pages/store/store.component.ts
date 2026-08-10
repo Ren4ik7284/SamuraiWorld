@@ -7,7 +7,6 @@ import { AuthService, User } from '../../services/auth.service';
 export interface VipFeature {
   icon: string;
   title: string;
-  cmd?: string;
   desc: string;
   badge?: string;
 }
@@ -23,9 +22,8 @@ export class StoreComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   private userSub!: Subscription;
 
-  // Pricing & Status details
-  vipPrice = 100; // 100 рублей
-  vipDurationMonths = 1;
+  // Pricing details
+  vipPrice = 100;
 
   // Checkout modal state
   showBuyModal = false;
@@ -42,62 +40,54 @@ export class StoreComponent implements OnInit, OnDestroy {
   lastOrderId = '';
   commandCopied = false;
 
-  // Core VIP features focusing on inspection, chest logs, helper RP functions
+  // Core VIP features focusing on inspection, chest logs, helper RP functions (No command strings)
   vipFeatures: VipFeature[] = [
     {
       icon: '🔍',
       title: 'Инспекция сундуков и логов',
-      cmd: '/co inspect или /chestlog',
-      desc: 'Смотри кто, что и в какое точно время взял или положил вещи в сундук. Идеально для расследования RP-краж.',
-      badge: 'ГЛАВНАЯ ФУНКЦИЯ'
+      desc: 'Смотрите кто, что и в какое точно время взял или положил вещи в сундук. Помогает быстро разобрать спорные ситуации.',
+      badge: 'ОСНОВНАЯ ФУНКЦИЯ'
     },
     {
       icon: '📜',
       title: 'Аудит взаимодействий с блоками',
-      cmd: '/co lookup',
-      desc: 'Полный просмотр истории изменения блоков и дверей на вашей территории за любое время.',
-      badge: 'ЗАЩИТА'
+      desc: 'Просмотр истории изменения блоков и дверей на вашей территории за выбранный период.',
+      badge: 'БЕЗОПАСНОСТЬ'
     },
     {
       icon: '🕵️',
       title: 'Проверка игроков поблизости',
-      cmd: '/near',
-      desc: 'Вспомогательная команда для определения игроков в небольшом радиусе вокруг вашего персонажа.',
-      badge: 'RP УТИЛИТА'
+      desc: 'Вспомогательная функция для определения присутствия других игроков в небольшом радиусе.',
+      badge: 'УТИЛИТА'
     },
     {
       icon: '⏱️',
       title: 'Статистика и Пинг',
-      cmd: '/playtime & /ping',
-      desc: 'Узнай точный наигранный тайм-код любого игрока на сервере и проверь отклик соединения.',
+      desc: 'Отображение наигранного времени любого игрока на сервере и проверка отклика соединения.',
       badge: 'ИНФО'
     },
     {
       icon: '🏠',
-      title: '3 Точки дома',
-      cmd: '/sethome [название]',
-      desc: 'Сохраняйте до 3-х приватных точек возврата для удобных путешествий по карте государства.',
+      title: 'Дополнительные точки дома',
+      desc: 'Возможность сохранять дополнительные приватные точки возврата для удобного перемещения.',
       badge: 'УДОБСТВО'
     },
     {
       icon: '🔓',
       title: 'Резервный слот входа',
-      cmd: 'Автоматически',
-      desc: 'Вход без очереди и ожидания, даже если все игровые слоты сервера полностью заполнены.',
+      desc: 'Приоритетный вход на сервер без очереди, даже при максимальном онлайне.',
       badge: 'ПРИОРИТЕТ'
     },
     {
       icon: '🎨',
-      title: 'Зеленый цвет ника в чате',
-      cmd: 'Визуальный статус',
-      desc: 'Стильное выделение ника в чате и списке игроков (TAB), подчеркивающее статус мецената.',
+      title: 'Выделенный цвет ника в чате',
+      desc: 'Элегантное цветовое выделение никнейма в чате и списке игроков (TAB).',
       badge: 'СТИЛЬ'
     },
     {
       icon: '💬',
       title: 'Роль VIP в Discord',
-      cmd: 'Синхронизация',
-      desc: 'Эксклюзивная роль и доступ в закрытый уютный чат меценатов сервера в официальном Discord.',
+      desc: 'Специальная роль и доступ в закрытый канал для меценатов в официальном Discord.',
       badge: 'DISCORD'
     }
   ];
@@ -105,20 +95,20 @@ export class StoreComponent implements OnInit, OnDestroy {
   // FAQ Items
   faqItems = [
     {
-      q: 'Почему на сервере только одна привилегия за 100₽?',
-      a: 'SamuraiWorld — это чистый ванильный RP сервер. Мы против дисбаланса и Pay-to-Win! VIP статус создан только как подписка мецената для поддержки сервера и дает исключительно вспомогательные функции (логи сундуков, команды проверки).'
+      q: 'Как работает VIP статус?',
+      a: 'VIP статус подчёркивает вашу поддержку сервера и предоставляет полезный вспомогательный функционал: инспекцию истории сундуков, просмотр логов блоков и удобные утилиты.'
     },
     {
       q: 'Как работают логи сундуков?',
-      a: 'При включении режима инспекции (/co inspect) и клике по любому сундуку вам отобразится список всех предметов, никнеймы игроков и точное время (дата, часы, минуты), когда вещь была взята или положена.'
+      a: 'При включении режима инспекции и нажатии на сундук вы получаете полную историю: точный список предметов, никнеймы игроков и дату с точностью до секунд.'
     },
     {
       q: 'Как проходит оплата через Rollypay?',
-      a: 'Оплата принимается через платёжную систему Rollypay. Вы можете оплатить через СБП, карту любого банка РФ, Т-Банк или ЮMoney без лишних комиссий.'
+      a: 'Оплата происходит через сервис Rollypay. Поддерживаются СБП (по QR-коду), карты любого банка РФ, Т-Банк и ЮMoney.'
     },
     {
-      q: 'Как быстро выдается VIP статус?',
-      a: 'После проведения оплаты через Rollypay статус автоматически выдается вашему никнейму на сервере в течение 10–30 секунд.'
+      q: 'Как быстро выдается статус?',
+      a: 'После успешной оплаты через Rollypay статус автоматически зачисляется на ваш никнейм в течение 20 секунд.'
     }
   ];
 
@@ -180,7 +170,7 @@ export class StoreComponent implements OnInit, OnDestroy {
       this.discountPercent = 10;
       this.appliedPromo = code;
       this.promoSuccess = 'Промокод применен! Скидка 10%';
-    } else if (code === 'START' || code === 'VANILLA') {
+    } else if (code === 'START') {
       this.discountPercent = 15;
       this.appliedPromo = code;
       this.promoSuccess = 'Приветственная скидка 15%';
@@ -206,7 +196,6 @@ export class StoreComponent implements OnInit, OnDestroy {
     this.isProcessingPay = true;
     this.promoError = '';
 
-    // Simulate Rollypay payment invoice redirect / creation
     setTimeout(() => {
       this.isProcessingPay = false;
       this.lastOrderId = 'ROLLY-' + Math.floor(100000 + Math.random() * 900000);
