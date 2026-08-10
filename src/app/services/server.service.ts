@@ -72,7 +72,7 @@ export class ServerService {
 
   private defaultServerInfo: ServerInfo = {
     name: 'SamuraiWorld',
-    ip: 'play.samuraiworld.ru',
+    ip: 'b1.qwertyx.host:26687',
     version: '1.21',
     mode: 'Ванильное выживание',
     description: 'Ванильный Minecraft с политической системой — выбирай президента, принимай законы, строй экономику',

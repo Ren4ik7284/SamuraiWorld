@@ -77,7 +77,7 @@ export class HomeComponent implements OnInit {
   }
 
   copyIp(): void {
-    const ip = this.serverInfo?.ip || 'play.samuraiworld.ru';
+    const ip = this.serverInfo?.ip || 'b1.qwertyx.host:26687';
     navigator.clipboard.writeText(ip).finally(() => {
       this.ipCopied = true;
       setTimeout(() => { this.ipCopied = false; }, 2200);
