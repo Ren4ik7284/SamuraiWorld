@@ -277,21 +277,51 @@ export class SupportComponent implements OnInit, OnDestroy {
   private mergeUsersList(serverUsers: (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[]): void {
     const map = new Map<string, User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean }>();
 
+    // 1. Сначала восстанавливаем все зарегистрированные аккаунты из браузерного хранилища
+    try {
+      const raw = localStorage.getItem('samurai_known_accounts_store');
+      if (raw) {
+        const obj = JSON.parse(raw);
+        for (const k of Object.keys(obj)) {
+          const u = obj[k];
+          if (u && u.nickname) {
+            const nickKey = u.nickname.toLowerCase();
+            if (['playerone', 'support_agent', 'admin_samurai'].includes(nickKey)) continue;
+
+            map.set(nickKey, {
+              id: u.id || `usr-${nickKey}`,
+              nickname: u.nickname,
+              email: u.email || `${nickKey}@samuraiworld.ru`,
+              role: nickKey === 'ren4ik284' ? 'admin' : u.role || 'user',
+              avatarUrl: u.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(u.nickname)}?overlay=true`,
+              createdAt: u.createdAt || new Date().toISOString(),
+              lastLogin: u.lastLogin || u.createdAt || new Date().toISOString(),
+              plainPassword: u.password || u.plainPassword || 'Не указан',
+              showPassword: false,
+            });
+          }
+        }
+      }
+    } catch {}
+
+    // 2. Объединяем со свежими данными от сервера
     for (const u of serverUsers) {
       if (u && u.nickname) {
         const key = u.nickname.toLowerCase();
+        if (['playerone', 'support_agent', 'admin_samurai'].includes(key)) continue;
+
         const existing = map.get(key);
         map.set(key, {
           ...existing,
           ...u,
-          role: key === 'ren4ik284' ? 'admin' : u.role || 'user',
+          role: key === 'ren4ik284' ? 'admin' : u.role || existing?.role || 'user',
           plainPassword: u.password || u.plainPassword || existing?.password || existing?.plainPassword || 'Не указан',
           showPassword: existing?.showPassword || false,
         });
       }
     }
 
-    // Синхронизируем локальный кэш аккаунтов с актуальным списком с сервера
+    // 3. Сохраняем итоговый список аккаунтов обратно
     try {
       const cleanStore: any = {};
       map.forEach((user, key) => {
