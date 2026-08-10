@@ -289,9 +289,10 @@ export default function handler(req, res) {
       return res.status(401).json({ message: 'Неверный никнейм или пароль' });
     }
 
-    if (['ren4ik284', 'mydaf0n62'].includes(cleanNick)) {
+    if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
     }
+    user.lastLogin = new Date().toISOString();
 
     const tokens = generateTokens(user);
     const { passwordHash: p, ...safeUser } = user;
@@ -320,6 +321,7 @@ export default function handler(req, res) {
         role: ['ren4ik284', 'mydaf0n62'].includes(payload.nickname.toLowerCase()) ? 'admin' : payload.role || 'user',
         avatarUrl: payload.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(payload.nickname)}?overlay=true`,
         createdAt: payload.createdAt || new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
       };
       users.push(user);
       savePersistedUsers();
@@ -332,6 +334,7 @@ export default function handler(req, res) {
     if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
     }
+    user.lastLogin = new Date().toISOString();
 
     const tokens = generateTokens(user);
     return res.status(200).json(tokens);
@@ -362,6 +365,7 @@ export default function handler(req, res) {
         role: ['ren4ik284', 'mydaf0n62'].includes(payload.nickname.toLowerCase()) ? 'admin' : payload.role || 'user',
         avatarUrl: payload.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(payload.nickname)}?overlay=true`,
         createdAt: payload.createdAt || new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
       };
       users.push(user);
       savePersistedUsers();
@@ -374,9 +378,36 @@ export default function handler(req, res) {
     if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
     }
+    user.lastLogin = new Date().toISOString();
 
     const { passwordHash: p, pwdHash: ph, ...safeUser } = user;
     return res.status(200).json(safeUser);
+  }
+
+  // GET /api/auth/users — Список всех зарегистрированных пользователей
+  if (method === 'GET' && (path.endsWith('/users') || path.endsWith('/users/'))) {
+    const safeUsers = users.map(({ passwordHash, pwdHash, ...u }) => ({
+      ...u,
+      role: ['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase()) ? 'admin' : u.role || 'user',
+      lastLogin: u.lastLogin || u.createdAt || new Date().toISOString(),
+    }));
+    return res.status(200).json(safeUsers);
+  }
+
+  // PATCH /api/auth/users/:id/role — Изменение роли пользователя администратором
+  if (method === 'PATCH' && path.includes('/users')) {
+    const parts = path.split('/');
+    const targetId = parts[parts.length - 1] === 'role' ? parts[parts.length - 2] : parts[parts.length - 1];
+    const user = users.find((u) => u.id === targetId || u.nickname.toLowerCase() === targetId.toLowerCase());
+    if (user) {
+      if (body?.role) {
+        user.role = body.role;
+        savePersistedUsers();
+      }
+      const { passwordHash, pwdHash, ...safeUser } = user;
+      return res.status(200).json(safeUser);
+    }
+    return res.status(404).json({ message: 'Пользователь не найден' });
   }
 
   return res.status(404).json({ message: 'Endpoint not found' });

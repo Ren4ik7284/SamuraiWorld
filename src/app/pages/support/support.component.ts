@@ -119,6 +119,10 @@ export class SupportComponent implements OnInit, OnDestroy {
   ticketsList: Ticket[] = [];
   selectedTicket: Ticket | null = null;
 
+  // Список пользователей для админ панели
+  registeredUsers: (User & { lastLogin?: string })[] = [];
+  userSearchQuery = '';
+
   // Ответы и действия поддержки
   replyText = '';
   isReplying = false;
@@ -144,11 +148,15 @@ export class SupportComponent implements OnInit, OnDestroy {
         this.viewMode = 'user';
       }
       this.loadTickets();
+      this.loadRegisteredUsers();
     });
 
     // Автоматическое обновление каждые 4 секунды
     this.pollTimer = setInterval(() => {
       this.loadTickets(true);
+      if (this.authService.isSupportOrAdmin) {
+        this.loadRegisteredUsers();
+      }
     }, 4000);
   }
 
@@ -247,6 +255,102 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   selectCategory(cat: TicketCategory): void {
     this.newTicket.category = cat;
+  }
+
+  /**
+   * Загрузка пользователей для панели управления Администрации
+   */
+  loadRegisteredUsers(): void {
+    const headers = this.authService.getAuthHeaders();
+    this.http.get<(User & { lastLogin?: string })[]>('/api/auth/users', headers).subscribe({
+      next: (list) => {
+        if (Array.isArray(list)) {
+          this.mergeUsersList(list);
+        }
+      },
+      error: () => {
+        this.mergeUsersList([]);
+      },
+    });
+  }
+
+  private mergeUsersList(serverUsers: (User & { lastLogin?: string })[]): void {
+    const map = new Map<string, User & { lastLogin?: string }>();
+
+    try {
+      const raw = localStorage.getItem('samurai_known_accounts_store');
+      if (raw) {
+        const obj = JSON.parse(raw);
+        for (const k of Object.keys(obj)) {
+          const u = obj[k];
+          if (u && u.nickname) {
+            const nickKey = u.nickname.toLowerCase();
+            map.set(nickKey, {
+              id: u.id || `usr-${nickKey}`,
+              nickname: u.nickname,
+              email: u.email || `${nickKey}@samuraiworld.ru`,
+              role: ['ren4ik284', 'mydaf0n62'].includes(nickKey) ? 'admin' : u.role || 'user',
+              avatarUrl: u.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(u.nickname)}?overlay=true`,
+              createdAt: u.createdAt || new Date().toISOString(),
+              lastLogin: u.lastLogin || u.createdAt || new Date().toISOString(),
+            });
+          }
+        }
+      }
+    } catch {}
+
+    for (const u of serverUsers) {
+      if (u && u.nickname) {
+        const key = u.nickname.toLowerCase();
+        const existing = map.get(key);
+        map.set(key, {
+          ...existing,
+          ...u,
+          role: ['ren4ik284', 'mydaf0n62'].includes(key) ? 'admin' : u.role || existing?.role || 'user',
+        });
+      }
+    }
+
+    const arr = Array.from(map.values()).sort((a, b) => {
+      const timeA = new Date(a.lastLogin || a.createdAt || 0).getTime();
+      const timeB = new Date(b.lastLogin || b.createdAt || 0).getTime();
+      return timeB - timeA;
+    });
+
+    this.registeredUsers = arr;
+  }
+
+  get filteredRegisteredUsers(): (User & { lastLogin?: string })[] {
+    if (!this.userSearchQuery.trim()) return this.registeredUsers;
+    const q = this.userSearchQuery.toLowerCase().trim();
+    return this.registeredUsers.filter(
+      (u) => u.nickname.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.role.toLowerCase().includes(q)
+    );
+  }
+
+  changeUserRole(targetUser: User, newRole: 'user' | 'support' | 'admin'): void {
+    if (!this.authService.isSupportOrAdmin) return;
+    targetUser.role = newRole;
+
+    const headers = this.authService.getAuthHeaders();
+    this.http.patch(`/api/auth/users/${targetUser.id}/role`, { role: newRole }, headers).subscribe({
+      next: () => {},
+      error: () => {},
+    });
+  }
+
+  formatDateAgo(dateStr?: string): string {
+    if (!dateStr) return 'Неизвестно';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'Неизвестно';
+
+    const diff = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (diff < 60) return 'Только что';
+    if (diff < 3600) return `${Math.floor(diff / 60)} мин. назад`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} ч. назад`;
+    if (diff < 86400 * 7) return `${Math.floor(diff / 86400)} дн. назад`;
+
+    return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   }
 
   /**
