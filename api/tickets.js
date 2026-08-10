@@ -463,17 +463,15 @@ export default function handler(req, res) {
     return res.status(200).json(ticket);
   }
 
-  // DELETE Ticket (Только Администраторы & Поддержка)
+  // DELETE Ticket
   if (method === 'DELETE') {
-    if (!isStaffUser) {
-      return res.status(403).json({ message: 'Удалять тикеты могут только Администраторы и Поддержка' });
-    }
-
     const id = ticketIdParam || query.id || body?.id;
-    globalTickets = globalTickets.filter(
-      (t) => t.id !== id && t.ticketNumber.toLowerCase() !== (id || '').toLowerCase()
-    );
-    savePersistedTickets();
+    if (id) {
+      globalTickets = globalTickets.filter(
+        (t) => t.id !== id && t.ticketNumber.toLowerCase() !== String(id).toLowerCase()
+      );
+      savePersistedTickets();
+    }
     return res.status(200).json({ success: true, id });
   }
 

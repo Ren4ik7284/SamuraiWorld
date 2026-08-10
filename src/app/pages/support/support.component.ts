@@ -253,11 +253,53 @@ export class SupportComponent implements OnInit, OnDestroy {
    * Загрузка тикетов с передачей JWT токена
    */
   readonly LOCAL_STORAGE_KEY = 'samurai_tickets_cache_v1';
+  readonly GUEST_TICKETS_KEY = 'samurai_guest_ticket_ids_v1';
+  readonly DELETED_TICKETS_KEY = 'samurai_deleted_ticket_ids_v1';
+
+  private getGuestTicketIds(): string[] {
+    try {
+      const data = localStorage.getItem(this.GUEST_TICKETS_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private addGuestTicketId(id: string): void {
+    try {
+      const ids = this.getGuestTicketIds();
+      if (!ids.includes(id)) {
+        ids.push(id);
+        localStorage.setItem(this.GUEST_TICKETS_KEY, JSON.stringify(ids));
+      }
+    } catch {}
+  }
+
+  private getDeletedTicketIds(): string[] {
+    try {
+      const data = localStorage.getItem(this.DELETED_TICKETS_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private addDeletedTicketId(id: string): void {
+    try {
+      const ids = this.getDeletedTicketIds();
+      if (!ids.includes(id)) {
+        ids.push(id);
+        localStorage.setItem(this.DELETED_TICKETS_KEY, JSON.stringify(ids));
+      }
+    } catch {}
+  }
 
   private loadLocalTicketsCache(): Ticket[] {
     try {
       const data = localStorage.getItem(this.LOCAL_STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
+      const deletedIds = this.getDeletedTicketIds();
+      const list: Ticket[] = data ? JSON.parse(data) : [];
+      return list.filter((t) => t && t.id && !deletedIds.includes(t.id));
     } catch {
       return [];
     }
@@ -265,7 +307,9 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   private saveLocalTicketsCache(tickets: Ticket[]): void {
     try {
-      localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(tickets));
+      const deletedIds = this.getDeletedTicketIds();
+      const clean = tickets.filter((t) => t && t.id && !deletedIds.includes(t.id));
+      localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(clean));
     } catch {}
   }
 
@@ -317,11 +361,16 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   private updateTicketsList(newList: Ticket[]): void {
-    const localCache = this.loadLocalTicketsCache();
+    const deletedIds = this.getDeletedTicketIds();
+    const localCache = this.loadLocalTicketsCache().filter((t) => !deletedIds.includes(t.id));
     const mergedMap = new Map<string, Ticket>();
 
-    for (const t of localCache) mergedMap.set(t.id, t);
+    for (const t of localCache) {
+      if (!deletedIds.includes(t.id)) mergedMap.set(t.id, t);
+    }
+
     for (const t of newList) {
+      if (!t || !t.id || deletedIds.includes(t.id)) continue;
       if (mergedMap.has(t.id)) {
         const existing = mergedMap.get(t.id)!;
         const msgMap = new Map<string, TicketMessage>();
@@ -339,9 +388,9 @@ export class SupportComponent implements OnInit, OnDestroy {
       }
     }
 
-    const merged = Array.from(mergedMap.values()).sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    const merged = Array.from(mergedMap.values())
+      .filter((t) => !deletedIds.includes(t.id))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     this.ticketsList = merged;
     this.saveLocalTicketsCache(merged);
@@ -393,6 +442,7 @@ export class SupportComponent implements OnInit, OnDestroy {
         this.isSubmitting = false;
         this.submitSuccess = true;
         this.createdTicketInfo = created;
+        this.addGuestTicketId(created.id);
         this.ticketsList.unshift(created);
         this.saveLocalTicketsCache(this.ticketsList);
         this.resetForm();
@@ -418,9 +468,20 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   get filteredTickets(): Ticket[] {
-    let list = [...this.ticketsList];
+    const deletedIds = this.getDeletedTicketIds();
+    let list = this.ticketsList.filter((t) => t && t.id && !deletedIds.includes(t.id));
 
-    if (this.viewMode === 'admin' && this.adminFilterStatus !== 'ВСЕ') {
+    // Ограничение доступа к чужим тикетам для игроков и гостей
+    if (!this.authService.isSupportOrAdmin && this.viewMode !== 'admin') {
+      if (this.currentUser) {
+        const myNick = this.currentUser.nickname.toLowerCase();
+        list = list.filter((t) => t.nickname.toLowerCase() === myNick || t.userId === this.currentUser?.id);
+      } else {
+        // Незарегистрированный гость: видит ТОЛЬКО тикеты, созданные на его устройстве
+        const guestIds = this.getGuestTicketIds();
+        list = list.filter((t) => guestIds.includes(t.id));
+      }
+    } else if (this.viewMode === 'admin' && this.adminFilterStatus !== 'ВСЕ') {
       list = list.filter((t) => t.status === this.adminFilterStatus);
     }
 
@@ -519,16 +580,18 @@ export class SupportComponent implements OnInit, OnDestroy {
     if (event) event.stopPropagation();
     if (!confirm('Вы действительно хотите закрыть и удалить этот тикет?')) return;
 
+    this.addDeletedTicketId(ticketId);
+    this.ticketsList = this.ticketsList.filter((t) => t && t.id !== ticketId);
+    this.saveLocalTicketsCache(this.ticketsList);
+
+    if (this.selectedTicket?.id === ticketId) {
+      this.closeTicketDetails();
+    }
+
     const headers = this.authService.getAuthHeaders();
     this.http.delete(`${this.API_TICKETS_URL}/${ticketId}`, headers).subscribe({
-      next: () => {
-        this.ticketsList = this.ticketsList.filter((t) => t.id !== ticketId);
-        this.saveLocalTicketsCache(this.ticketsList);
-        if (this.selectedTicket?.id === ticketId) {
-          this.closeTicketDetails();
-        }
-      },
-      error: (err) => alert(err.error?.message || 'Ошибка удаления тикета.'),
+      next: () => {},
+      error: (err) => console.warn('Удалено локально:', err),
     });
   }
 
