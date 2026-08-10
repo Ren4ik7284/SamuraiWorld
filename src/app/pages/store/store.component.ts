@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService, User } from '../../services/auth.service';
 
@@ -112,13 +114,27 @@ export class StoreComponent implements OnInit, OnDestroy {
     }
   ];
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private http: HttpClient,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
     this.userSub = this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       if (user && user.nickname && !this.nicknameInput) {
         this.nicknameInput = user.nickname;
+      }
+    });
+
+    this.route.queryParams.subscribe(params => {
+      if (params['payment'] === 'success') {
+        const nick = params['nickname'] || 'Игрок';
+        this.lastOrderId = params['order'] || 'ROLLY-SUCCESS';
+        this.nicknameInput = nick;
+        this.showBuyModal = true;
+        this.checkoutStep = 2;
       }
     });
   }
@@ -196,11 +212,24 @@ export class StoreComponent implements OnInit, OnDestroy {
     this.isProcessingPay = true;
     this.promoError = '';
 
-    setTimeout(() => {
-      this.isProcessingPay = false;
-      this.lastOrderId = 'ROLLY-' + Math.floor(100000 + Math.random() * 900000);
-      this.checkoutStep = 2;
-    }, 1200);
+    this.http.post<{ payUrl: string; orderId: string }>('/api/payments/rollypay/create', {
+      nickname: nick,
+      promoCode: this.appliedPromo
+    }).subscribe({
+      next: (res: { payUrl: string; orderId: string }) => {
+        this.isProcessingPay = false;
+        this.lastOrderId = res.orderId;
+        if (res.payUrl) {
+          window.location.href = res.payUrl;
+        } else {
+          this.checkoutStep = 2;
+        }
+      },
+      error: (err: any) => {
+        this.isProcessingPay = false;
+        this.promoError = err.error?.message || 'Ошибка создания платежа RollyPay';
+      }
+    });
   }
 
   copyGetCommand(): void {
