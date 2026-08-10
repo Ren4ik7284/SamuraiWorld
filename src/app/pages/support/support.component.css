@@ -1380,7 +1380,7 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
     margin-bottom: 14px !important;
     position: relative !important;
-    padding-right: 0 !important;
+    padding-right: 48px !important;
   }
 
   .modal-subtitle {
@@ -1403,29 +1403,28 @@
   }
 
   .modal-close {
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    position: absolute !important;
+    top: 14px !important;
+    right: 14px !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
     color: #ffffff !important;
-    width: 40px !important;
-    height: 40px !important;
+    width: 38px !important;
+    height: 38px !important;
     border-radius: 50% !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: 26px !important;
-    line-height: 1 !important;
     cursor: pointer !important;
     transition: all 0.2s ease !important;
-    position: relative !important;
-    top: auto !important;
-    right: auto !important;
-    box-shadow: none !important;
+    z-index: 10000000 !important;
     touch-action: manipulation !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
   }
 
   .modal-close:active {
-    background: rgba(239, 68, 68, 0.4) !important;
-    border-color: rgba(239, 68, 68, 0.6) !important;
+    background: rgba(239, 68, 68, 0.5) !important;
+    border-color: rgba(239, 68, 68, 0.7) !important;
     color: #fff !important;
     transform: scale(0.92) !important;
   }
