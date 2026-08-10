@@ -15,7 +15,7 @@ import { RouterModule } from '@angular/router';
           <p style="color: #94a3b8; font-size: 0.95rem;">Дата последнего обновления: 10 августа 2026 года</p>
         </header>
 
-        <article class="card glass-card" style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); padding: 36px; border-radius: 16px; color: #cbd5e1; line-height: 1.7; font-size: 0.95rem;">
+        <article class="card glass-card" style="background: rgba(22, 12, 16, 0.85); border: 1px solid rgba(212, 160, 23, 0.25); padding: 36px; border-radius: 16px; color: #cbd5e1; line-height: 1.7; font-size: 0.95rem;">
           <section style="margin-bottom: 28px;">
             <h2 style="font-size: 1.3rem; color: #f8fafc; margin-bottom: 12px; font-weight: 700;">1. Общие положения</h2>
             <p>Настоящая Политика конфиденциальности персональных данных (далее — Политика) действует в отношении всей информации, которую проект <strong>SamuraiWorld</strong> (далее — Сервис), доступный по адресу <code>https://my-minecraft-site.vercel.app/</code>, может получить о Пользователе во время использования интернет-сайта и сервера Minecraft.</p>
@@ -52,7 +52,7 @@ import { RouterModule } from '@angular/router';
           <section style="margin-bottom: 28px;">
             <h2 style="font-size: 1.3rem; color: #f8fafc; margin-bottom: 12px; font-weight: 700;">5. Контакты службы поддержки</h2>
             <p>По всем вопросам, связанным с обработкой персональных данных и работой Сервиса, вы можете связаться со службой поддержки:</p>
-            <div style="background: rgba(15, 23, 42, 0.6); padding: 16px; border-radius: 10px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.08);">
+            <div style="background: rgba(26, 12, 18, 0.7); padding: 16px; border-radius: 10px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.08);">
               <div>🔹 <strong>Тикет-система:</strong> <a routerLink="/support" style="color: #f0c040;">Создать обращение</a></div>
               <div style="margin-top: 6px;">🔹 <strong>Telegram Администратора:</strong> <a href="https://t.me/Ren4ik284" target="_blank" style="color: #f0c040;">&#64;Ren4ik284</a></div>
               <div style="margin-top: 6px;">🔹 <strong>Email технической поддержки:</strong> <a href="mailto:support@samuraiworld.ru" style="color: #f0c040;">support&#64;samuraiworld.ru</a></div>

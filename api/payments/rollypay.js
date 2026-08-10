@@ -71,12 +71,12 @@ export default function handler(req, res) {
       return res.status(400).json({ message: 'Укажите верный игровой никнейм Minecraft (3-16 символов)' });
     }
 
-    let amount = 100;
+    let amount = 200;
     const cleanPromo = (promoCode || '').trim().toUpperCase();
     if (cleanPromo === 'SAMURAI' || cleanPromo === 'ROLLY') {
-      amount = 90; // 10% discount
+      amount = 180; // 10% discount
     } else if (cleanPromo === 'START') {
-      amount = 85; // 15% discount
+      amount = 170; // 15% discount
     }
 
     const orderId = `ROLLY-${nickname.trim().toUpperCase()}-${Date.now()}`;
@@ -119,13 +119,13 @@ export default function handler(req, res) {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>RollyPay Sandbox — Тестовая Оплата</title>
       <style>
-        body { background: #0f172a; color: #f8fafc; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; width: 100%; max-width: 440px; padding: 28px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); text-align: center; }
-        .logo { font-size: 1.5rem; font-weight: 800; color: #38bdf8; letter-spacing: -0.5px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .badge { background: #0284c7; color: #fff; font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase; }
-        .amount-box { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); padding: 16px; border-radius: 12px; margin: 16px 0; }
-        .amount { font-size: 2.2rem; font-weight: 800; color: #38bdf8; }
-        .details { text-align: left; background: #0f172a; padding: 14px; border-radius: 10px; margin-bottom: 20px; font-size: 0.88rem; color: #94a3b8; }
+        body { background: #0b0608; color: #f8fafc; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: #160c11; border: 1px solid rgba(212, 160, 23, 0.3); border-radius: 16px; width: 100%; max-width: 440px; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.8); text-align: center; }
+        .logo { font-size: 1.5rem; font-weight: 800; color: #fde047; letter-spacing: -0.5px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .badge { background: #c0392b; color: #fff; font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase; }
+        .amount-box { background: rgba(192, 57, 43, 0.12); border: 1px solid rgba(192, 57, 43, 0.3); padding: 16px; border-radius: 12px; margin: 16px 0; }
+        .amount { font-size: 2.2rem; font-weight: 800; color: #fde047; }
+        .details { text-align: left; background: #0b0608; padding: 14px; border-radius: 10px; margin-bottom: 20px; font-size: 0.88rem; color: #94a3b8; border: 1px solid rgba(255,255,255,0.06); }
         .details div { margin-bottom: 6px; display: flex; justify-content: space-between; }
         .details strong { color: #f1f5f9; }
         .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
@@ -148,8 +148,8 @@ export default function handler(req, res) {
         </div>
 
         <div class="amount-box">
-          <div style="font-size: 0.85rem; color: #94a3b8;">Смма к оплате</div>
-          <div class="amount">${amount || 100} ₽</div>
+          <div style="font-size: 0.85rem; color: #94a3b8;">Сумма к оплате</div>
+          <div class="amount">${amount || 200} ₽</div>
         </div>
 
         <div class="details">
