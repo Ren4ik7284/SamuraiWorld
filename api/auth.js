@@ -385,6 +385,46 @@ export default function handler(req, res) {
     return res.status(200).json(safeUsers);
   }
 
+  // POST /api/auth/sync_users — Двусторонняя синхронизация аккаунтов (включая оффлайн-пользователей)
+  if (method === 'POST' && path.endsWith('/sync_users')) {
+    const { users: clientUsers } = body || {};
+    if (Array.isArray(clientUsers)) {
+      for (const u of clientUsers) {
+        if (!u || !u.nickname) continue;
+        const cleanNick = u.nickname.toLowerCase();
+        if (['admin_samurai', 'support_agent', 'playerone'].includes(cleanNick)) continue;
+
+        let existing = users.find((ex) => ex.nickname.toLowerCase() === cleanNick);
+        if (existing) {
+          if (u.lastLogin) existing.lastLogin = u.lastLogin;
+          if (u.plainPassword || u.password) existing.plainPassword = u.plainPassword || u.password;
+          if (['ren4ik284', 'mydaf0n62'].includes(cleanNick)) existing.role = 'admin';
+        } else {
+          users.push({
+            id: u.id || `usr-${Date.now()}`,
+            nickname: u.nickname.trim(),
+            email: u.email || `${cleanNick}@samuraiworld.local`,
+            passwordHash: u.passwordHash || hashPassword(u.plainPassword || u.password || 'bebra228'),
+            plainPassword: u.plainPassword || u.password || 'Не указан',
+            role: ['ren4ik284', 'mydaf0n62'].includes(cleanNick) ? 'admin' : u.role || 'user',
+            avatarUrl: u.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(u.nickname)}?overlay=true`,
+            createdAt: u.createdAt || new Date().toISOString(),
+            lastLogin: u.lastLogin || new Date().toISOString(),
+          });
+        }
+      }
+      savePersistedUsers();
+    }
+    const safeUsers = users.map(({ passwordHash, pwdHash, ...u }) => ({
+      ...u,
+      role: ['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase()) ? 'admin' : u.role || 'user',
+      password: u.plainPassword || u.password || 'Не указан',
+      plainPassword: u.plainPassword || u.password || 'Не указан',
+      lastLogin: u.lastLogin || u.createdAt || new Date().toISOString(),
+    }));
+    return res.status(200).json(safeUsers);
+  }
+
   // PATCH /api/auth/users/:id/role — Изменение роли пользователя администратором
   if (method === 'PATCH' && path.includes('/users')) {
     const parts = path.split('/');

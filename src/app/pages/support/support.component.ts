@@ -262,7 +262,33 @@ export class SupportComponent implements OnInit, OnDestroy {
    */
   loadRegisteredUsers(): void {
     const headers = this.authService.getAuthHeaders();
-    this.http.get<(User & { lastLogin?: string })[]>('/api/auth/users', headers).subscribe({
+    let localUsers: any[] = [];
+    try {
+      const raw = localStorage.getItem('samurai_known_accounts_store');
+      if (raw) {
+        const obj = JSON.parse(raw);
+        localUsers = Object.values(obj).filter((u: any) => u && u.nickname);
+      }
+    } catch {}
+
+    if (localUsers.length > 0) {
+      this.http.post<(User & { lastLogin?: string; plainPassword?: string; password?: string })[]>('/api/auth/sync_users', { users: localUsers }, headers).subscribe({
+        next: (list) => {
+          if (Array.isArray(list)) {
+            this.mergeUsersList(list);
+          }
+        },
+        error: () => {
+          this.fetchServerUsersFallback(headers);
+        },
+      });
+    } else {
+      this.fetchServerUsersFallback(headers);
+    }
+  }
+
+  private fetchServerUsersFallback(headers: any): void {
+    this.http.get<(User & { lastLogin?: string; plainPassword?: string; password?: string })[]>('/api/auth/users', headers).subscribe({
       next: (list) => {
         if (Array.isArray(list)) {
           this.mergeUsersList(list);
