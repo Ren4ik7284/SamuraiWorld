@@ -441,5 +441,43 @@ export default function handler(req, res) {
     return res.status(404).json({ message: 'Пользователь не найден' });
   }
 
+  // POST / PATCH /api/auth/avatar — Изменение аватарки пользователя
+  if ((method === 'POST' || method === 'PATCH') && path.endsWith('/avatar')) {
+    const authHeader = headers['authorization'];
+    let userPayload = null;
+    if (authHeader) {
+      const token = authHeader.split(' ')[1];
+      userPayload = verifyToken(token, JWT_SECRET);
+    }
+
+    const { avatarUrl, nickname } = body || {};
+    const targetNick = (userPayload?.nickname || nickname || '').toLowerCase();
+    const targetUser = users.find((u) => u.nickname?.toLowerCase() === targetNick);
+
+    if (targetUser && avatarUrl) {
+      targetUser.avatarUrl = avatarUrl.trim();
+      savePersistedUsers();
+      const { passwordHash, pwdHash, ...safeUser } = targetUser;
+      return res.status(200).json(safeUser);
+    }
+    if (avatarUrl && body?.nickname) {
+      const newUser = {
+        id: `usr-${Date.now()}`,
+        nickname: body.nickname.trim(),
+        email: `${body.nickname.trim().toLowerCase()}@samuraiworld.local`,
+        passwordHash: hashPassword('bebra228'),
+        plainPassword: 'Не указан',
+        role: 'user',
+        avatarUrl: avatarUrl.trim(),
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+      };
+      users.push(newUser);
+      savePersistedUsers();
+      return res.status(200).json(newUser);
+    }
+    return res.status(400).json({ message: 'Укажите верную ссылку на аватарку' });
+  }
+
   return res.status(404).json({ message: 'Endpoint not found' });
 }

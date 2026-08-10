@@ -164,4 +164,59 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.authService.logout();
     this.closeMobileMenu();
   }
+
+  // ===== СМЕНА АВАТАРКИ =====
+  showAvatarModal = false;
+  customAvatarUrlInput = '';
+  avatarSuccessMsg = '';
+  avatarErrorMsg = '';
+
+  avatarPresets = [
+    { label: 'Minecraft Скин', url: '' },
+    { label: 'Самурай Робот', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=SamuraiRed' },
+    { label: 'Золотой Воин', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=GoldCrown' },
+    { label: 'Кибер Дракон', url: 'https://api.dicebear.com/7.x/identicon/svg?seed=SamuraiWorld' },
+    { label: 'Pixel Аватар', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=SamuraiCat' },
+    { label: 'Герой Аниме', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=SamuraiHero' }
+  ];
+
+  openAvatarModal(): void {
+    if (!this.currentUser) return;
+    this.customAvatarUrlInput = this.currentUser.avatarUrl || '';
+    this.avatarSuccessMsg = '';
+    this.avatarErrorMsg = '';
+    this.showAvatarModal = true;
+  }
+
+  closeAvatarModal(): void {
+    this.showAvatarModal = false;
+  }
+
+  selectPresetAvatar(url: string): void {
+    let targetUrl = url;
+    if (!targetUrl && this.currentUser?.nickname) {
+      targetUrl = `https://crafatar.com/avatars/${encodeURIComponent(this.currentUser.nickname)}?overlay=true`;
+    }
+    this.customAvatarUrlInput = targetUrl;
+  }
+
+  saveAvatar(): void {
+    const url = (this.customAvatarUrlInput || '').trim();
+    if (!url) {
+      this.avatarErrorMsg = 'Укажите верную ссылку на аватарку!';
+      return;
+    }
+
+    this.authService.updateAvatar(url).subscribe({
+      next: () => {
+        this.avatarSuccessMsg = 'Аватарка успешно обновлена!';
+        setTimeout(() => {
+          this.closeAvatarModal();
+        }, 1000);
+      },
+      error: () => {
+        this.avatarErrorMsg = 'Ошибка обновления аватарки';
+      }
+    });
+  }
 }

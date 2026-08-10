@@ -206,6 +206,23 @@ export class AuthService {
   }
 
   /**
+   * Смена аватарки пользователя на любую ссылку или пресет
+   */
+  updateAvatar(newAvatarUrl: string): Observable<User> {
+    const user = this.currentUserValue;
+    if (!user) return throwError(() => new Error('Пользователь не авторизован'));
+
+    const updatedUser = { ...user, avatarUrl: newAvatarUrl };
+    localStorage.setItem(this.userKey, JSON.stringify(updatedUser));
+    this.saveKnownAccount(updatedUser.nickname, updatedUser);
+    this.currentUserSubject.next(updatedUser);
+
+    return this.http.patch<User>(`${this.apiUrl}/avatar`, { avatarUrl: newAvatarUrl, nickname: user.nickname }, this.getAuthHeaders()).pipe(
+      catchError(() => of(updatedUser))
+    );
+  }
+
+  /**
    * Выход из аккаунта
    */
   logout(): void {

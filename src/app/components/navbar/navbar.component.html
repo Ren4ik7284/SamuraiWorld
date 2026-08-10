@@ -30,8 +30,11 @@
     <div class="navbar__actions">
       <!-- User profile chip if logged in -->
       <div class="navbar__user-chip" *ngIf="currentUser; else unauthButtons">
-        <img [src]="currentUser.avatarUrl || 'https://crafatar.com/avatars/Steve?overlay=true'" class="navbar__avatar" alt="avatar" />
-        <div class="navbar__user-details">
+        <div style="position: relative; cursor: pointer;" (click)="openAvatarModal()" title="Нажмите, чтобы изменить аватарку">
+          <img [src]="currentUser.avatarUrl || 'https://crafatar.com/avatars/Steve?overlay=true'" class="navbar__avatar" alt="avatar" />
+          <span style="position: absolute; bottom: -2px; right: -2px; background: #0284c7; color: #fff; font-size: 0.6rem; padding: 1px 3px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">✏️</span>
+        </div>
+        <div class="navbar__user-details" (click)="openAvatarModal()" style="cursor: pointer;" title="Нажмите, чтобы изменить аватарку">
           <span class="navbar__user-name">{{ currentUser.nickname }}</span>
           <span class="navbar__user-role" [class.navbar__user-role--admin]="currentUser.role === 'admin'" [class.navbar__user-role--support]="currentUser.role === 'support'">
             {{ currentUser.role === 'admin' ? 'Админ' : currentUser.role === 'support' ? 'Поддержка' : 'Игрок' }}
@@ -219,6 +222,65 @@
         </button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО СМЕНЫ АВАТАРКИ -->
+<div class="auth-modal-overlay" *ngIf="showAvatarModal" (click)="closeAvatarModal()">
+  <div class="auth-modal-card" (click)="$event.stopPropagation()" style="max-width: 480px;">
+    <div class="auth-modal-header">
+      <h3>🖼️ Смена аватарки профиля</h3>
+      <button class="auth-modal-close" (click)="closeAvatarModal()">&times;</button>
+    </div>
+
+    <div class="auth-alert success" *ngIf="avatarSuccessMsg" style="background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #4ade80; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 14px;">
+      {{ avatarSuccessMsg }}
+    </div>
+    <div class="auth-alert error" *ngIf="avatarErrorMsg">
+      {{ avatarErrorMsg }}
+    </div>
+
+    <!-- Текущий предпросмотр -->
+    <div style="text-align: center; margin: 16px 0;">
+      <img 
+        [src]="customAvatarUrlInput || 'https://crafatar.com/avatars/Steve?overlay=true'" 
+        style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #38bdf8; object-fit: cover; background: #0f172a; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);" 
+        alt="Preview Avatar"
+      />
+      <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 6px;">Предпросмотр аватарки</div>
+    </div>
+
+    <!-- Набор готовых вариантов -->
+    <div style="margin-bottom: 16px;">
+      <label style="font-size: 0.8rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; display: block; margin-bottom: 8px;">Выберите готовый аватар:</label>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+        <button 
+          type="button" 
+          *ngFor="let p of avatarPresets" 
+          (click)="selectPresetAvatar(p.url)" 
+          style="background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 8px 4px; color: #f8fafc; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s;"
+        >
+          {{ p.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Поле ввода своей ссылки -->
+    <div class="auth-field">
+      <label>Или вставьте ЛЮБУЮ свою ссылку на картинку (PNG, JPG, WebP, SVG):</label>
+      <input 
+        type="url" 
+        class="auth-input" 
+        placeholder="https://example.com/my-photo.jpg" 
+        [(ngModel)]="customAvatarUrlInput" 
+        name="customAvatarUrl"
+      />
+    </div>
+
+    <div class="auth-modal-actions" style="margin-top: 20px;">
+      <button type="button" class="btn-cancel" (click)="closeAvatarModal()">Отмена</button>
+      <button type="button" class="btn-submit" (click)="saveAvatar()">Сохранить аватарку</button>
+    </div>
   </div>
 </div>
 
