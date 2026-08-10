@@ -1,0 +1,565 @@
+<!-- Animated background particles -->
+<div class="sakura" aria-hidden="true">
+  <div class="sakura__glow"></div>
+</div>
+
+<!-- ===== HERO HEADER ===== -->
+<section class="store-hero">
+  <div class="store-hero__bg">
+    <div class="store-hero__overlay"></div>
+    <div class="store-hero__pattern"></div>
+  </div>
+
+  <div class="container store-hero__content">
+    <div class="store-hero__badge anim-fade-up">
+      <span class="store-hero__badge-icon">⛩️</span>
+      Официальный авто-магазин SamuraiWorld
+    </div>
+
+    <h1 class="store-hero__title anim-fade-up d1">
+      Привилегии и <span>Донат</span>
+    </h1>
+
+    <p class="store-hero__sub anim-fade-up d2">
+      Поддержи развитие сервера и получи уникальные статусы, возможности, ресурсы и привилегии на SamuraiWorld
+    </p>
+
+    <!-- Info banner -->
+    <div class="store-hero__info-strip anim-fade-up d3">
+      <div class="info-strip__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <div>
+          <strong>Мгновенная выдача</strong>
+          <span>Выдача статуса на сервере за 10 секунд</span>
+        </div>
+      </div>
+
+      <div class="info-strip__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div>
+          <strong>Безопасная оплата</strong>
+          <span>СБП, Карты МИР, Т-Банк, ЮMoney</span>
+        </div>
+      </div>
+
+      <div class="info-strip__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+          <strong>Поддержка 24/7</strong>
+          <span>Поможем на сайте и в Discord</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MAIN STORE CONTENT ===== -->
+<section class="section store-main">
+  <div class="container">
+    
+    <!-- Controls: Tabs & Search -->
+    <div class="store-controls">
+      <div class="store-tabs">
+        <button 
+          class="store-tab" 
+          [class.active]="activeCategory === 'all'" 
+          (click)="setCategory('all')"
+        >
+          <span class="store-tab__icon">✨</span>
+          <span>Всё</span>
+        </button>
+
+        <button 
+          class="store-tab" 
+          [class.active]="activeCategory === 'privileges'" 
+          (click)="setCategory('privileges')"
+        >
+          <span class="store-tab__icon">👑</span>
+          <span>Привилегии</span>
+        </button>
+
+        <button 
+          class="store-tab" 
+          [class.active]="activeCategory === 'cases'" 
+          (click)="setCategory('cases')"
+        >
+          <span class="store-tab__icon">📦</span>
+          <span>Кейсы</span>
+        </button>
+
+        <button 
+          class="store-tab" 
+          [class.active]="activeCategory === 'coins'" 
+          (click)="setCategory('coins')"
+        >
+          <span class="store-tab__icon">🪙</span>
+          <span>Валюта</span>
+        </button>
+
+        <button 
+          class="store-tab" 
+          [class.active]="activeCategory === 'services'" 
+          (click)="setCategory('services')"
+        >
+          <span class="store-tab__icon">🛠️</span>
+          <span>Услуги</span>
+        </button>
+      </div>
+
+      <div class="store-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="store-search__icon">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input 
+          type="text" 
+          placeholder="Поиск по названию..." 
+          [(ngModel)]="searchQuery"
+          class="store-search__input"
+        />
+        <button *ngIf="searchQuery" (click)="searchQuery = ''" class="store-search__clear">&times;</button>
+      </div>
+    </div>
+
+    <!-- ITEM GRID -->
+    <div class="store-grid">
+      <div 
+        *ngFor="let item of filteredItems" 
+        class="store-card glass-card"
+        [class.store-card--vip]="item.isPrivilege"
+        [style.--card-accent]="item.color"
+      >
+        <!-- Badge top right -->
+        <div class="store-card__badge-wrap" *ngIf="item.badge">
+          <span class="store-card__badge" [class]="'badge--' + (item.badgeType || 'hit')">
+            {{ item.badge }}
+          </span>
+        </div>
+
+        <div class="store-card__header">
+          <div class="store-card__icon-box">
+            <span class="store-card__emoji">{{ item.icon }}</span>
+          </div>
+          <h3 class="store-card__title">{{ item.name }}</h3>
+          <p class="store-card__short-desc">{{ item.shortDesc }}</p>
+        </div>
+
+        <!-- Features list preview -->
+        <ul class="store-card__features">
+          <li *ngFor="let feat of item.features.slice(0, 5)">
+            <svg class="feat-check" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="4 10 8 14 16 6"></polyline>
+            </svg>
+            <span>{{ feat }}</span>
+          </li>
+          <li *ngIf="item.features.length > 5" class="feat-more">
+            + еще {{ item.features.length - 5 }} особенностей...
+          </li>
+        </ul>
+
+        <!-- Price & Action Footer -->
+        <div class="store-card__footer">
+          <div class="store-card__price-box">
+            <span class="price-label">{{ item.isPrivilege ? 'от' : 'цена' }}</span>
+            <span class="price-val">{{ item.basePrice }} ₽</span>
+            <span class="price-period" *ngIf="item.isPrivilege">/ 30 дн</span>
+          </div>
+
+          <div class="store-card__actions">
+            <button 
+              class="btn-icon-info" 
+              (click)="openInfoModal(item, $event)" 
+              title="Подробное описание"
+            >
+              ℹ️
+            </button>
+            <button class="btn btn-primary store-card__buy-btn" (click)="openBuyModal(item, $event)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+              Купить
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div class="store-empty" *ngIf="filteredItems.length === 0">
+      <span class="store-empty__icon">🔍</span>
+      <h3>Ничего не найдено</h3>
+      <p>Попробуйте изменить запрос или выберите другую категорию</p>
+      <button class="btn btn-outline" (click)="searchQuery = ''; activeCategory = 'all'">Сбросить фильтры</button>
+    </div>
+
+    <!-- ===== PRIVILEGE COMPARISON MATRIX ===== -->
+    <div class="matrix-section">
+      <header class="section-header-center">
+        <p class="section-eyebrow">Сравнение</p>
+        <h2 class="section-heading">Сравнение <span>Привилегий</span></h2>
+        <p class="section-sub">Наглядная таблица возможностей каждого ранга на SamuraiWorld</p>
+      </header>
+
+      <div class="matrix-table-wrap glass-card">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th class="col-feature">Особенность / Команда</th>
+              <th class="col-vip col-rank">
+                <div class="rank-hdr">
+                  <span class="rank-icon">🎖️</span>
+                  <span>VIP</span>
+                  <span class="rank-price">от 149 ₽</span>
+                </div>
+              </th>
+              <th class="col-samurai col-rank">
+                <div class="rank-hdr">
+                  <span class="rank-icon">⚔️</span>
+                  <span>SAMURAI</span>
+                  <span class="rank-price">от 299 ₽</span>
+                </div>
+              </th>
+              <th class="col-shogun col-rank">
+                <div class="rank-hdr">
+                  <span class="rank-icon">🏯</span>
+                  <span>SHOGUN</span>
+                  <span class="rank-price">от 549 ₽</span>
+                </div>
+              </th>
+              <th class="col-emperor col-rank highlight">
+                <div class="rank-hdr">
+                  <span class="rank-icon">👑</span>
+                  <span>EMPEROR</span>
+                  <span class="rank-price">от 990 ₽</span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of matrixRows">
+              <td class="col-feature">{{ row.name }}</td>
+              <td class="col-rank" [class.val-yes]="row.vip.includes('✓')" [class.val-no]="row.vip.includes('✗')">{{ row.vip }}</td>
+              <td class="col-rank" [class.val-yes]="row.samurai.includes('✓')" [class.val-no]="row.samurai.includes('✗')">{{ row.samurai }}</td>
+              <td class="col-rank" [class.val-yes]="row.shogun.includes('✓')" [class.val-no]="row.shogun.includes('✗')">{{ row.shogun }}</td>
+              <td class="col-rank highlight" [class.val-yes]="row.emperor.includes('✓')" [class.val-no]="row.emperor.includes('✗')">{{ row.emperor }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== FAQ & GUARANTY ===== -->
+    <div class="store-faq">
+      <header class="section-header-center">
+        <p class="section-eyebrow">Частые вопросы</p>
+        <h2 class="section-heading">Вопросы и <span>Ответы</span></h2>
+      </header>
+
+      <div class="faq-grid">
+        <div class="faq-item glass-card">
+          <h4>⚡ Как быстро я получу купленную привилегию?</h4>
+          <p>
+            Выдача происходит полностью автоматически в течение 10–60 секунд после завершения оплаты. Вам даже не нужно перезаходить на сервер — права применятся прямо во время игры.
+          </p>
+        </div>
+
+        <div class="faq-item glass-card">
+          <h4>💳 Какие способы оплаты поддерживаются?</h4>
+          <p>
+            Мы принимаем Систему Быстрых Платежей (СБП без комиссии), банковские карты МИР/Visa/Mastercard, Т-Банк, ЮMoney и криптовалюты.
+          </p>
+        </div>
+
+        <div class="faq-item glass-card">
+          <h4>🔄 Что если я захочу повысить ранг позже?</h4>
+          <p>
+            Вы можете в любой момент доплатить разницу в стоимости для перехода на более высокий ранг (например, с VIP на SAMURAI) с сохранением срока.
+          </p>
+        </div>
+
+        <div class="faq-item glass-card">
+          <h4>🆘 Возникла проблема с покупкой или не пришел статус?</h4>
+          <p>
+            Наша служба поддержки работает 24/7! Напишите тикет в разделе <a routerLink="/support">Поддержка</a> или в нашем Discord сервере, и мы моментально вам поможем.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== MODAL 1: DETAIL INFO MODAL ===== -->
+<div class="modal-overlay" *ngIf="detailItem" (click)="closeInfoModal()">
+  <div class="modal-card modal-card--info glass-card" (click)="$event.stopPropagation()">
+    <button class="modal-close" (click)="closeInfoModal()">&times;</button>
+    
+    <div class="modal-header">
+      <div class="modal-header__icon" [style.color]="detailItem.color">
+        {{ detailItem.icon }}
+      </div>
+      <div>
+        <h3 class="modal-title">{{ detailItem.name }}</h3>
+        <span class="modal-badge" *ngIf="detailItem.badge">{{ detailItem.badge }}</span>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <p class="modal-short">{{ detailItem.shortDesc }}</p>
+
+      <h4 class="modal-section-title">Полное описание возможностей:</h4>
+      <ul class="modal-full-list">
+        <li *ngFor="let line of detailItem.fullDesc">
+          <span class="bullet">❖</span>
+          <span>{{ line }}</span>
+        </li>
+      </ul>
+
+      <h4 class="modal-section-title" style="margin-top: 16px;">Основные команды и преимущества:</h4>
+      <ul class="modal-feat-list">
+        <li *ngFor="let feat of detailItem.features">
+          <svg viewBox="0 0 20 20" fill="none" stroke="#d4a017" stroke-width="2.5" width="16" height="16">
+            <polyline points="4 10 8 14 16 6"></polyline>
+          </svg>
+          <span>{{ feat }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="closeInfoModal()">Закрыть</button>
+      <button class="btn btn-primary" (click)="closeInfoModal(); openBuyModal(detailItem)">
+        Перейти к покупке (от {{ detailItem.basePrice }} ₽)
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL 2: BUY / CHECKOUT MODAL ===== -->
+<div class="modal-overlay" *ngIf="selectedItem" (click)="closeBuyModal()">
+  <div class="modal-card modal-card--checkout glass-card" (click)="$event.stopPropagation()">
+    <button class="modal-close" (click)="closeBuyModal()">&times;</button>
+
+    <!-- STEP 1: Details & Payment selection -->
+    <div *ngIf="checkoutStep === 1">
+      <div class="modal-header">
+        <div class="modal-header__icon" [style.color]="selectedItem.color">
+          {{ selectedItem.icon }}
+        </div>
+        <div>
+          <h3 class="modal-title">Оформление: {{ selectedItem.name }}</h3>
+          <span class="modal-sub-label">Безопасная покупка на SamuraiWorld</span>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        
+        <!-- Nickname Input + Skin Avatar Preview -->
+        <div class="checkout-form-group">
+          <label class="checkout-label">Ваш Никнейм на сервере *</label>
+          <div class="nick-input-wrap">
+            <img [src]="getAvatarUrl(nicknameInput)" class="nick-avatar" alt="skin avatar" />
+            <input 
+              type="text" 
+              class="checkout-input" 
+              placeholder="Например: PlayerOne" 
+              [(ngModel)]="nicknameInput" 
+              maxLength="16"
+            />
+          </div>
+          <span class="checkout-hint">На этот никнейм будет автоматически начислен товар на сервере</span>
+        </div>
+
+        <!-- Duration Select (Only for Privileges) -->
+        <div class="checkout-form-group" *ngIf="selectedItem.isPrivilege">
+          <label class="checkout-label">Выберите период действия:</label>
+          <div class="duration-grid">
+            <button 
+              type="button"
+              class="duration-btn" 
+              [class.active]="checkoutDuration === '30'" 
+              (click)="checkoutDuration = '30'"
+            >
+              <span class="duration-title">30 дней</span>
+              <span class="duration-price">{{ selectedItem.basePrice }} ₽</span>
+            </button>
+
+            <button 
+              type="button"
+              class="duration-btn" 
+              *ngIf="selectedItem.price90"
+              [class.active]="checkoutDuration === '90'" 
+              (click)="checkoutDuration = '90'"
+            >
+              <span class="duration-badge">-20%</span>
+              <span class="duration-title">90 дней</span>
+              <span class="duration-price">{{ selectedItem.price90 }} ₽</span>
+            </button>
+
+            <button 
+              type="button"
+              class="duration-btn" 
+              *ngIf="selectedItem.priceForever"
+              [class.active]="checkoutDuration === 'forever'" 
+              (click)="checkoutDuration = 'forever'"
+            >
+              <span class="duration-badge">ХИТ</span>
+              <span class="duration-title">Навсегда</span>
+              <span class="duration-price">{{ selectedItem.priceForever }} ₽</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Promo Code Input -->
+        <div class="checkout-form-group">
+          <label class="checkout-label">Промокод (при наличии):</label>
+          <div class="promo-wrap">
+            <input 
+              type="text" 
+              class="checkout-input promo-input" 
+              placeholder="Например: SAMURAI10" 
+              [(ngModel)]="promoCodeInput"
+            />
+            <button type="button" class="btn btn-outline btn-promo" (click)="applyPromoCode()">Применить</button>
+          </div>
+          <div class="promo-msg error" *ngIf="promoError">{{ promoError }}</div>
+          <div class="promo-msg success" *ngIf="promoSuccess">{{ promoSuccess }}</div>
+        </div>
+
+        <!-- Payment Method Selection -->
+        <div class="checkout-form-group">
+          <label class="checkout-label">Способ оплаты:</label>
+          <div class="payment-grid">
+            <button 
+              type="button" 
+              class="payment-card" 
+              [class.active]="selectedPayment === 'sbp'" 
+              (click)="selectedPayment = 'sbp'"
+            >
+              <span class="payment-icon">⚡</span>
+              <div class="payment-info">
+                <strong>СБП (Без комиссии)</strong>
+                <span>Оплата по QR-коду любого банка</span>
+              </div>
+            </button>
+
+            <button 
+              type="button" 
+              class="payment-card" 
+              [class.active]="selectedPayment === 'tinkoff'" 
+              (click)="selectedPayment = 'tinkoff'"
+            >
+              <span class="payment-icon">🟡</span>
+              <div class="payment-info">
+                <strong>Т-Банк / Pay</strong>
+                <span>Быстрая оплата в 1 клик</span>
+              </div>
+            </button>
+
+            <button 
+              type="button" 
+              class="payment-card" 
+              [class.active]="selectedPayment === 'card'" 
+              (click)="selectedPayment = 'card'"
+            >
+              <span class="payment-icon">💳</span>
+              <div class="payment-info">
+                <strong>Карты МИР / Visa / MC</strong>
+                <span>Любые карты банков РФ</span>
+              </div>
+            </button>
+
+            <button 
+              type="button" 
+              class="payment-card" 
+              [class.active]="selectedPayment === 'yumoney'" 
+              (click)="selectedPayment = 'yumoney'"
+            >
+              <span class="payment-icon">🟣</span>
+              <div class="payment-info">
+                <strong>ЮMoney / Кошелек</strong>
+                <span>Электронные деньги</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Total Price Summary -->
+        <div class="checkout-summary">
+          <div class="summary-row">
+            <span>Товар:</span>
+            <strong>{{ selectedItem.name }} {{ selectedItem.isPrivilege ? '(' + (checkoutDuration === 'forever' ? 'Навсегда' : checkoutDuration + ' дн') + ')' : '' }}</strong>
+          </div>
+          <div class="summary-row" *ngIf="discountPercent > 0">
+            <span>Скидка по промокоду:</span>
+            <strong class="discount-val">-{{ discountPercent }}% ({{ appliedPromo }})</strong>
+          </div>
+          <div class="summary-row summary-row--total">
+            <span>Итого к оплате:</span>
+            <span class="total-price">{{ calculatePrice() }} ₽</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" (click)="closeBuyModal()">Отмена</button>
+        <button 
+          type="button" 
+          class="btn btn-primary btn-submit-pay" 
+          (click)="submitPurchase()"
+          [disabled]="isProcessingPay"
+        >
+          <span *ngIf="!isProcessingPay">Оплатить {{ calculatePrice() }} ₽</span>
+          <span *ngIf="isProcessingPay">Обработка...</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Simulated Instant Purchase Success -->
+    <div *ngIf="checkoutStep === 2" class="checkout-success-body">
+      <div class="success-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#00b894" stroke-width="2.5">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+
+      <h3 class="success-title">Заказ успешно сформирован!</h3>
+      <p class="success-sub">
+        Номер заказа: <strong class="order-id">{{ lastOrderId }}</strong>
+      </p>
+
+      <div class="success-box glass-card">
+        <div class="success-row">
+          <span>Игрок:</span>
+          <strong>{{ nicknameInput }}</strong>
+        </div>
+        <div class="success-row">
+          <span>Товар:</span>
+          <strong>{{ selectedItem.name }}</strong>
+        </div>
+        <div class="success-row">
+          <span>Сумма:</span>
+          <strong>{{ calculatePrice() }} ₽</strong>
+        </div>
+      </div>
+
+      <div class="success-instructions">
+        <h4>🎮 Как получить статус в игре:</h4>
+        <p>Зайдите на сервер <code>b1.qwertyx.host:26687</code> и введите команду:</p>
+        <div class="cmd-copy-box" (click)="copyGetCommand()">
+          <code>/don get {{ lastOrderId }}</code>
+          <span class="cmd-copy-tag">{{ commandCopied ? 'Скопировано!' : 'Скопировать' }}</span>
+        </div>
+        <small>(В демонстрационном режиме статус готов к выдаче на сервере!)</small>
+      </div>
+
+      <div class="modal-footer" style="justify-content: center; margin-top: 24px;">
+        <button class="btn btn-primary" (click)="closeBuyModal()">Отлично, перейти в игру</button>
+      </div>
+    </div>
+
+  </div>
+</div>

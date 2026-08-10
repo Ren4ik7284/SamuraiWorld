@@ -4,9 +4,12 @@ import { HomeComponent } from './pages/home/home.component';
 import { RulesComponent } from './pages/rules/rules.component';
 import { WorldComponent } from './pages/world/world.component';
 import { ContactsComponent } from './pages/contacts/contacts.component';
+import { StoreComponent } from './pages/store/store.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
+  { path: 'store', component: StoreComponent },
+  { path: 'donate', redirectTo: 'store', pathMatch: 'full' },
   { path: 'rules', component: RulesComponent },
   { path: 'world', component: WorldComponent },
   { path: 'contacts', component: ContactsComponent },
@@ -18,3 +21,4 @@ const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule { }
+

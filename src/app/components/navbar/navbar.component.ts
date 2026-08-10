@@ -35,6 +35,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   navLinks: NavLink[] = [
     { label: 'Главная', path: '/', jpLabel: 'Главная' },
+    { label: 'Донат', path: '/store', jpLabel: '商店' },
     { label: 'О сервере', path: '/world', jpLabel: 'Система' },
     { label: 'Правила', path: '/rules', jpLabel: 'Законы' },
     { label: 'Поддержка', path: '/support', jpLabel: 'Помощь' },
