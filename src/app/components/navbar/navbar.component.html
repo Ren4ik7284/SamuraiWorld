@@ -30,10 +30,7 @@
     <div class="navbar__actions">
       <!-- User profile chip if logged in -->
       <div class="navbar__user-chip" *ngIf="currentUser; else unauthButtons">
-        <div style="position: relative; cursor: pointer;" (click)="openAvatarModal()" title="Нажмите, чтобы изменить аватарку">
-          <img [src]="currentUser.avatarUrl || 'https://crafatar.com/avatars/Steve?overlay=true'" class="navbar__avatar" alt="avatar" />
-          <span style="position: absolute; bottom: -2px; right: -2px; background: #0284c7; color: #fff; font-size: 0.6rem; padding: 1px 3px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">✏️</span>
-        </div>
+        <img [src]="currentUser.avatarUrl || DEFAULT_AVATAR" class="navbar__avatar" (click)="openAvatarModal()" style="cursor: pointer;" title="Нажмите, чтобы изменить аватарку" alt="avatar" />
         <div class="navbar__user-details" (click)="openAvatarModal()" style="cursor: pointer;" title="Нажмите, чтобы изменить аватарку">
           <span class="navbar__user-name">{{ currentUser.nickname }}</span>
           <span class="navbar__user-role" [class.navbar__user-role--admin]="currentUser.role === 'admin'" [class.navbar__user-role--support]="currentUser.role === 'support'">
@@ -104,7 +101,7 @@
       <!-- User profile chip in mobile drawer -->
       <div class="navbar__drawer-user" *ngIf="currentUser; else drawerUnauth">
         <div class="navbar__drawer-user-meta">
-          <img [src]="currentUser.avatarUrl || 'https://crafatar.com/avatars/Steve?overlay=true'" class="navbar__avatar" alt="avatar" />
+          <img [src]="currentUser.avatarUrl || DEFAULT_AVATAR" class="navbar__avatar" (click)="openAvatarModal(); closeMobileMenu()" style="cursor: pointer;" alt="avatar" />
           <div class="navbar__user-details">
             <span class="navbar__user-name">{{ currentUser.nickname }}</span>
             <span class="navbar__user-role">{{ currentUser.role === 'admin' ? 'Администратор' : currentUser.role === 'support' ? 'Поддержка' : 'Игрок' }}</span>
@@ -227,9 +224,9 @@
 
 <!-- МОДАЛЬНОЕ ОКНО СМЕНЫ АВАТАРКИ -->
 <div class="auth-modal-overlay" *ngIf="showAvatarModal" (click)="closeAvatarModal()">
-  <div class="auth-modal-card" (click)="$event.stopPropagation()" style="max-width: 460px;">
+  <div class="auth-modal-card" (click)="$event.stopPropagation()" style="max-width: 440px; padding: 28px 24px;">
     <div class="auth-modal-header">
-      <h3>🖼️ Смена аватарки профиля</h3>
+      <h3 style="font-size: 1.25rem; font-weight: 800; color: #f8fafc;">Смена аватарки</h3>
       <button class="auth-modal-close" (click)="closeAvatarModal()">&times;</button>
     </div>
 
@@ -241,53 +238,59 @@
     </div>
 
     <!-- Текущий предпросмотр -->
-    <div style="text-align: center; margin: 16px 0;">
-      <img 
-        [src]="customAvatarUrlInput || DEFAULT_AVATAR" 
-        style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid #38bdf8; object-fit: cover; background: #0f172a; box-shadow: 0 0 20px rgba(56, 189, 248, 0.35);" 
-        alt="Preview Avatar"
-      />
-      <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 6px;">Предпросмотр вашей аватарки</div>
+    <div style="text-align: center; margin: 20px 0;">
+      <div style="position: relative; display: inline-block;">
+        <img 
+          [src]="customAvatarUrlInput || DEFAULT_AVATAR" 
+          style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #38bdf8; object-fit: cover; background: #0f172a; box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);" 
+          alt="Preview Avatar"
+        />
+      </div>
+      <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 8px; font-weight: 500;">Ваша новая аватарка</div>
     </div>
 
-    <!-- Загрузка из галереи (Файл с телефона / ПК) -->
-    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
-      <input type="file" #fileInput accept="image/*" (change)="onFileSelected($event)" style="display: none;" />
-      
-      <button 
-        type="button" 
-        class="btn btn-primary" 
-        (click)="fileInput.click()"
-        style="width: 100%; justify-content: center; font-size: 0.95rem; font-weight: 700; padding: 12px;"
+    <!-- Нативная кнопка загрузки файлов с Галереи Телефона / ПК -->
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px;">
+      <label 
+        for="mobileAvatarFileInput"
+        style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; text-align: center; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4); transition: all 0.2s;"
       >
-        📁 Загрузить фото из галереи / файла
-      </button>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Выбрать фото из галереи</span>
+        <input 
+          id="mobileAvatarFileInput" 
+          type="file" 
+          accept="image/*" 
+          (change)="onFileSelected($event)" 
+          style="position: absolute; opacity: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0);" 
+        />
+      </label>
 
       <button 
         type="button" 
-        class="btn btn-outline" 
         (click)="resetToDefaultAvatar()"
-        style="width: 100%; justify-content: center; font-size: 0.85rem; border-color: rgba(255,255,255,0.15); color: #cbd5e1;"
+        style="width: 100%; padding: 10px; background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #94a3b8; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;"
       >
-        👤 Сбросить на стандартный серый аватар
+        Сбросить на серый силуэт
       </button>
     </div>
 
-    <!-- Поле ввода своей ссылки -->
+    <!-- Ввод ссылки -->
     <div class="auth-field">
-      <label style="font-size: 0.8rem; color: #94a3b8;">Или вставьте ссылку на изображение:</label>
+      <label style="font-size: 0.78rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Или прямая ссылка на фото</label>
       <input 
         type="url" 
         class="auth-input" 
-        placeholder="https://example.com/photo.jpg" 
+        placeholder="https://site.com/image.jpg" 
         [(ngModel)]="customAvatarUrlInput" 
         name="customAvatarUrl"
+        style="font-size: 0.85rem;"
       />
     </div>
 
-    <div class="auth-modal-actions" style="margin-top: 20px;">
+    <div class="auth-modal-actions" style="margin-top: 22px;">
       <button type="button" class="btn-cancel" (click)="closeAvatarModal()">Отмена</button>
-      <button type="button" class="btn-submit" (click)="saveAvatar()">Сохранить аватарку</button>
+      <button type="button" class="btn-submit" (click)="saveAvatar()" style="background: #22c55e;">Сохранить</button>
     </div>
   </div>
 </div>
