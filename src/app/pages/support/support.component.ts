@@ -277,50 +277,30 @@ export class SupportComponent implements OnInit, OnDestroy {
   private mergeUsersList(serverUsers: (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[]): void {
     const map = new Map<string, User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean }>();
 
-    try {
-      const raw = localStorage.getItem('samurai_known_accounts_store');
-      if (raw) {
-        const obj = JSON.parse(raw);
-        for (const k of Object.keys(obj)) {
-          const u = obj[k];
-          if (u && u.nickname) {
-            const nickKey = u.nickname.toLowerCase();
-            if (['playerone', 'support_agent', 'admin_samurai'].includes(nickKey)) continue;
-
-            map.set(nickKey, {
-              id: u.id || `usr-${nickKey}`,
-              nickname: u.nickname,
-              email: u.email || `${nickKey}@samuraiworld.ru`,
-              role: ['ren4ik284', 'mydaf0n62'].includes(nickKey) ? 'admin' : u.role || 'user',
-              avatarUrl: u.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(u.nickname)}?overlay=true`,
-              createdAt: u.createdAt || new Date().toISOString(),
-              lastLogin: u.lastLogin || u.createdAt || new Date().toISOString(),
-              plainPassword: u.password || u.plainPassword || 'Не указан',
-              showPassword: false,
-            });
-          }
-        }
-      }
-    } catch {}
-
     for (const u of serverUsers) {
       if (u && u.nickname) {
         const key = u.nickname.toLowerCase();
-        if (['playerone', 'support_agent', 'admin_samurai'].includes(key)) continue;
-
         const existing = map.get(key);
         map.set(key, {
           ...existing,
           ...u,
-          role: ['ren4ik284', 'mydaf0n62'].includes(key) ? 'admin' : u.role || existing?.role || 'user',
+          role: key === 'ren4ik284' ? 'admin' : u.role || 'user',
           plainPassword: u.password || u.plainPassword || existing?.password || existing?.plainPassword || 'Не указан',
           showPassword: existing?.showPassword || false,
         });
       }
     }
 
+    // Синхронизируем локальный кэш аккаунтов с актуальным списком с сервера
+    try {
+      const cleanStore: any = {};
+      map.forEach((user, key) => {
+        cleanStore[key] = user;
+      });
+      localStorage.setItem('samurai_known_accounts_store', JSON.stringify(cleanStore));
+    } catch {}
+
     const arr = Array.from(map.values())
-      .filter((u) => !['playerone', 'support_agent', 'admin_samurai'].includes(u.nickname.toLowerCase()))
       .sort((a, b) => {
         const timeA = new Date(a.lastLogin || a.createdAt || 0).getTime();
         const timeB = new Date(b.lastLogin || b.createdAt || 0).getTime();

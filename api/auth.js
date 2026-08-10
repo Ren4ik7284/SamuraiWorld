@@ -18,17 +18,6 @@ let users = [
     createdAt: '2026-01-01T00:00:00.000Z',
     lastLogin: '2026-08-10T12:00:00.000Z',
   },
-  {
-    id: 'usr-mydaf0n62-admin',
-    nickname: 'Mydaf0n62',
-    email: 'mydaf0n62@samuraiworld.ru',
-    passwordHash: hashPassword('admin123'),
-    plainPassword: 'admin123',
-    role: 'admin',
-    avatarUrl: 'https://crafatar.com/avatars/Mydaf0n62?overlay=true',
-    createdAt: '2026-01-01T00:00:00.000Z',
-    lastLogin: '2026-08-10T12:00:00.000Z',
-  },
 ];
 
 function loadPersistedUsers() {
@@ -38,15 +27,11 @@ function loadPersistedUsers() {
       const loaded = JSON.parse(data);
       if (Array.isArray(loaded)) {
         for (const u of loaded) {
-          // Исключаем вымышленные тестовые аккаунты
-          if (['admin_samurai', 'support_agent', 'playerone'].includes(u.nickname?.toLowerCase())) {
-            continue;
-          }
-          if (['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase())) {
+          if (u.nickname?.toLowerCase() === 'ren4ik284') {
             u.role = 'admin';
-          }
-          if (!users.some((existing) => existing.id === u.id || existing.nickname.toLowerCase() === u.nickname.toLowerCase())) {
-            users.push(u);
+            if (!users.some((existing) => existing.nickname.toLowerCase() === 'ren4ik284')) {
+              users.push(u);
+            }
           }
         }
       }
@@ -55,15 +40,11 @@ function loadPersistedUsers() {
     // Ignore tmp file read errors
   }
 
-  // Очищаем тестовые аккаунты навсегда
-  users = users.filter((u) => !['admin_samurai', 'support_agent', 'playerone'].includes(u.nickname?.toLowerCase()));
+  // Удаляем всех пользователей кроме главного администратора Ren4ik284
+  users = users.filter((u) => u.nickname?.toLowerCase() === 'ren4ik284');
+  users.forEach((u) => { u.role = 'admin'; });
 
-  // Ensure Ren4ik284 & Mydaf0n62 in memory are always admin
-  users.forEach((u) => {
-    if (['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase())) {
-      u.role = 'admin';
-    }
-  });
+  savePersistedUsers();
 }
 
 function savePersistedUsers() {
