@@ -5,6 +5,9 @@ import { RulesComponent } from './pages/rules/rules.component';
 import { WorldComponent } from './pages/world/world.component';
 import { ContactsComponent } from './pages/contacts/contacts.component';
 import { StoreComponent } from './pages/store/store.component';
+import { SupportComponent } from './pages/support/support.component';
+import { PrivacyComponent } from './pages/privacy/privacy.component';
+import { TermsComponent } from './pages/terms/terms.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -13,6 +16,9 @@ const routes: Routes = [
   { path: 'rules', component: RulesComponent },
   { path: 'world', component: WorldComponent },
   { path: 'contacts', component: ContactsComponent },
+  { path: 'support', component: SupportComponent },
+  { path: 'privacy', component: PrivacyComponent },
+  { path: 'terms', component: TermsComponent },
   { path: '**', redirectTo: '' }
 ];
 

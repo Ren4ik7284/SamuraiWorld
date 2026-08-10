@@ -33,6 +33,16 @@
         </ul>
       </div>
 
+      <!-- Legal & Compliance -->
+      <div class="footer__col">
+        <h3 class="footer__col-title">Документы</h3>
+        <ul class="footer__links">
+          <li *ngFor="let link of legalLinks">
+            <a [routerLink]="link.path" class="footer__link">{{ link.label }}</a>
+          </li>
+        </ul>
+      </div>
+
       <!-- Server info -->
       <div class="footer__col">
         <h3 class="footer__col-title">Сервер</h3>

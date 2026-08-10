@@ -5,6 +5,8 @@ import { WorldComponent } from './pages/world/world.component';
 import { ContactsComponent } from './pages/contacts/contacts.component';
 import { SupportComponent } from './pages/support/support.component';
 import { StoreComponent } from './pages/store/store.component';
+import { PrivacyComponent } from './pages/privacy/privacy.component';
+import { TermsComponent } from './pages/terms/terms.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -14,6 +16,8 @@ export const routes: Routes = [
   { path: 'world', component: WorldComponent },
   { path: 'contacts', component: ContactsComponent },
   { path: 'support', component: SupportComponent },
+  { path: 'privacy', component: PrivacyComponent },
+  { path: 'terms', component: TermsComponent },
   { path: '**', redirectTo: '' }
 ];
 

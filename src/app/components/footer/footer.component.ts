@@ -39,8 +39,15 @@ export class FooterComponent {
   navLinks = [
     { label: 'Главная', path: '/' },
     { label: 'О сервере', path: '/world' },
+    { label: 'Магазин VIP', path: '/store' },
     { label: 'Правила', path: '/rules' },
     { label: 'Поддержка', path: '/support' },
     { label: 'Контакты', path: '/contacts' }
+  ];
+
+  legalLinks = [
+    { label: 'Политика конфиденциальности', path: '/privacy' },
+    { label: 'Пользовательское соглашение', path: '/terms' },
+    { label: 'Контакты поддержки', path: '/contacts' }
   ];
 }
