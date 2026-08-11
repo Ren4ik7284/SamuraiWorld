@@ -44,7 +44,7 @@
             <span class="period">/ 30 дней</span>
           </div>
           <div class="payment-badge-row">
-            <span class="coinso-tag">Coinso Pay • СБП • Карты</span>
+            <span class="coinso-tag">RollyPay • СБП • Карты • Cryptobot</span>
           </div>
           <button class="btn btn-gold btn-buy-now" (click)="openBuyModal()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -140,20 +140,52 @@
         <div class="promo-msg success" *ngIf="promoSuccess">{{ promoSuccess }}</div>
       </div>
 
-      <!-- Payment Method Selection via Coinso -->
+      <!-- Payment Method Selection via RollyPay -->
       <div class="checkout-form-group" style="margin-top: 16px;">
-        <label class="checkout-label">Способ оплаты:</label>
-        <div class="payment-grid">
+        <label class="checkout-label">Способ оплаты (RollyPay):</label>
+        <div class="payment-grid" style="display: flex; flex-direction: column; gap: 8px;">
           <button 
             type="button" 
-            class="payment-card active" 
+            class="payment-card"
+            [class.active]="selectedPayment === 'sbp'"
+            (click)="selectedPayment = 'sbp'"
           >
-            <span class="payment-icon" style="color:#fde047;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <span class="payment-icon" style="color:#38bdf8;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             </span>
             <div class="payment-info">
-              <strong>Платёжный шлюз Coinso</strong>
-              <span>СБП, Банковские карты РФ и мира, Криптовалюта</span>
+              <strong>СБП (Система Быстрых Платежей)</strong>
+              <span>Мгновенная оплата по QR-коду любого банка</span>
+            </div>
+          </button>
+
+          <button 
+            type="button" 
+            class="payment-card"
+            [class.active]="selectedPayment === 'card'"
+            (click)="selectedPayment = 'card'"
+          >
+            <span class="payment-icon" style="color:#22c55e;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </span>
+            <div class="payment-info">
+              <strong>Банковские карты (МИР / Visa / MC)</strong>
+              <span>Оплата любой картой РФ и зарубежных банков</span>
+            </div>
+          </button>
+
+          <button 
+            type="button" 
+            class="payment-card"
+            [class.active]="selectedPayment === 'crypto'"
+            (click)="selectedPayment = 'crypto'"
+          >
+            <span class="payment-icon" style="color:#fde047;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M8 10h8"/></svg>
+            </span>
+            <div class="payment-info">
+              <strong>Cryptobot, xrocket и Криптовалюта</strong>
+              <span>USDT, TON, BTC, CryptoBot</span>
             </div>
           </button>
         </div>
@@ -203,7 +235,7 @@
       <button 
         type="button" 
         class="btn btn-primary btn-submit-pay" 
-        (click)="submitCoinsoOrder()"
+        (click)="submitRollypayOrder()"
         [disabled]="isProcessingPay"
         *ngIf="checkoutStep === 1"
       >
