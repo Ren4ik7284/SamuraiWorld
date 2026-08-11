@@ -1,4 +1,7 @@
+import { checkRateLimit } from './security.js';
+
 export default async function handler(req, res) {
+  if (!checkRateLimit(req, res, false)) return;
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');

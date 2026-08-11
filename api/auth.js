@@ -171,7 +171,10 @@ function generateTokens(user) {
   };
 }
 
+import { checkRateLimit } from './security.js';
+
 export default function handler(req, res) {
+  if (!checkRateLimit(req, res, true)) return;
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');

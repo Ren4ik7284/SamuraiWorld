@@ -142,7 +142,10 @@ function extractTicketId(req, parsedBody = {}) {
   return null;
 }
 
+import { checkRateLimit } from './security.js';
+
 export default function handler(req, res) {
+  if (!checkRateLimit(req, res, req.method !== 'GET')) return;
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');

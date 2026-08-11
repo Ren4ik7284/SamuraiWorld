@@ -47,7 +47,10 @@ function updatePlayerVipStatus(nickname) {
   }
 }
 
+import { checkRateLimit } from '../security.js';
+
 export default function handler(req, res) {
+  if (!checkRateLimit(req, res, req.method !== 'GET')) return;
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
