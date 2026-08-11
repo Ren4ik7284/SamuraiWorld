@@ -232,6 +232,30 @@ export class StoreComponent implements OnInit, OnDestroy {
     });
   }
 
+  grantStatusMessage = '';
+  isGranting = false;
+
+  triggerInstantGrant(): void {
+    const nick = (this.nicknameInput || '').trim();
+    if (!nick) {
+      this.grantStatusMessage = 'Укажите никнейм!';
+      return;
+    }
+    this.isGranting = true;
+    this.grantStatusMessage = 'Отправка команды на сервер...';
+
+    this.http.post<any>('/api/payments/grant-vip', { nickname: nick }).subscribe({
+      next: (res) => {
+        this.isGranting = false;
+        this.grantStatusMessage = res.message || 'VIP статус выдан!';
+      },
+      error: (err) => {
+        this.isGranting = false;
+        this.grantStatusMessage = err.error?.message || err.error?.error || 'Не удалось отправить команду на сервер';
+      }
+    });
+  }
+
   copyGetCommand(): void {
     const cmd = `/don get ${this.lastOrderId}`;
     navigator.clipboard.writeText(cmd).finally(() => {

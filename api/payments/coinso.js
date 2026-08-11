@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { checkRateLimit } from '../security.js';
+import { grantVipInMinecraft } from './mc-executor.js';
 
 const PROJECT_ID = process.env.COINSO_PROJECT_ID || '955394417';
 const API_KEY = process.env.COINSO_API_KEY || '585c4cda8655ab5f9376947007b707d0';
@@ -49,7 +50,7 @@ function updatePlayerVipStatus(nickname) {
   }
 }
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (!checkRateLimit(req, res, req.method !== 'GET')) return;
 
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -66,7 +67,6 @@ export default function handler(req, res) {
   }
 
   const { url, method, body, query } = req;
-  const pathName = url.split('?')[0];
 
   // POST /api/payments/coinso — Создание счета или вебхук
   if (method === 'POST') {
@@ -92,16 +92,12 @@ export default function handler(req, res) {
       let amount = 200;
       const cleanPromo = (promoCode || '').trim().toUpperCase();
       if (cleanPromo === 'SAMURAI' || cleanPromo === 'COINSO' || cleanPromo === 'CRYPTO') {
-        amount = 180; // 10% discount
+        amount = 180;
       } else if (cleanPromo === 'START') {
-        amount = 170; // 15% discount
+        amount = 170;
       }
 
       const orderId = `COINSO-${nickname.trim().toUpperCase()}-${Date.now()}`;
-      const signStr = `${PROJECT_ID}:${amount}:${orderId}:${SECRET_KEY}`;
-      const signature = crypto.createHash('md5').update(signStr).digest('hex');
-
-      // Прямая ссылка на форму оплаты Coinso
       const realPayUrl = `https://coinso.io/pay/Yv6TIm2e`;
 
       return res.status(200).json({
@@ -112,7 +108,7 @@ export default function handler(req, res) {
       });
     }
 
-    // 2. Webhook прием платежей от Coinso
+    // 2. Webhook прием платежей от Coinso / Тест выданного заказа
     const { transaction_id, order_id, redirect } = payload;
 
     if (status === 'success' || event === 'payment.success' || status === 'paid') {
@@ -125,6 +121,15 @@ export default function handler(req, res) {
       }
 
       updatePlayerVipStatus(nick);
+
+      // Выполняем авто-выдачу VIP статуса в самом Minecraft в режиме реального времени!
+      let mcExecResult = null;
+      try {
+        mcExecResult = await grantVipInMinecraft(nick);
+      } catch (err) {
+        console.error('[Minecraft VIP Grant Error]:', err);
+      }
+
       console.log(`[Coinso Webhook Success] VIP статус зачислен игроку: ${nick} (Tx: ${transaction_id || 'N/A'})`);
 
       if (redirect) {
@@ -132,7 +137,11 @@ export default function handler(req, res) {
         return res.status(302).end();
       }
 
-      return res.status(200).json({ status: 'OK', message: `VIP статус выдан игроку ${nick}` });
+      return res.status(200).json({
+        status: 'OK',
+        message: `VIP статус выдан игроку ${nick}`,
+        minecraftDelivery: mcExecResult
+      });
     }
 
     return res.status(200).json({ status: 'IGNORED', message: 'Платеж в обработке' });
@@ -140,3 +149,4 @@ export default function handler(req, res) {
 
   return res.status(404).json({ message: 'Endpoint not found' });
 }
+

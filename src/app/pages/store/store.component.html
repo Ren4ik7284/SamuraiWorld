@@ -182,6 +182,19 @@
         <h3>Заказ зарегистрирован!</h3>
         <p>Игровой ник: <strong>{{ nicknameInput }}</strong></p>
         <p>Номер заказа: <strong>{{ lastOrderId }}</strong></p>
+        <p class="text-sm opacity-80 mt-2">После успешной оплаты VIP статус зачисляется автоматически прямо на сервере!</p>
+
+        <div style="margin-top: 1rem; padding: 1rem; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px;">
+          <h4 style="margin: 0 0 0.5rem 0; color: #38bdf8; font-size: 0.95rem;">⚡ Автоматическая активация VIP</h4>
+          <p style="font-size: 0.85rem; margin-bottom: 0.75rem; color: #cbd5e1;">Если вы уже совершили оплату или хотите проверить выдачу статуса в игре:</p>
+          <button type="button" class="btn btn-primary" (click)="triggerInstantGrant()" [disabled]="isGranting" style="width: 100%; font-weight: 600;">
+            <span *ngIf="!isGranting">⚡ Активировать / Проверить VIP в игре сейчас</span>
+            <span *ngIf="isGranting">Отправка команды на сервер...</span>
+          </button>
+          <div *ngIf="grantStatusMessage" style="margin-top: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #fde047; text-align: center;">
+            {{ grantStatusMessage }}
+          </div>
+        </div>
       </div>
     </div>
 
