@@ -135,6 +135,7 @@ export class StoreComponent implements OnInit, OnDestroy {
         this.nicknameInput = nick;
         this.showBuyModal = true;
         this.checkoutStep = 2;
+        this.triggerInstantGrant();
       }
     });
   }
