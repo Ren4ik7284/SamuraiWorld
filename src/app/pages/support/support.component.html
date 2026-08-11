@@ -120,16 +120,21 @@
         <div class="form-container card">
           <h3 class="section-sub-title">2. Детали обращения</h3>
 
-          <div *ngIf="submitSuccess && createdTicketInfo" class="alert alert-success">
+          <div *ngIf="submitSuccess && createdTicketInfo" class="alert alert-success card">
             <div class="alert__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px;height:20px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;color:#22c55e;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             </div>
-            <div>
+            <div class="alert__content">
               <h4>Тикет {{ createdTicketInfo.ticketNumber }} успешно создан!</h4>
-              <p>Ваше обращение привязано к JWT токену аккаунта <strong>{{ createdTicketInfo.nickname }}</strong>. Номер обращения: <strong>{{ createdTicketInfo.ticketNumber }}</strong></p>
-              <button class="btn btn-primary" style="margin-top:12px;" (click)="openTicketDetails(createdTicketInfo); activeTab = 'tracker'">
-                Посмотреть статус тикета
-              </button>
+              <p>Ваше обращение привязано к аккаунту <strong>{{ createdTicketInfo.nickname }}</strong>. Номер обращения: <strong>{{ createdTicketInfo.ticketNumber }}</strong></p>
+              <div class="alert__actions">
+                <button type="button" class="btn btn-primary btn-sm" (click)="openTicketDetails(createdTicketInfo); activeTab = 'tracker'">
+                  Посмотреть статус тикета
+                </button>
+                <button type="button" class="btn btn-ghost btn-sm" (click)="resetForm()">
+                  + Создать ещё одно обращение
+                </button>
+              </div>
             </div>
           </div>
 

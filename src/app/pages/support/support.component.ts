@@ -254,6 +254,7 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   selectCategory(cat: TicketCategory): void {
+    this.submitSuccess = false;
     this.newTicket.category = cat;
   }
 
@@ -579,6 +580,9 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   resetForm(): void {
+    this.submitSuccess = false;
+    this.createdTicketInfo = null;
+    this.errorMessage = '';
     this.newTicket = {
       nickname: this.currentUser?.nickname || '',
       contact: '',
