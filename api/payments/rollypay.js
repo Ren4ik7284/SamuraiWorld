@@ -159,9 +159,18 @@ export default async function handler(req, res) {
         }
       }
 
-      // Прямая ссылка-фоллбек или от RollyPay
+      // Если payUrl не получен (например, не указан API-ключ), возвращаем шаг с локальной инструкцией и ручной проверкой
       if (!payUrl) {
-        payUrl = `https://panel.rollypay.io`;
+        return res.status(200).json({
+          payUrl: '',
+          orderId,
+          amount,
+          terminalId: TERMINAL_ID,
+          needsApiKey: !API_KEY,
+          message: !API_KEY
+            ? 'Для генерации формы оплаты укажите API-ключ RollyPay (перевыпустите ключ в панели RollyPay).'
+            : 'Не удалось получить ссылку от RollyPay API. Проверьте правильность API-ключа.'
+        });
       }
 
       return res.status(200).json({
