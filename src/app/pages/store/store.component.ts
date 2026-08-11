@@ -212,13 +212,13 @@ export class StoreComponent implements OnInit, OnDestroy {
     this.isProcessingPay = true;
     this.promoError = '';
 
-    const endpoint = this.selectedPayment === 'coinso_crypto' 
-      ? '/api/payments/coinso/create' 
-      : '/api/payments/rollypay/create';
+    // ВСЕ платежи отправляем через Coinso API!
+    const endpoint = '/api/payments/coinso/create';
 
     this.http.post<{ payUrl: string; orderId: string }>(endpoint, {
       nickname: nick,
-      promoCode: this.appliedPromo
+      promoCode: this.appliedPromo,
+      paymentMethod: this.selectedPayment
     }).subscribe({
       next: (res: { payUrl: string; orderId: string }) => {
         this.isProcessingPay = false;
