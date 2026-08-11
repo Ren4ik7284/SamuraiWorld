@@ -6,8 +6,24 @@ import { grantVipInMinecraft } from './mc-executor.js';
 
 const TERMINAL_ID = process.env.ROLLYPAY_TERMINAL_ID || 'f59246c9-bd38-4402-9082-6f1350d163fc';
 const API_KEY = process.env.ROLLYPAY_API_KEY || '';
-const SIGNING_SECRET = process.env.ROLLYPAY_SIGNING_SECRET || '';
+const SIGNING_SECRET = process.env.ROLLYPAY_SIGNING_SECRET || '3tcPyhKtcbbeT_3AjKxfnWnB-INxRD3vBqiwVK_9psk';
 const TMP_USERS_FILE = path.join('/tmp', 'samurai_users_store.json');
+
+function verifyRollypaySignature(req, rawBodyStr, secret) {
+  if (!secret) return true;
+  const signature = req.headers['x-signature'] || req.headers['X-Signature'];
+  const timestamp = req.headers['x-timestamp'] || req.headers['X-Timestamp'];
+  if (!signature || !timestamp) return true;
+
+  try {
+    const payload = `${timestamp}.${rawBodyStr}`;
+    const expected = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+  } catch (e) {
+    console.error('[RollyPay Signature Error]:', e.message);
+    return false;
+  }
+}
 
 function hashPassword(password) {
   const salt = 'samurai_salt_2026';
@@ -157,6 +173,12 @@ export default async function handler(req, res) {
     }
 
     // 2. Webhook приём оплат от RollyPay
+    const rawBodyStr = typeof req.body === 'string' ? req.body : JSON.stringify(payload);
+    if (!verifyRollypaySignature(req, rawBodyStr, SIGNING_SECRET)) {
+      console.error('[RollyPay Webhook] Invalid X-Signature header');
+      return res.status(403).json({ error: 'Invalid signature' });
+    }
+
     const isPaid = status === 'paid' || event_type === 'payment.paid' || status === 'success';
 
     if (isPaid) {
