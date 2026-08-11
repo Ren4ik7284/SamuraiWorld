@@ -87,8 +87,8 @@ export default function handler(req, res) {
     const signStr = `${PROJECT_ID}:${amount}:${orderId}:${SECRET_KEY}`;
     const signature = crypto.createHash('md5').update(signStr).digest('hex');
 
-    // Боевой режим Coinso Gateway API
-    const realPayUrl = `https://coinso.com/pay?project_id=${PROJECT_ID}&api_key=${API_KEY}&amount=${amount}&order_id=${encodeURIComponent(orderId)}&sign=${signature}&desc=${encodeURIComponent('VIP подписка SamuraiWorld для ' + nickname)}&success_url=${encodeURIComponent('https://my-minecraft-site.vercel.app/store?payment=success')}&fail_url=${encodeURIComponent('https://my-minecraft-site.vercel.app/store?payment=fail')}`;
+    // Прямой боевой шлюз оплаты Coinso (coinso.io)
+    const realPayUrl = `https://coinso.io/pay/AQrbCqmv?project_id=${PROJECT_ID}&amount=${amount}&order_id=${encodeURIComponent(orderId)}&nickname=${encodeURIComponent(nickname.trim())}&sign=${signature}`;
     
     return res.status(200).json({
       payUrl: realPayUrl,
