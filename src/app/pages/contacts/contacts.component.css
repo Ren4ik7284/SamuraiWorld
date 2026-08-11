@@ -267,10 +267,14 @@
 }
 
 @media (max-width: 900px) {
+  .page-header { padding: 60px 0 30px; text-align: center; }
   .contacts-grid { flex-direction: column; align-items: center; }
-  .contact-card { width: 100%; max-width: 100%; padding: 24px 20px; }
-  .ip-banner__inner { flex-direction: column; align-items: flex-start; padding: 28px 20px; gap: 24px; }
-  .ip-banner__right { text-align: left; width: 100%; }
+  .contact-card { width: 100%; max-width: 100%; padding: 28px 20px; text-align: center; align-items: center; }
+  .contact-card__icon { margin: 0 auto 16px; }
+  .contact-card__desc { text-align: center; }
+  .contact-card__btn { justify-content: center; margin: 0 auto; }
+  .ip-banner__inner { flex-direction: column; align-items: center; text-align: center; padding: 28px 20px; gap: 20px; }
+  .ip-banner__right { text-align: center; width: 100%; display: flex; flex-direction: column; align-items: center; }
   .ip-banner__value { width: 100%; text-align: center; font-size: 1.15rem; }
   .faq-item__header { padding: 18px 18px; }
   .faq-item__body--open { padding: 0 18px 18px; }

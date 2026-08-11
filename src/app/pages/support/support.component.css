@@ -1324,6 +1324,18 @@
 
 /* ===== HIDE MAIN NAVBAR & PAGE HEADER ON MOBILE WHEN TICKET IS OPEN ===== */
 @media (max-width: 768px) {
+  .page-header { padding: 50px 0 25px; text-align: center; }
+  .view-mode-bar { width: 100%; justify-content: center; flex-wrap: wrap; border-radius: 16px; margin: 0 auto 16px; }
+  .header-metrics { justify-content: center; }
+  .support-nav { flex-direction: column; width: 100%; gap: 8px; }
+  .support-nav__btn { width: 100%; justify-content: center; text-align: center; }
+  .categories-grid { grid-template-columns: 1fr; }
+  .category-card { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .category-card__icon { margin: 0 auto 10px; }
+  .form-card { padding: 22px 16px; text-align: center; }
+  .form-group label { text-align: center; display: block; }
+  .form-submit-btn { width: 100%; justify-content: center; }
+
   body.ticket-modal-open .navbar,
   body.ticket-modal-open .navbar__spacer,
   body.ticket-modal-open .page-header,

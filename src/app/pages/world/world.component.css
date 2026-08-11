@@ -220,14 +220,18 @@
 }
 
 @media (max-width: 640px) {
-  .page-header { padding: 80px 0 40px; }
+  .page-header { padding: 60px 0 30px; text-align: center; }
   .zones-grid { grid-template-columns: 1fr; }
-  .zone-card { padding: 24px 20px; }
+  .zone-card { padding: 24px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .zone-card__icon { margin: 0 auto 14px; }
+  .zone-card__details { align-items: center; }
+  .zone-card__details li { justify-content: center; }
   .specs-grid { grid-template-columns: 1fr; }
-  .spec-row { padding: 14px 16px; gap: 12px; }
-  .connect-card { padding: 24px 18px; }
-  .connect-step { padding: 16px 0; gap: 14px; }
-  .connect-step__num { min-width: 28px; font-size: 1.05rem; }
+  .spec-row { padding: 14px 16px; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+  .spec-row__value { text-align: center; }
+  .connect-card { padding: 24px 18px; text-align: center; }
+  .connect-step { flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 16px 0; }
+  .connect-step__num { min-width: 28px; font-size: 1.05rem; margin: 0 auto; text-align: center; }
 }
 
 /* Hardware Cards Brand Styling */

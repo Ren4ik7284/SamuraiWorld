@@ -801,6 +801,7 @@
   .store-hero__info-strip {
     grid-template-columns: 1fr;
     max-width: 360px;
+    margin: 0 auto;
   }
 }
 
@@ -809,29 +810,80 @@
     padding: 40px 0 20px;
   }
 
+  .store-hero__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .info-strip__item {
+    justify-content: center;
+    text-align: center;
+  }
+
   .vip-showcase {
-    padding: 16px 12px;
-    border-radius: 14px;
+    padding: 20px 14px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .vip-badge-tag {
+    margin-inline: auto;
+  }
+
+  .vip-showcase__header {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
   }
 
   .vip-title {
     font-size: 1.4rem;
+    text-align: center;
+  }
+
+  .vip-subtitle {
+    text-align: center;
   }
 
   .vip-icon-ring {
     width: 48px;
     height: 48px;
     font-size: 1.5rem;
+    margin: 0 auto 10px;
   }
 
   .vip-highlight-box {
     padding: 14px 12px;
-    border-radius: 10px;
+    border-radius: 12px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .highlight-item {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .highlight-item p {
+    text-align: center;
+  }
+
+  .vip-features-chips {
+    justify-content: center;
   }
 
   .price-card {
-    padding: 18px 12px;
-    border-radius: 14px;
+    padding: 20px 14px;
+    border-radius: 16px;
+    align-items: center;
+    text-align: center;
   }
 
   .amount-val {
@@ -840,6 +892,11 @@
 
   .features-grid, .faq-grid {
     grid-template-columns: 1fr;
+  }
+
+  .feature-card, .faq-card {
+    text-align: center;
+    align-items: center;
   }
 
   .modal-card {

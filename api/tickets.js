@@ -41,6 +41,7 @@ function loadPersistedTickets() {
     // Ignore tmp file read errors
   }
 
+  // Pure clean state - remove dummy test accounts
   globalTickets = globalTickets.filter(
     (t) =>
       t &&

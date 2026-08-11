@@ -477,14 +477,24 @@
 
 @media (max-width: 768px) {
   .features__grid, .news__grid { grid-template-columns: 1fr; }
-  .hero__title { font-size: clamp(2.8rem, 13vw, 4.5rem); }
-  .cta__inner { padding: 32px 20px; }
-  .hero__body { padding-block: 90px 60px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .hero__title { font-size: clamp(2.5rem, 11vw, 4.2rem); text-align: center; }
+  .hero__title-jp { text-align: center; }
+  .hero__body { padding-block: 80px 50px; text-align: center; display: flex; flex-direction: column; align-items: center; }
   .hero__sub { max-width: 100%; text-align: center; }
-  .hero__actions { width: 100%; flex-direction: column; align-items: stretch; gap: 10px; }
+  .hero__actions { width: 100%; flex-direction: column; align-items: center; gap: 10px; }
   .hero__actions .btn { width: 100%; justify-content: center; }
   .hero__ip-chip { width: 100%; justify-content: center; }
   .hero__badge { margin-inline: auto; }
+  
+  .feature-card { text-align: center; align-items: center; padding: 24px 20px; }
+  .feature-card__icon { margin: 0 auto 10px; }
+  .feature-card__desc { text-align: center; }
+  .news-card { text-align: center; align-items: center; padding: 24px 20px; }
+  .news-card__header { width: 100%; justify-content: center; flex-wrap: wrap; gap: 8px; }
+  .news-card__body { text-align: center; }
+  .cta__inner { grid-template-columns: 1fr; text-align: center; align-items: center; justify-content: center; padding: 32px 20px; }
+  .cta__text { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .cta__actions { width: 100%; flex-direction: column; align-items: center; }
 }
 
 @media (max-width: 580px) {
@@ -500,6 +510,8 @@
   .stats__item {
     padding: 16px 18px;
     gap: 12px;
+    justify-content: center;
+    text-align: center;
   }
   .stats__value { font-size: 0.95rem; }
   .stats__label { font-size: 0.72rem; }
