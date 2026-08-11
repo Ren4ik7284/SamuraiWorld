@@ -468,35 +468,20 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Загрузка и синхронизация тикетов с сервером и локальным кэшем
+   * Загрузка тикетов с сервера
    */
   loadTickets(silent: boolean = false): void {
     const headers = this.authService.getAuthHeaders();
     let url = this.API_TICKETS_URL;
-    
-    if (!this.currentUser && this.newTicket.nickname) {
-      url += `?nickname=${encodeURIComponent(this.newTicket.nickname.trim())}`;
+
+    // Сначала мгновенно показываем кэш для избежания моргания UI
+    if (this.ticketsList.length === 0) {
+      const localCache = this.loadLocalTicketsCache();
+      if (localCache.length > 0) {
+        this.ticketsList = localCache;
+      }
     }
 
-    const localCache = this.loadLocalTicketsCache();
-
-    if (localCache.length > 0) {
-      this.http.post<Ticket[]>(`${this.API_TICKETS_URL}/sync`, { tickets: localCache }, headers).subscribe({
-        next: (data) => {
-          if (Array.isArray(data)) {
-            this.updateTicketsList(data);
-          }
-        },
-        error: () => {
-          this.fetchTicketsGet(url, headers, silent, localCache);
-        },
-      });
-    } else {
-      this.fetchTicketsGet(url, headers, silent, localCache);
-    }
-  }
-
-  private fetchTicketsGet(url: string, headers: any, silent: boolean, localCache: Ticket[]): void {
     this.http.get<Ticket[]>(url, headers).subscribe({
       next: (data) => {
         if (Array.isArray(data)) {
@@ -505,10 +490,7 @@ export class SupportComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         if (!silent) {
-          console.warn('Ошибка загрузки тикетов:', err);
-        }
-        if (localCache.length > 0) {
-          this.updateTicketsList(localCache);
+          console.warn('Ошибка загрузки тикетов с сервера:', err);
         }
       },
     });
@@ -516,47 +498,31 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   private updateTicketsList(newList: Ticket[]): void {
     const deletedIds = new Set(this.getDeletedTicketIds());
-    const guestIds = this.getGuestTicketIds();
-    const mergedMap = new Map<string, Ticket>();
+    
+    // Ответ сервера является единственным авторитетным источником активных тикетов
+    const activeList = (newList || []).filter(
+      (t) => t && t.id && !deletedIds.has(t.id) && (!t.ticketNumber || !deletedIds.has(t.ticketNumber))
+    );
 
-    // 1. Authoritative tickets returned from server
-    for (const t of newList) {
-      if (!t || !t.id || deletedIds.has(t.id) || (t.ticketNumber && deletedIds.has(t.ticketNumber))) {
-        continue;
-      }
-      mergedMap.set(t.id, t);
-    }
+    activeList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    // 2. Only keep local guest tickets created on this device that server hasn't saved yet
-    const localCache = this.loadLocalTicketsCache();
-    for (const t of localCache) {
-      if (!t || !t.id || deletedIds.has(t.id) || (t.ticketNumber && deletedIds.has(t.ticketNumber))) {
-        continue;
-      }
-      if (guestIds.includes(t.id) && !mergedMap.has(t.id)) {
-        mergedMap.set(t.id, t);
-      }
-    }
-
-    const merged = Array.from(mergedMap.values())
-      .filter((t) => !deletedIds.has(t.id) && (!t.ticketNumber || !deletedIds.has(t.ticketNumber)))
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    this.ticketsList = merged;
-    this.saveLocalTicketsCache(merged);
+    this.ticketsList = activeList;
+    this.saveLocalTicketsCache(activeList);
     this.syncSelectedTicket();
   }
 
   private syncSelectedTicket(): void {
     if (this.selectedTicket) {
-      const updated = this.ticketsList.find((t) => t.id === this.selectedTicket?.id);
+      const updated = this.ticketsList.find(
+        (t) => t.id === this.selectedTicket?.id || t.ticketNumber === this.selectedTicket?.ticketNumber
+      );
       if (updated) {
         this.selectedTicket = {
           ...updated,
           messages: [...updated.messages],
         };
       } else {
-        // If ticket was deleted by an admin, close details modal automatically
+        // Если тикет был удалён на сервере, автоматически закрываем окно деталей
         this.closeTicketDetails();
       }
     }
