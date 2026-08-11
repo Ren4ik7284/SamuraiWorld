@@ -110,8 +110,10 @@ export async function grantVipInMinecraft(nickname, options = {}) {
 
   // Commands executed to grant VIP rank and announce it in game
   const commands = options.commands || [
-    `luckperms user ${nick} parent add vip`,
+    `lp user ${nick} parent set vip`,
+    `luckperms user ${nick} parent set vip`,
     `lp user ${nick} parent add vip`,
+    `luckperms user ${nick} parent add vip`,
     `manuadd ${nick} vip`,
     `say 🎉 [SamuraiWorld] Игрок ${nick} получил VIP статус! Спасибо за поддержку сервера!`,
     `title ${nick} title {"text":"VIP АКТИВИРОВАН!","color":"gold"}`
