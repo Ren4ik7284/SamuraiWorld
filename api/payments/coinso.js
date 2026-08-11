@@ -68,37 +68,7 @@ export default function handler(req, res) {
   const { url, method, body, query } = req;
   const pathName = url.split('?')[0];
 
-  // 1. POST /api/payments/coinso/create — Создание криптовалютного счета
-  if (method === 'POST' && (pathName.endsWith('/create') || pathName.endsWith('/coinso'))) {
-    const { nickname, promoCode } = body || {};
-    if (!nickname || !/^[a-zA-Z0-9_]{3,16}$/.test(nickname.trim())) {
-      return res.status(400).json({ message: 'Укажите верный игровой никнейм Minecraft (3-16 символов)' });
-    }
-
-    let amount = 200;
-    const cleanPromo = (promoCode || '').trim().toUpperCase();
-    if (cleanPromo === 'SAMURAI' || cleanPromo === 'ROLLY' || cleanPromo === 'CRYPTO') {
-      amount = 180; // 10% discount
-    } else if (cleanPromo === 'START') {
-      amount = 170; // 15% discount
-    }
-
-    const orderId = `COINSO-${nickname.trim().toUpperCase()}-${Date.now()}`;
-    const signStr = `${PROJECT_ID}:${amount}:${orderId}:${SECRET_KEY}`;
-    const signature = crypto.createHash('md5').update(signStr).digest('hex');
-
-    // Прямой боевой шлюз оплаты Coinso (coinso.io)
-    const realPayUrl = `https://coinso.io/pay/AQrbCqmv?project_id=${PROJECT_ID}&amount=${amount}&order_id=${encodeURIComponent(orderId)}&nickname=${encodeURIComponent(nickname.trim())}&sign=${signature}`;
-    
-    return res.status(200).json({
-      payUrl: realPayUrl,
-      orderId,
-      amount,
-      isTestMode: false
-    });
-  }
-
-  // 2. POST /api/payments/coinso (Webhook прием платежей от Coinso)
+  // POST /api/payments/coinso — Создание счета или вебхук
   if (method === 'POST') {
     let payload = body || {};
 
@@ -111,26 +81,58 @@ export default function handler(req, res) {
       }
     }
 
-    const { event, transaction_id, amount, status, order_id, redirect } = payload;
+    const { nickname, promoCode, event, status } = payload;
+
+    // 1. Создание счета на оплату (если передан никнейм)
+    if (nickname) {
+      if (!/^[a-zA-Z0-9_]{3,16}$/.test(nickname.trim())) {
+        return res.status(400).json({ message: 'Укажите верный игровой никнейм Minecraft (3-16 символов)' });
+      }
+
+      let amount = 200;
+      const cleanPromo = (promoCode || '').trim().toUpperCase();
+      if (cleanPromo === 'SAMURAI' || cleanPromo === 'COINSO' || cleanPromo === 'CRYPTO') {
+        amount = 180; // 10% discount
+      } else if (cleanPromo === 'START') {
+        amount = 170; // 15% discount
+      }
+
+      const orderId = `COINSO-${nickname.trim().toUpperCase()}-${Date.now()}`;
+      const signStr = `${PROJECT_ID}:${amount}:${orderId}:${SECRET_KEY}`;
+      const signature = crypto.createHash('md5').update(signStr).digest('hex');
+
+      // Прямая ссылка на форму оплаты Coinso
+      const realPayUrl = `https://coinso.io/pay/AQrbCqmv`;
+
+      return res.status(200).json({
+        payUrl: realPayUrl,
+        orderId,
+        amount,
+        isTestMode: false
+      });
+    }
+
+    // 2. Webhook прием платежей от Coinso
+    const { transaction_id, order_id, redirect } = payload;
 
     if (status === 'success' || event === 'payment.success' || status === 'paid') {
-      let nickname = 'Player';
+      let nick = 'Player';
       if (order_id && order_id.startsWith('COINSO-')) {
         const parts = order_id.split('-');
         if (parts.length >= 2) {
-          nickname = parts[1];
+          nick = parts[1];
         }
       }
 
-      updatePlayerVipStatus(nickname);
-      console.log(`[Coinso Webhook Success] VIP статус зачислен игроку: ${nickname} (Tx: ${transaction_id || 'N/A'})`);
+      updatePlayerVipStatus(nick);
+      console.log(`[Coinso Webhook Success] VIP статус зачислен игроку: ${nick} (Tx: ${transaction_id || 'N/A'})`);
 
       if (redirect) {
-        res.setHeader('Location', `/store?payment=success&order=${order_id}&nickname=${encodeURIComponent(nickname)}`);
+        res.setHeader('Location', `/store?payment=success&order=${order_id}&nickname=${encodeURIComponent(nick)}`);
         return res.status(302).end();
       }
 
-      return res.status(200).json({ status: 'OK', message: `VIP статус выдан игроку ${nickname}` });
+      return res.status(200).json({ status: 'OK', message: `VIP статус выдан игроку ${nick}` });
     }
 
     return res.status(200).json({ status: 'IGNORED', message: 'Платеж в обработке' });

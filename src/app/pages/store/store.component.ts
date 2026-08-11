@@ -212,7 +212,7 @@ export class StoreComponent implements OnInit, OnDestroy {
     this.isProcessingPay = true;
     this.promoError = '';
 
-    this.http.post<{ payUrl: string; orderId: string }>('/api/payments/coinso/create', {
+    this.http.post<{ payUrl: string; orderId: string }>('/api/payments/coinso', {
       nickname: nick,
       promoCode: this.appliedPromo
     }).subscribe({
