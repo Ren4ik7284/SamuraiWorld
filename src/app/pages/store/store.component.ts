@@ -25,7 +25,7 @@ export class StoreComponent implements OnInit, OnDestroy {
   private userSub!: Subscription;
 
   // Pricing details
-  vipPrice = 200;
+  vipPrice = 50;
 
   // Checkout modal state
   showBuyModal = false;
