@@ -46,9 +46,9 @@ import { RouterModule } from '@angular/router';
           <section style="margin-bottom: 28px;">
             <h2 style="font-size: 1.3rem; color: #f8fafc; margin-bottom: 12px; font-weight: 700;">5. Контакты и техническая поддержка</h2>
             <div style="background: rgba(26, 12, 18, 0.7); padding: 16px; border-radius: 10px; margin-top: 12px; border: 1px solid rgba(255,255,255,0.08);">
-              <div>🔹 <strong>Служба поддержки тикетов:</strong> <a routerLink="/support" style="color: #f0c040;">Перейти в тикет-систему</a></div>
-              <div style="margin-top: 6px;">🔹 <strong>Telegram Главного Администратора:</strong> <a href="https://t.me/Ren4ik284" target="_blank" style="color: #f0c040;">&#64;Ren4ik284</a></div>
-              <div style="margin-top: 6px;">🔹 <strong>Email администрации:</strong> <a href="mailto:support@samuraiworld.ru" style="color: #f0c040;">support&#64;samuraiworld.ru</a></div>
+              <div><svg viewBox="0 0 24 24" fill="none" stroke="#f0c040" stroke-width="3" width="10" height="10" style="margin-right:6px;display:inline-block;vertical-align:middle;"><circle cx="12" cy="12" r="6"/></svg><strong>Служба поддержки тикетов:</strong> <a routerLink="/support" style="color: #f0c040;">Перейти в тикет-систему</a></div>
+              <div style="margin-top: 6px;"><svg viewBox="0 0 24 24" fill="none" stroke="#f0c040" stroke-width="3" width="10" height="10" style="margin-right:6px;display:inline-block;vertical-align:middle;"><circle cx="12" cy="12" r="6"/></svg><strong>Telegram Главного Администратора:</strong> <a href="https://t.me/Ren4ik284" target="_blank" style="color: #f0c040;">&#64;Ren4ik284</a></div>
+              <div style="margin-top: 6px;"><svg viewBox="0 0 24 24" fill="none" stroke="#f0c040" stroke-width="3" width="10" height="10" style="margin-right:6px;display:inline-block;vertical-align:middle;"><circle cx="12" cy="12" r="6"/></svg><strong>Email администрации:</strong> <a href="mailto:support@samuraiworld.ru" style="color: #f0c040;">support&#64;samuraiworld.ru</a></div>
             </div>
           </section>
         </article>

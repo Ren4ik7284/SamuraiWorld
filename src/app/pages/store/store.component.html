@@ -7,7 +7,9 @@
 <section class="store-hero">
   <div class="container store-hero__content">
     <div class="store-hero__badge anim-fade-up">
-      <span class="store-hero__badge-icon">⛩️</span>
+      <span class="store-hero__badge-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="color:var(--clr-gold-2);"><path d="M3 5h18M5 9h14M7 9v11M17 9v11M4 5v4M20 5v4"/></svg>
+      </span>
       Поддержка сервера SamuraiWorld · Оплата через Rollypay
     </div>
 
@@ -50,7 +52,9 @@
         <div class="vip-badge-tag">ПОДДЕРЖКА СЕРВЕРА</div>
         
         <div class="vip-showcase__header">
-          <div class="vip-icon-ring">🎖️</div>
+          <div class="vip-icon-ring">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24" style="color:var(--clr-gold-2);"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+          </div>
           <div>
             <h2 class="vip-title">VIP Статус</h2>
             <p class="vip-subtitle">Вспомогательные логи и утилиты для удобной игры</p>
@@ -59,7 +63,9 @@
 
         <div class="vip-highlight-box">
           <div class="highlight-item">
-            <span class="hl-icon">🔍</span>
+            <span class="hl-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="color:var(--clr-gold-2);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
             <div>
               <strong>Инспекция сундуков и логов</strong>
               <p>Смотрите кто, когда и какие именно вещи забирал или клал в сундук. Логи сохраняются с точностью до секунд.</p>
@@ -67,7 +73,9 @@
           </div>
 
           <div class="highlight-item">
-            <span class="hl-icon">📜</span>
+            <span class="hl-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="color:var(--clr-gold-2);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </span>
             <div>
               <strong>История взаимодействий с блоками</strong>
               <p>Проверяйте историю изменения блоков и дверей на вашей территории за выбранный период.</p>
@@ -95,14 +103,17 @@
           </div>
 
           <div class="payment-badge-row">
-            <span class="rollypay-tag">⚡ Приём через Rollypay</span>
+            <span class="rollypay-tag">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="color:var(--clr-gold-2);margin-right:4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Приём через Rollypay
+            </span>
           </div>
 
           <ul class="price-card__perks">
-            <li>✓ Автовыдача за 20 секунд</li>
-            <li>✓ Инспекция истории сундуков</li>
-            <li>✓ Безопасная оплата Rollypay</li>
-            <li>✓ Полная поддержка разработки</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14" style="color:var(--clr-green);margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg> Автовыдача за 20 секунд</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14" style="color:var(--clr-green);margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg> Инспекция истории сундуков</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14" style="color:var(--clr-green);margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg> Безопасная оплата Rollypay</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14" style="color:var(--clr-green);margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg> Полная поддержка разработки</li>
           </ul>
 
           <button class="btn btn-primary btn-buy-vip" (click)="openBuyModal()">
@@ -127,7 +138,18 @@
       <div class="features-grid">
         <div *ngFor="let feat of vipFeatures" class="feature-detail-card glass-card">
           <div class="feat-card__top">
-            <span class="feat-card__icon">{{ feat.icon }}</span>
+            <span class="feat-card__icon">
+              <ng-container [ngSwitch]="feat.icon">
+                <svg *ngSwitchCase="'search'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <svg *ngSwitchCase="'scroll'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <svg *ngSwitchCase="'radar'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <svg *ngSwitchCase="'clock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <svg *ngSwitchCase="'home'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                <svg *ngSwitchCase="'unlock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                <svg *ngSwitchCase="'paint'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                <svg *ngSwitchCase="'chat'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </ng-container>
+            </span>
             <span class="feat-card__badge" *ngIf="feat.badge">{{ feat.badge }}</span>
           </div>
           <h3 class="feat-card__title">{{ feat.title }}</h3>
@@ -145,7 +167,7 @@
 
       <div class="faq-grid">
         <div *ngFor="let faq of faqItems" class="faq-item glass-card">
-          <h4>⚡ {{ faq.q }}</h4>
+          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="color:var(--clr-gold-2);margin-right:6px;display:inline-block;vertical-align:middle;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>{{ faq.q }}</h4>
           <p>{{ faq.a }}</p>
         </div>
       </div>
@@ -162,7 +184,9 @@
     <!-- STEP 1: Details & Rollypay payment selection -->
     <div *ngIf="checkoutStep === 1">
       <div class="modal-header">
-        <div class="modal-header__icon" style="color: var(--accent-gold-bright);">🎖️</div>
+        <div class="modal-header__icon" style="color: var(--accent-gold-bright);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" style="color:var(--clr-gold-2);"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+        </div>
         <div>
           <h3 class="modal-title">Оформление VIP статуса</h3>
           <span class="modal-sub-label">Оплата 200 ₽ через платёжный сервис Rollypay</span>
@@ -233,7 +257,9 @@
               [class.active]="selectedPayment === 'rollypay_sbp'" 
               (click)="selectedPayment = 'rollypay_sbp'"
             >
-              <span class="payment-icon">⚡</span>
+              <span class="payment-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </span>
               <div class="payment-info">
                 <strong>СБП (через Rollypay)</strong>
                 <span>Оплата по QR-коду любого банка</span>
@@ -246,7 +272,9 @@
               [class.active]="selectedPayment === 'rollypay_card'" 
               (click)="selectedPayment = 'rollypay_card'"
             >
-              <span class="payment-icon">💳</span>
+              <span class="payment-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              </span>
               <div class="payment-info">
                 <strong>Банковская карта (Rollypay)</strong>
                 <span>Карты МИР / Visa / MasterCard</span>
@@ -259,7 +287,9 @@
               [class.active]="selectedPayment === 'rollypay_tbank'" 
               (click)="selectedPayment = 'rollypay_tbank'"
             >
-              <span class="payment-icon">🟡</span>
+              <span class="payment-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M8 10h8"/></svg>
+              </span>
               <div class="payment-info">
                 <strong>Т-Банк Pay (Rollypay)</strong>
                 <span>Быстрая оплата</span>
@@ -272,7 +302,9 @@
               [class.active]="selectedPayment === 'rollypay_yumoney'" 
               (click)="selectedPayment = 'rollypay_yumoney'"
             >
-              <span class="payment-icon">🟣</span>
+              <span class="payment-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
+              </span>
               <div class="payment-info">
                 <strong>ЮMoney (Rollypay)</strong>
                 <span>Электронный кошелек</span>
@@ -339,7 +371,7 @@
       </div>
 
       <div class="success-instructions">
-        <h4>🎮 Активация на сервере за 20 секунд:</h4>
+        <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="color:var(--clr-gold-2);margin-right:6px;display:inline-block;vertical-align:middle;"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/></svg>Активация на сервере за 20 секунд:</h4>
         <p>Зайдите на сервер <code>b1.qwertyx.host:26687</code> и введите команду:</p>
         <div class="cmd-copy-box" (click)="copyGetCommand()">
           <code>/don get {{ lastOrderId }}</code>

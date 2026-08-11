@@ -19,9 +19,33 @@ export class AppComponent implements OnInit {
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe(() => {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
+      this.scrollToTopInstant();
     });
+  }
+
+  private scrollToTopInstant(): void {
+    const htmlEl = document.documentElement;
+    const bodyEl = document.body;
+
+    const reset = () => {
+      const origHtmlScroll = htmlEl.style.scrollBehavior;
+      const origBodyScroll = bodyEl.style.scrollBehavior;
+      htmlEl.style.scrollBehavior = 'auto';
+      bodyEl.style.scrollBehavior = 'auto';
+
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+      htmlEl.scrollTop = 0;
+      bodyEl.scrollTop = 0;
+
+      setTimeout(() => {
+        htmlEl.style.scrollBehavior = origHtmlScroll;
+        bodyEl.style.scrollBehavior = origBodyScroll;
+      }, 50);
+    };
+
+    reset();
+    requestAnimationFrame(reset);
+    setTimeout(reset, 50);
+    setTimeout(reset, 150);
   }
 }
