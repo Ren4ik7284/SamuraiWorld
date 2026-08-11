@@ -102,7 +102,7 @@ export default function handler(req, res) {
       const signature = crypto.createHash('md5').update(signStr).digest('hex');
 
       // Прямая ссылка на форму оплаты Coinso
-      const realPayUrl = `https://coinso.io/pay/AQrbCqmv`;
+      const realPayUrl = `https://coinso.io/pay/Yv6TIm2e`;
 
       return res.status(200).json({
         payUrl: realPayUrl,
