@@ -121,8 +121,8 @@ export async function grantVipInMinecraft(nickname, options = {}) {
 
   // 1. Try Pterodactyl API (qwertyx.host)
   const pteroUrl = options.pteroUrl || process.env.PTERODACTYL_URL || 'https://qwertyx.host';
-  const pteroKey = options.pteroKey || process.env.PTERODACTYL_API_KEY;
-  const pteroServerId = options.pteroServerId || process.env.PTERODACTYL_SERVER_ID;
+  const pteroKey = options.pteroKey || process.env.PTERODACTYL_API_KEY || '';
+  const pteroServerId = options.pteroServerId || process.env.PTERODACTYL_SERVER_ID || '451a0a34';
 
   if (pteroKey && pteroServerId) {
     try {
@@ -144,29 +144,32 @@ export async function grantVipInMinecraft(nickname, options = {}) {
   }
 
   // 2. Try RCON
-  const rconHost = options.rconHost || process.env.MINECRAFT_RCON_HOST;
-  const rconPort = parseInt(options.rconPort || process.env.MINECRAFT_RCON_PORT || '25575', 10);
-  const rconPassword = options.rconPassword || process.env.MINECRAFT_RCON_PASSWORD;
+  const rconHost = options.rconHost || process.env.MINECRAFT_RCON_HOST || 'qwertyx.host';
+  const rconPassword = options.rconPassword || process.env.MINECRAFT_RCON_PASSWORD || 'Samurai2026Vip';
+  const portsToTry = options.rconPort ? [parseInt(options.rconPort, 10)] : [25575, 26687];
 
   if (rconHost && rconPassword) {
-    try {
-      const outputs = [];
-      for (const cmd of commands) {
-        const out = await sendRconCommand(rconHost, rconPort, rconPassword, cmd);
-        outputs.push(out);
+    for (const port of portsToTry) {
+      try {
+        const outputs = [];
+        for (const cmd of commands) {
+          const out = await sendRconCommand(rconHost, port, rconPassword, cmd);
+          outputs.push(out);
+        }
+        results.push({
+          driver: `RCON (${rconHost}:${port})`,
+          success: true,
+          message: `VIP зачислена игроку ${nick} через RCON!`,
+          output: outputs
+        });
+        break;
+      } catch (err) {
+        results.push({
+          driver: `RCON (${rconHost}:${port})`,
+          success: false,
+          error: err.message
+        });
       }
-      results.push({
-        driver: 'RCON',
-        success: true,
-        message: `VIP выдана игроку ${nick} через RCON!`,
-        output: outputs
-      });
-    } catch (err) {
-      results.push({
-        driver: 'RCON',
-        success: false,
-        error: err.message
-      });
     }
   }
 
