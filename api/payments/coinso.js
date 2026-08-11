@@ -5,7 +5,7 @@ import { checkRateLimit } from '../security.js';
 
 const PROJECT_ID = process.env.COINSO_PROJECT_ID || '955394417';
 const API_KEY = process.env.COINSO_API_KEY || '585c4cda8655ab5f9376947007b707d0';
-const SECRET_KEY = process.env.COINSO_SECRET_KEY || API_KEY;
+const SECRET_KEY = process.env.COINSO_SECRET_KEY || 'b1d88f54a8bb56e0cb93545253e84a1f';
 const TMP_USERS_FILE = path.join('/tmp', 'samurai_users_store.json');
 
 function hashPassword(password) {
@@ -84,9 +84,11 @@ export default function handler(req, res) {
     }
 
     const orderId = `COINSO-${nickname.trim().toUpperCase()}-${Date.now()}`;
+    const signStr = `${PROJECT_ID}:${amount}:${orderId}:${SECRET_KEY}`;
+    const signature = crypto.createHash('md5').update(signStr).digest('hex');
 
     // Боевой режим Coinso Gateway API
-    const realPayUrl = `https://coinso.com/pay?project_id=${PROJECT_ID}&api_key=${API_KEY}&amount=${amount}&order_id=${encodeURIComponent(orderId)}&desc=${encodeURIComponent('VIP подписка SamuraiWorld для ' + nickname)}&success_url=${encodeURIComponent('https://my-minecraft-site.vercel.app/store?payment=success')}&fail_url=${encodeURIComponent('https://my-minecraft-site.vercel.app/store?payment=fail')}`;
+    const realPayUrl = `https://coinso.com/pay?project_id=${PROJECT_ID}&api_key=${API_KEY}&amount=${amount}&order_id=${encodeURIComponent(orderId)}&sign=${signature}&desc=${encodeURIComponent('VIP подписка SamuraiWorld для ' + nickname)}&success_url=${encodeURIComponent('https://my-minecraft-site.vercel.app/store?payment=success')}&fail_url=${encodeURIComponent('https://my-minecraft-site.vercel.app/store?payment=fail')}`;
     
     return res.status(200).json({
       payUrl: realPayUrl,
