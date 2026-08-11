@@ -6,15 +6,25 @@ const JWT_SECRET = process.env.JWT_SECRET || 'samuraiworld_super_secret_jwt_key_
 const TMP_TICKETS_FILE = path.join('/tmp', 'samurai_tickets_store.json');
 
 let globalTickets = [];
+let globalDeletedTicketIds = new Set();
 
 function loadPersistedTickets() {
   try {
     if (fs.existsSync(TMP_TICKETS_FILE)) {
       const data = fs.readFileSync(TMP_TICKETS_FILE, 'utf8');
       const loaded = JSON.parse(data);
-      if (Array.isArray(loaded)) {
-        for (const t of loaded) {
+      if (loaded && typeof loaded === 'object') {
+        const ticketList = Array.isArray(loaded) ? loaded : (loaded.tickets || []);
+        const deletedArr = Array.isArray(loaded.deletedTicketIds) ? loaded.deletedTicketIds : [];
+        for (const dId of deletedArr) {
+          if (dId) globalDeletedTicketIds.add(String(dId));
+        }
+
+        for (const t of ticketList) {
           if (!t || !t.id) continue;
+          if (globalDeletedTicketIds.has(t.id) || (t.ticketNumber && globalDeletedTicketIds.has(t.ticketNumber))) {
+            continue;
+          }
           if (['playerone', 'support_agent', 'admin_samurai'].includes(t.nickname?.toLowerCase())) {
             continue;
           }
@@ -31,13 +41,25 @@ function loadPersistedTickets() {
     // Ignore tmp file read errors
   }
 
-  // Очищаем только старые тестовые вымышленные аккаунты
-  globalTickets = globalTickets.filter((t) => !['playerone', 'support_agent', 'admin_samurai'].includes(t.nickname?.toLowerCase()));
+  globalTickets = globalTickets.filter(
+    (t) =>
+      t &&
+      t.id &&
+      !globalDeletedTicketIds.has(t.id) &&
+      !globalDeletedTicketIds.has(t.ticketNumber) &&
+      !['playerone', 'support_agent', 'admin_samurai'].includes(t.nickname?.toLowerCase())
+  );
 }
 
 function savePersistedTickets() {
   try {
-    fs.writeFileSync(TMP_TICKETS_FILE, JSON.stringify(globalTickets, null, 2), 'utf8');
+    const payload = {
+      tickets: globalTickets.filter(
+        (t) => t && t.id && !globalDeletedTicketIds.has(t.id) && !globalDeletedTicketIds.has(t.ticketNumber)
+      ),
+      deletedTicketIds: Array.from(globalDeletedTicketIds),
+    };
+    fs.writeFileSync(TMP_TICKETS_FILE, JSON.stringify(payload, null, 2), 'utf8');
   } catch (e) {
     // Ignore tmp file write errors
   }
@@ -216,6 +238,9 @@ export default function handler(req, res) {
     const clientTickets = Array.isArray(body?.tickets) ? body.tickets : [];
     for (const ct of clientTickets) {
       if (ct && ct.id && ct.nickname && ct.subject) {
+        if (globalDeletedTicketIds.has(ct.id) || (ct.ticketNumber && globalDeletedTicketIds.has(ct.ticketNumber))) {
+          continue;
+        }
         const idx = globalTickets.findIndex((t) => t.id === ct.id);
         if (idx !== -1) {
           const existingMsgs = globalTickets[idx].messages || [];
@@ -234,7 +259,9 @@ export default function handler(req, res) {
     }
     savePersistedTickets();
     return res.status(200).json(
-      globalTickets.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      globalTickets
+        .filter((t) => !globalDeletedTicketIds.has(t.id) && (!t.ticketNumber || !globalDeletedTicketIds.has(t.ticketNumber)))
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     );
   }
 
@@ -447,8 +474,17 @@ export default function handler(req, res) {
 
     const id = ticketIdParam || query.id || body?.id;
     if (id) {
+      const target = globalTickets.find(
+        (t) => t.id === id || (t.ticketNumber && t.ticketNumber.toLowerCase() === String(id).toLowerCase())
+      );
+      if (target) {
+        globalDeletedTicketIds.add(target.id);
+        if (target.ticketNumber) globalDeletedTicketIds.add(target.ticketNumber);
+      }
+      globalDeletedTicketIds.add(String(id));
+
       globalTickets = globalTickets.filter(
-        (t) => t.id !== id && t.ticketNumber.toLowerCase() !== String(id).toLowerCase()
+        (t) => t.id !== id && (!t.ticketNumber || t.ticketNumber.toLowerCase() !== String(id).toLowerCase())
       );
       savePersistedTickets();
     }
