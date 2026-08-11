@@ -35,7 +35,7 @@ export class StoreComponent implements OnInit, OnDestroy {
   discountPercent = 0;
   promoError = '';
   promoSuccess = '';
-  selectedPayment: 'coinso_crypto' | 'rollypay_sbp' | 'rollypay_card' | 'rollypay_tbank' | 'rollypay_yumoney' = 'coinso_crypto';
+  selectedPayment: string = 'coinso_pay';
 
   checkoutStep: 1 | 2 = 1;
   isProcessingPay = false;
@@ -105,12 +105,12 @@ export class StoreComponent implements OnInit, OnDestroy {
       a: 'При включении режима инспекции и нажатии на сундук вы получаете полную историю: точный список предметов, никнеймы игроков и дату с точностью до секунд.'
     },
     {
-      q: 'Как проходит оплата через Rollypay?',
-      a: 'Оплата происходит через сервис Rollypay. Поддерживаются СБП (по QR-коду), карты любого банка РФ, Т-Банк и ЮMoney.'
+      q: 'Как проходит оплата?',
+      a: 'Оплата происходит через официальный платёжный шлюз Coinso. Поддерживаются СБП (по QR-коду), карты любого банка РФ и мира, а также криптовалюта (USDT, TON, BTC).'
     },
     {
       q: 'Как быстро выдается статус?',
-      a: 'После успешной оплаты через Rollypay статус автоматически зачисляется на ваш никнейм в течение 20 секунд.'
+      a: 'После успешной оплаты через Coinso статус автоматически зачисляется на ваш никнейм в течение 20 секунд.'
     }
   ];
 
@@ -131,7 +131,7 @@ export class StoreComponent implements OnInit, OnDestroy {
     this.route.queryParams.subscribe(params => {
       if (params['payment'] === 'success') {
         const nick = params['nickname'] || 'Игрок';
-        this.lastOrderId = params['order'] || 'ROLLY-SUCCESS';
+        this.lastOrderId = params['order'] || 'COINSO-SUCCESS';
         this.nicknameInput = nick;
         this.showBuyModal = true;
         this.checkoutStep = 2;
@@ -182,7 +182,7 @@ export class StoreComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (code === 'SAMURAI' || code === 'ROLLY') {
+    if (code === 'SAMURAI' || code === 'COINSO') {
       this.discountPercent = 10;
       this.appliedPromo = code;
       this.promoSuccess = 'Промокод применен! Скидка 10%';
@@ -197,7 +197,7 @@ export class StoreComponent implements OnInit, OnDestroy {
     }
   }
 
-  submitRollypayOrder(): void {
+  submitCoinsoOrder(): void {
     const nick = (this.nicknameInput || '').trim();
     if (!nick) {
       this.promoError = 'Укажите ваш игровой никнейм!';
@@ -212,13 +212,9 @@ export class StoreComponent implements OnInit, OnDestroy {
     this.isProcessingPay = true;
     this.promoError = '';
 
-    // ВСЕ платежи отправляем через Coinso API!
-    const endpoint = '/api/payments/coinso/create';
-
-    this.http.post<{ payUrl: string; orderId: string }>(endpoint, {
+    this.http.post<{ payUrl: string; orderId: string }>('/api/payments/coinso/create', {
       nickname: nick,
-      promoCode: this.appliedPromo,
-      paymentMethod: this.selectedPayment
+      promoCode: this.appliedPromo
     }).subscribe({
       next: (res: { payUrl: string; orderId: string }) => {
         this.isProcessingPay = false;
