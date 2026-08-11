@@ -35,7 +35,7 @@ export class StoreComponent implements OnInit, OnDestroy {
   discountPercent = 0;
   promoError = '';
   promoSuccess = '';
-  selectedPayment: 'rollypay_sbp' | 'rollypay_card' | 'rollypay_tbank' | 'rollypay_yumoney' = 'rollypay_sbp';
+  selectedPayment: 'coinso_crypto' | 'rollypay_sbp' | 'rollypay_card' | 'rollypay_tbank' | 'rollypay_yumoney' = 'coinso_crypto';
 
   checkoutStep: 1 | 2 = 1;
   isProcessingPay = false;
@@ -212,7 +212,11 @@ export class StoreComponent implements OnInit, OnDestroy {
     this.isProcessingPay = true;
     this.promoError = '';
 
-    this.http.post<{ payUrl: string; orderId: string }>('/api/payments/rollypay/create', {
+    const endpoint = this.selectedPayment === 'coinso_crypto' 
+      ? '/api/payments/coinso/create' 
+      : '/api/payments/rollypay/create';
+
+    this.http.post<{ payUrl: string; orderId: string }>(endpoint, {
       nickname: nick,
       promoCode: this.appliedPromo
     }).subscribe({
@@ -227,7 +231,7 @@ export class StoreComponent implements OnInit, OnDestroy {
       },
       error: (err: any) => {
         this.isProcessingPay = false;
-        this.promoError = err.error?.message || 'Ошибка создания платежа RollyPay';
+        this.promoError = err.error?.message || 'Ошибка создания платежа';
       }
     });
   }

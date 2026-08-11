@@ -247,10 +247,25 @@
           <div class="promo-msg success" *ngIf="promoSuccess">{{ promoSuccess }}</div>
         </div>
 
-        <!-- Payment Method Selection via Rollypay -->
+        <!-- Payment Method Selection via Coinso & Rollypay -->
         <div class="checkout-form-group">
-          <label class="checkout-label">Выберите способ оплаты (Rollypay):</label>
+          <label class="checkout-label">Выберите способ оплаты:</label>
           <div class="payment-grid">
+            <button 
+              type="button" 
+              class="payment-card" 
+              [class.active]="selectedPayment === 'coinso_crypto'" 
+              (click)="selectedPayment = 'coinso_crypto'"
+            >
+              <span class="payment-icon" style="color:#38bdf8;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              </span>
+              <div class="payment-info">
+                <strong>Coinso Crypto (Криптовалюта)</strong>
+                <span>USDT, TON, BTC, ETH</span>
+              </div>
+            </button>
+
             <button 
               type="button" 
               class="payment-card" 
