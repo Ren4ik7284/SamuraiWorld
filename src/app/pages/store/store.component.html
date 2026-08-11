@@ -5,68 +5,52 @@
     <div class="store-hero__glow"></div>
     <div class="container store-hero__container">
       
-      <div class="vip-showcase card">
-        <div class="vip-badge-tag">Единственная привилегия на сервере</div>
-        
-        <div class="vip-showcase__header">
-          <div class="vip-icon-ring">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:36px;height:36px;color:var(--clr-gold-2);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-          <div>
-            <h1 class="vip-title">Статус <span class="gold-gradient-text">VIP SAMURAI</span></h1>
-            <p class="vip-subtitle">Удобство, логирование и поддержка сервера без дисбаланса</p>
-          </div>
+      <div class="store-hero__header">
+        <div class="store-hero__badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:var(--clr-gold-2);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span>Единственная привилегия на сервере</span>
         </div>
-
-        <p class="vip-philosophy">
-          На <strong>SamuraiWorld</strong> нет ресурсов, креатива или донатной брони за деньги. 
-          VIP дает исключительно **логирование взаимодействия с сундуками** (позволяет быстро узнать кто взял ресурсы) и легкие утилиты. Все игроки равны!
+        <h1 class="store-hero__title">Магазин <span class="gold-gradient-text">SamuraiWorld</span></h1>
+        <p class="store-hero__sub">
+          На нашем сервере нет продажных ресурсов или креатива. VIP статус даёт исключительно удобство (просмотр логов сундуков) и подчёркивает вашу поддержку проекта.
         </p>
+      </div>
 
-        <!-- Dynamic feature chips -->
-        <div class="vip-chips-grid">
-          <div class="vip-chip">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:#38bdf8;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <span>Логи сундуков</span>
-          </div>
-          <div class="vip-chip">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:#22c55e;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <span>Аудит блоков</span>
-          </div>
-          <div class="vip-chip">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:#eab308;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <span>Золотой ник</span>
-          </div>
-          <div class="vip-chip">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:#a855f7;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span>Приоритет в поддержке</span>
-          </div>
-        </div>
-
-        <!-- Buy action card -->
-        <div class="price-action-box card">
-          <div class="price-left">
-            <span class="price-period">1 месяц доступа</span>
-            <div class="price-main">
-              <span class="price-val">200 ₽</span>
-              <span class="price-old">300 ₽</span>
-              <span class="discount-badge">-33%</span>
+      <div class="vip-showcase card">
+        <div class="vip-showcase__main">
+          <div class="vip-showcase__header">
+            <div class="vip-icon-ring">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:32px;height:32px;color:var(--clr-gold-2);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             </div>
-            <span class="price-subtext">Выдача на ваш ник за 20 секунд</span>
+            <div>
+              <h2 class="vip-title">Статус <span class="gold-gradient-text">VIP SAMURAI</span></h2>
+              <p class="vip-subtitle">Логирование сундуков, аудит и выделенный статус</p>
+            </div>
           </div>
 
-          <div class="price-right">
-            <button class="btn btn-gold btn-buy-now" (click)="openBuyModal()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              <span>Приобрести VIP статус</span>
-            </button>
-            <span class="secure-badge">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:#22c55e;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              Безопасная оплата (Coinso / СБП / Карты)
-            </span>
+          <div class="vip-features-chips">
+            <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Логи взаимодействия с сундуками</span>
+            <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Аудит изменений блоков</span>
+            <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Золотой цвет ника в чате</span>
+            <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Приоритет обращения в поддержку</span>
           </div>
         </div>
 
+        <div class="price-card card">
+          <div class="price-card__label">Стоимость подписки</div>
+          <div class="price-card__amount">
+            <span class="amount-val">200</span>
+            <span class="currency">₽</span>
+            <span class="period">/ 30 дней</span>
+          </div>
+          <div class="payment-badge-row">
+            <span class="rollypay-tag">Coinso Pay • СБП • Карты</span>
+          </div>
+          <button class="btn btn-gold btn-buy-now" (click)="openBuyModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <span>Купить VIP за 200 ₽</span>
+          </button>
+        </div>
       </div>
 
     </div>
