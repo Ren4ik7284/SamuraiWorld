@@ -5,7 +5,7 @@ import { checkRateLimit } from '../security.js';
 import { grantVipInMinecraft } from './mc-executor.js';
 
 const TERMINAL_ID = process.env.ROLLYPAY_TERMINAL_ID || 'f59246c9-bd38-4402-9082-6f1350d163fc';
-const API_KEY = process.env.ROLLYPAY_API_KEY || '';
+const API_KEY = process.env.ROLLYPAY_API_KEY || 'bwpUuj_o2yTEqou74rTtFy1Yyl9EW54cX6quRxDN2qE';
 const SIGNING_SECRET = process.env.ROLLYPAY_SIGNING_SECRET || '3tcPyhKtcbbeT_3AjKxfnWnB-INxRD3vBqiwVK_9psk';
 const TMP_USERS_FILE = path.join('/tmp', 'samurai_users_store.json');
 
