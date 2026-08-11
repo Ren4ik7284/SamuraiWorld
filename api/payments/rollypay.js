@@ -99,38 +99,47 @@ export default async function handler(req, res) {
 
       // Если API Key доступен, делаем официальный запрос к RollyPay API
       if (API_KEY) {
-        try {
-          const response = await fetch('https://rollypay.io/api/v1/payments', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-API-Key': API_KEY,
-              'X-Nonce': crypto.randomUUID()
-            },
-            body: JSON.stringify({
-              amount: `${amount}.00`,
-              payment_currency: 'RUB',
-              payment_method: paymentMethod || 'sbp',
-              order_id: orderId,
-              terminal_id: TERMINAL_ID,
-              description: `Покупка VIP статуса на SamuraiWorld для ${cleanNick}`,
-              success_redirect_url: `https://my-minecraft-site.vercel.app/store?payment=success&nickname=${encodeURIComponent(cleanNick)}&order=${orderId}`,
-              fail_redirect_url: `https://my-minecraft-site.vercel.app/store?payment=fail`,
-              metadata: {
-                nickname: cleanNick
-              }
-            })
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            payUrl = data.pay_url || '';
-          } else {
-            const errText = await response.text();
-            console.error('[RollyPay API Error]:', response.status, errText);
+        const payload = {
+          terminal_id: TERMINAL_ID,
+          amount: `${amount}.00`,
+          payment_currency: 'RUB',
+          order_id: orderId,
+          description: `Покупка VIP статуса на SamuraiWorld для ${cleanNick}`,
+          success_redirect_url: `https://my-minecraft-site.vercel.app/store?payment=success&nickname=${encodeURIComponent(cleanNick)}&order=${orderId}`,
+          fail_redirect_url: `https://my-minecraft-site.vercel.app/store?payment=fail`,
+          metadata: {
+            nickname: cleanNick
           }
-        } catch (err) {
-          console.error('[RollyPay API Request Failed]:', err);
+        };
+
+        const apiUrls = [
+          'https://api.rollypay.io/api/v1/payments',
+          'https://rollypay.io/api/v1/payments'
+        ];
+
+        for (const url of apiUrls) {
+          try {
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY,
+                'X-Nonce': crypto.randomUUID()
+              },
+              body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              payUrl = data.pay_url || data.url || '';
+              if (payUrl) break;
+            } else {
+              const errText = await response.text();
+              console.error(`[RollyPay API Error (${url})]:`, response.status, errText);
+            }
+          } catch (err) {
+            console.error(`[RollyPay API Request Failed (${url})]:`, err);
+          }
         }
       }
 
