@@ -84,18 +84,6 @@ export default function handler(req, res) {
     }
 
     const orderId = `COINSO-${nickname.trim().toUpperCase()}-${Date.now()}`;
-    const isTestMode = !process.env.COINSO_LIVE_PROD;
-
-    if (isTestMode) {
-      const testPayUrl = `/api/payments/coinso/test-pay?order_id=${encodeURIComponent(orderId)}&nickname=${encodeURIComponent(nickname.trim())}&amount=${amount}`;
-      return res.status(200).json({
-        payUrl: testPayUrl,
-        orderId,
-        amount,
-        isTestMode: true,
-        message: 'Coinso Crypto (Тестовый режим шлюза активен)'
-      });
-    }
 
     // Боевой режим Coinso Gateway API
     const realPayUrl = `https://coinso.com/pay?project_id=${PROJECT_ID}&api_key=${API_KEY}&amount=${amount}&order_id=${encodeURIComponent(orderId)}&desc=${encodeURIComponent('VIP подписка SamuraiWorld для ' + nickname)}&success_url=${encodeURIComponent('https://my-minecraft-site.vercel.app/store?payment=success')}&fail_url=${encodeURIComponent('https://my-minecraft-site.vercel.app/store?payment=fail')}`;

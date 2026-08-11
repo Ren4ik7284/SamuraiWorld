@@ -1,403 +1,250 @@
-<!-- Animated background glow -->
-<div class="sakura" aria-hidden="true">
-  <div class="sakura__glow"></div>
-</div>
-
-<!-- ===== HERO HEADER ===== -->
-<section class="store-hero">
-  <div class="container store-hero__content">
-    <div class="store-hero__badge anim-fade-up">
-      <span class="store-hero__badge-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="color:var(--clr-gold-2);"><path d="M3 5h18M5 9h14M7 9v11M17 9v11M4 5v4M20 5v4"/></svg>
-      </span>
-      Поддержка сервера SamuraiWorld · Оплата через Rollypay
-    </div>
-
-    <h1 class="store-hero__title anim-fade-up d1">
-      VIP Поддержка <span>Сервера</span>
-    </h1>
-
-    <p class="store-hero__sub anim-fade-up d2">
-      Получите доступ к инспекции сундуков, логам и вспомогательным функциям для комфортной игры за 200 ₽/мес.
-    </p>
-
-    <!-- Info strip (2 items: Rollypay payment & 20 sec activation) -->
-    <div class="store-hero__info-strip anim-fade-up d3">
-      <div class="info-strip__item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <div>
-          <strong>Оплата через Rollypay</strong>
-          <span>СБП, Карты МИР, Т-Банк, ЮMoney</span>
-        </div>
-      </div>
-
-      <div class="info-strip__item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        <div>
-          <strong>Выдача за 20 секунд</strong>
-          <span>Автоматическая активация статуса</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== MAIN STORE CONTENT ===== -->
-<section class="section store-main">
-  <div class="container">
-    
-    <!-- SINGLE VIP CARD SHOWCASE -->
-    <div class="vip-showcase glass-card">
-      <div class="vip-showcase__left">
-        <div class="vip-badge-tag">ПОДДЕРЖКА СЕРВЕРА</div>
+<div class="store-page">
+  
+  <!-- HERO SECTION -->
+  <section class="store-hero">
+    <div class="store-hero__glow"></div>
+    <div class="container store-hero__container">
+      
+      <div class="vip-showcase card">
+        <div class="vip-badge-tag">Единственная привилегия на сервере</div>
         
         <div class="vip-showcase__header">
           <div class="vip-icon-ring">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24" style="color:var(--clr-gold-2);"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:36px;height:36px;color:var(--clr-gold-2);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
           <div>
-            <h2 class="vip-title">VIP Статус</h2>
-            <p class="vip-subtitle">Вспомогательные логи и утилиты для удобной игры</p>
+            <h1 class="vip-title">Статус <span class="gold-gradient-text">VIP SAMURAI</span></h1>
+            <p class="vip-subtitle">Удобство, логирование и поддержка сервера без дисбаланса</p>
           </div>
         </div>
 
-        <div class="vip-highlight-box">
-          <div class="highlight-item">
-            <span class="hl-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="color:var(--clr-gold-2);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </span>
-            <div>
-              <strong>Инспекция сундуков и логов</strong>
-              <p>Смотрите кто, когда и какие именно вещи забирал или клал в сундук. Логи сохраняются с точностью до секунд.</p>
-            </div>
-          </div>
+        <p class="vip-philosophy">
+          На <strong>SamuraiWorld</strong> нет ресурсов, креатива или донатной брони за деньги. 
+          VIP дает исключительно **логирование взаимодействия с сундуками** (позволяет быстро узнать кто взял ресурсы) и легкие утилиты. Все игроки равны!
+        </p>
 
-          <div class="highlight-item">
-            <span class="hl-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="color:var(--clr-gold-2);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            </span>
-            <div>
-              <strong>История взаимодействий с блоками</strong>
-              <p>Проверяйте историю изменения блоков и дверей на вашей территории за выбранный период.</p>
-            </div>
+        <!-- Dynamic feature chips -->
+        <div class="vip-chips-grid">
+          <div class="vip-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:#38bdf8;"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <span>Логи сундуков</span>
+          </div>
+          <div class="vip-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:#22c55e;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Аудит блоков</span>
+          </div>
+          <div class="vip-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:#eab308;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span>Золотой ник</span>
+          </div>
+          <div class="vip-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:#a855f7;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Приоритет в поддержке</span>
           </div>
         </div>
 
-        <div class="vip-features-chips">
-          <span class="chip"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 10 8 14 16 6"/></svg> Игроки рядом</span>
-          <span class="chip"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 10 8 14 16 6"/></svg> Время онлайн</span>
-          <span class="chip"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 10 8 14 16 6"/></svg> Дополнительные точки дома</span>
-          <span class="chip"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 10 8 14 16 6"/></svg> Резервный слот входа</span>
-          <span class="chip"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 10 8 14 16 6"/></svg> Зеленый ник в чате</span>
-          <span class="chip"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="4 10 8 14 16 6"/></svg> Роль VIP в Discord</span>
+        <!-- Buy action card -->
+        <div class="price-action-box card">
+          <div class="price-left">
+            <span class="price-period">1 месяц доступа</span>
+            <div class="price-main">
+              <span class="price-val">200 ₽</span>
+              <span class="price-old">300 ₽</span>
+              <span class="discount-badge">-33%</span>
+            </div>
+            <span class="price-subtext">Выдача на ваш ник за 20 секунд</span>
+          </div>
+
+          <div class="price-right">
+            <button class="btn btn-gold btn-buy-now" (click)="openBuyModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <span>Приобрести VIP статус</span>
+            </button>
+            <span class="secure-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:#22c55e;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Безопасная оплата (Coinso / СБП / Карты)
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FEATURES LIST SECTION -->
+  <section class="features-section">
+    <div class="container">
+      <h2 class="section-title">Что входит в VIP статус</h2>
+      <p class="section-desc">Подробное описание всех возможностей, которые вы получаете после оплаты</p>
+
+      <div class="features-grid">
+        <div class="feature-card card" *ngFor="let feat of vipFeatures">
+          <div class="feature-card__badge" *ngIf="feat.badge">{{ feat.badge }}</div>
+          <div class="feature-card__icon" [innerHTML]="getFeatureSvgIcon(feat.icon)"></div>
+          <h3 class="feature-card__title">{{ feat.title }}</h3>
+          <p class="feature-card__desc">{{ feat.desc }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" *ngIf="showBuyModal" (click)="closeBuyModal()">
+  <div class="modal-card card checkout-modal" (click)="$event.stopPropagation()">
+    
+    <div class="modal-header">
+      <div>
+        <div class="modal-subtitle">Оформление покупки</div>
+        <h3 class="modal-title">VIP Статус на 30 дней</h3>
+      </div>
+      <button class="modal-close" (click)="closeBuyModal()" title="Закрыть">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- STEP 1: Form & Payment Selector -->
+    <div class="modal-body" *ngIf="checkoutStep === 1">
+      
+      <!-- Nickname Input -->
+      <div class="checkout-form-group">
+        <label class="checkout-label">Ваш Никнейм на сервере *</label>
+        <div class="nick-input-wrap">
+          <img [src]="getUserAvatar()" class="nick-avatar" alt="user avatar" />
+          <input 
+            type="text" 
+            class="checkout-input" 
+            placeholder="Например: PlayerOne" 
+            [(ngModel)]="nicknameInput" 
+            maxLength="16"
+          />
+        </div>
+        <span class="checkout-hint">На этот никнейм будет автоматически зачислен VIP статус</span>
+      </div>
+
+      <!-- Item Info Box -->
+      <div class="checkout-info-box glass-card">
+        <div class="info-box-row">
+          <span>Товар:</span>
+          <strong>VIP статус (Логи сундуков и утилиты)</strong>
+        </div>
+        <div class="info-box-row">
+          <span>Период:</span>
+          <strong>1 месяц (30 дней)</strong>
+        </div>
+        <div class="info-box-row">
+          <span>Выдача:</span>
+          <strong>Автоматически за 20 секунд</strong>
         </div>
       </div>
 
-      <div class="vip-showcase__right">
-        <div class="price-card glass-card">
-          <span class="price-card__label">Стоимость подписки</span>
-          <div class="price-card__amount">
-            <span class="amount-val">200</span>
-            <span class="currency">₽</span>
-            <span class="period">/ месяц</span>
-          </div>
+      <!-- Promo Code Input -->
+      <div class="checkout-form-group" style="margin-top: 16px;">
+        <label class="checkout-label">Промокод (если есть):</label>
+        <div class="promo-wrap">
+          <input 
+            type="text" 
+            class="checkout-input promo-input" 
+            placeholder="Например: SAMURAI" 
+            [(ngModel)]="promoCodeInput"
+          />
+          <button type="button" class="btn btn-outline btn-promo" (click)="applyPromoCode()">Применить</button>
+        </div>
+        <div class="promo-msg error" *ngIf="promoError">{{ promoError }}</div>
+        <div class="promo-msg success" *ngIf="promoSuccess">{{ promoSuccess }}</div>
+      </div>
 
-          <div class="payment-badge-row">
-            <span class="rollypay-tag">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="color:var(--clr-gold-2);margin-right:4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              Приём через Rollypay
+      <!-- Payment Method Selection via Coinso -->
+      <div class="checkout-form-group" style="margin-top: 16px;">
+        <label class="checkout-label">Выберите способ оплаты:</label>
+        <div class="payment-grid">
+          <button 
+            type="button" 
+            class="payment-card" 
+            [class.active]="selectedPayment === 'coinso_crypto'" 
+            (click)="selectedPayment = 'coinso_crypto'"
+          >
+            <span class="payment-icon" style="color:#38bdf8;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 17 22 12"/></svg>
             </span>
-          </div>
+            <div class="payment-info">
+              <strong>Криптовалюта (Coinso Crypto)</strong>
+              <span>USDT, TON, BTC, ETH</span>
+            </div>
+          </button>
 
-          <ul class="price-card__perks">
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14" style="color:var(--clr-green);margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg> Автовыдача за 20 секунд</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14" style="color:var(--clr-green);margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg> Инспекция истории сундуков</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14" style="color:var(--clr-green);margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg> Безопасная оплата Rollypay</li>
-            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="14" height="14" style="color:var(--clr-green);margin-right:6px;"><polyline points="20 6 9 17 4 12"/></svg> Полная поддержка разработки</li>
-          </ul>
+          <button 
+            type="button" 
+            class="payment-card" 
+            [class.active]="selectedPayment === 'rollypay_sbp'" 
+            (click)="selectedPayment = 'rollypay_sbp'"
+          >
+            <span class="payment-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </span>
+            <div class="payment-info">
+              <strong>Система Быстрых Платежей (СБП)</strong>
+              <span>Оплата по QR-коду любого банка</span>
+            </div>
+          </button>
 
-          <button class="btn btn-primary btn-buy-vip" (click)="openBuyModal()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-            </svg>
-            Приобрести VIP за 200 ₽
+          <button 
+            type="button" 
+            class="payment-card" 
+            [class.active]="selectedPayment === 'rollypay_card'" 
+            (click)="selectedPayment = 'rollypay_card'"
+          >
+            <span class="payment-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </span>
+            <div class="payment-info">
+              <strong>Банковская карта (МИР / Visa / MC)</strong>
+              <span>Оплата картой РФ и мира</span>
+            </div>
           </button>
         </div>
       </div>
+
+      <!-- Total Price Summary -->
+      <div class="checkout-summary">
+        <div class="summary-row" *ngIf="discountPercent > 0">
+          <span>Скидка по промокоду:</span>
+          <strong class="discount-val">-{{ discountPercent }}% ({{ appliedPromo }})</strong>
+        </div>
+        <div class="summary-row summary-row--total">
+          <span>К оплате:</span>
+          <span class="total-price">{{ calculatePrice() }} ₽</span>
+        </div>
+      </div>
+
     </div>
 
-    <!-- ===== FEATURE DETAILS GRID ===== -->
-    <div class="features-detail-section">
-      <header class="section-header-center">
-        <p class="section-eyebrow">Функционал</p>
-        <h2 class="section-heading">Возможности <span>VIP статуса</span></h2>
-        <p class="section-sub">Все вспомогательные функции за 200 ₽/мес.</p>
-      </header>
-
-      <div class="features-grid">
-        <div *ngFor="let feat of vipFeatures" class="feature-detail-card glass-card">
-          <div class="feat-card__top">
-            <span class="feat-card__icon">
-              <ng-container [ngSwitch]="feat.icon">
-                <svg *ngSwitchCase="'search'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <svg *ngSwitchCase="'scroll'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                <svg *ngSwitchCase="'radar'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <svg *ngSwitchCase="'clock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <svg *ngSwitchCase="'home'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                <svg *ngSwitchCase="'unlock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-                <svg *ngSwitchCase="'paint'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-                <svg *ngSwitchCase="'chat'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              </ng-container>
-            </span>
-            <span class="feat-card__badge" *ngIf="feat.badge">{{ feat.badge }}</span>
-          </div>
-          <h3 class="feat-card__title">{{ feat.title }}</h3>
-          <p class="feat-card__desc">{{ feat.desc }}</p>
+    <!-- STEP 2: Instruction Modal after Order Creation -->
+    <div class="modal-body" *ngIf="checkoutStep === 2">
+      <div class="success-box card">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:32px;height:32px;color:#22c55e;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
         </div>
+        <h3>Заказ зарегистрирован!</h3>
+        <p>Игровой ник: <strong>{{ nicknameInput }}</strong></p>
+        <p>Номер заказа: <strong>{{ lastOrderId }}</strong></p>
       </div>
     </div>
 
-    <!-- ===== FAQ SECTION ===== -->
-    <div class="store-faq">
-      <header class="section-header-center">
-        <p class="section-eyebrow">Вопросы</p>
-        <h2 class="section-heading">Частые <span>Вопросы</span></h2>
-      </header>
-
-      <div class="faq-grid">
-        <div *ngFor="let faq of faqItems" class="faq-item glass-card">
-          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="color:var(--clr-gold-2);margin-right:6px;display:inline-block;vertical-align:middle;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>{{ faq.q }}</h4>
-          <p>{{ faq.a }}</p>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<!-- ===== MODAL: BUY VIA ROLLYPAY ===== -->
-<div class="modal-overlay" *ngIf="showBuyModal" (click)="closeBuyModal()">
-  <div class="modal-card modal-card--checkout glass-card" (click)="$event.stopPropagation()">
-    <button class="modal-close" (click)="closeBuyModal()">&times;</button>
-
-    <!-- STEP 1: Details & Rollypay payment selection -->
-    <div *ngIf="checkoutStep === 1">
-      <div class="modal-header">
-        <div class="modal-header__icon" style="color: var(--accent-gold-bright);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" style="color:var(--clr-gold-2);"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
-        </div>
-        <div>
-          <h3 class="modal-title">Оформление VIP статуса</h3>
-          <span class="modal-sub-label">Оплата 200 ₽ через платёжный сервис Rollypay</span>
-        </div>
-      </div>
-
-      <div class="modal-body">
-        
-        <!-- Nickname Input + Skin Avatar Preview -->
-        <div class="checkout-form-group">
-          <label class="checkout-label">Ваш Никнейм на сервере *</label>
-          <div class="nick-input-wrap">
-            <img [src]="getUserAvatar()" class="nick-avatar" alt="user avatar" />
-            <input 
-              type="text" 
-              class="checkout-input" 
-              placeholder="Например: PlayerOne" 
-              [(ngModel)]="nicknameInput" 
-              maxLength="16"
-            />
-          </div>
-          <span class="checkout-hint">На этот никнейм будет автоматически зачислен VIP статус</span>
-        </div>
-
-        <!-- Duration & Item info summary -->
-        <div class="checkout-info-box glass-card">
-          <div class="info-box-row">
-            <span>Товар:</span>
-            <strong>VIP статус (Логи сундуков и утилиты)</strong>
-          </div>
-          <div class="info-box-row">
-            <span>Период:</span>
-            <strong>1 месяц (30 дней)</strong>
-          </div>
-          <div class="info-box-row">
-            <span>Выдача:</span>
-            <strong>Автоматически за 20 секунд</strong>
-          </div>
-          <div class="info-box-row">
-            <span>Платёжная система:</span>
-            <strong style="color: var(--accent-gold-bright);">Rollypay (СБП, Карты МИР, Т-Банк)</strong>
-          </div>
-        </div>
-
-        <!-- Promo Code Input -->
-        <div class="checkout-form-group" style="margin-top: 16px;">
-          <label class="checkout-label">Промокод (если есть):</label>
-          <div class="promo-wrap">
-            <input 
-              type="text" 
-              class="checkout-input promo-input" 
-              placeholder="Например: SAMURAI" 
-              [(ngModel)]="promoCodeInput"
-            />
-            <button type="button" class="btn btn-outline btn-promo" (click)="applyPromoCode()">Применить</button>
-          </div>
-          <div class="promo-msg error" *ngIf="promoError">{{ promoError }}</div>
-          <div class="promo-msg success" *ngIf="promoSuccess">{{ promoSuccess }}</div>
-        </div>
-
-        <!-- Payment Method Selection via Coinso & Rollypay -->
-        <div class="checkout-form-group">
-          <label class="checkout-label">Выберите способ оплаты:</label>
-          <div class="payment-grid">
-            <button 
-              type="button" 
-              class="payment-card" 
-              [class.active]="selectedPayment === 'coinso_crypto'" 
-              (click)="selectedPayment = 'coinso_crypto'"
-            >
-              <span class="payment-icon" style="color:#38bdf8;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-              </span>
-              <div class="payment-info">
-                <strong>Coinso Crypto (Криптовалюта)</strong>
-                <span>USDT, TON, BTC, ETH</span>
-              </div>
-            </button>
-
-            <button 
-              type="button" 
-              class="payment-card" 
-              [class.active]="selectedPayment === 'rollypay_sbp'" 
-              (click)="selectedPayment = 'rollypay_sbp'"
-            >
-              <span class="payment-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              </span>
-              <div class="payment-info">
-                <strong>СБП (через Rollypay)</strong>
-                <span>Оплата по QR-коду любого банка</span>
-              </div>
-            </button>
-
-            <button 
-              type="button" 
-              class="payment-card" 
-              [class.active]="selectedPayment === 'rollypay_card'" 
-              (click)="selectedPayment = 'rollypay_card'"
-            >
-              <span class="payment-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-              </span>
-              <div class="payment-info">
-                <strong>Банковская карта (Rollypay)</strong>
-                <span>Карты МИР / Visa / MasterCard</span>
-              </div>
-            </button>
-
-            <button 
-              type="button" 
-              class="payment-card" 
-              [class.active]="selectedPayment === 'rollypay_tbank'" 
-              (click)="selectedPayment = 'rollypay_tbank'"
-            >
-              <span class="payment-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M8 10h8"/></svg>
-              </span>
-              <div class="payment-info">
-                <strong>Т-Банк Pay (Rollypay)</strong>
-                <span>Быстрая оплата</span>
-              </div>
-            </button>
-
-            <button 
-              type="button" 
-              class="payment-card" 
-              [class.active]="selectedPayment === 'rollypay_yumoney'" 
-              (click)="selectedPayment = 'rollypay_yumoney'"
-            >
-              <span class="payment-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"/></svg>
-              </span>
-              <div class="payment-info">
-                <strong>ЮMoney (Rollypay)</strong>
-                <span>Электронный кошелек</span>
-              </div>
-            </button>
-          </div>
-        </div>
-
-        <!-- Total Price Summary -->
-        <div class="checkout-summary">
-          <div class="summary-row" *ngIf="discountPercent > 0">
-            <span>Скидка по промокоду:</span>
-            <strong class="discount-val">-{{ discountPercent }}% ({{ appliedPromo }})</strong>
-          </div>
-          <div class="summary-row summary-row--total">
-            <span>К оплате через Rollypay:</span>
-            <span class="total-price">{{ calculatePrice() }} ₽</span>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline" (click)="closeBuyModal()">Отмена</button>
-        <button 
-          type="button" 
-          class="btn btn-primary btn-submit-pay" 
-          (click)="submitRollypayOrder()"
-          [disabled]="isProcessingPay"
-        >
-          <span *ngIf="!isProcessingPay">Оплатить {{ calculatePrice() }} ₽ через Rollypay</span>
-          <span *ngIf="isProcessingPay">Переход к Rollypay...</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- STEP 2: Simulated Rollypay Order Confirmation -->
-    <div *ngIf="checkoutStep === 2" class="checkout-success-body">
-      <div class="success-icon-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold-bright)" stroke-width="2.5">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-          <polyline points="22 4 12 14.01 9 11.01"/>
-        </svg>
-      </div>
-
-      <h3 class="success-title">Счет Rollypay создан!</h3>
-      <p class="success-sub">
-        Номер заказа Rollypay: <strong class="order-id">{{ lastOrderId }}</strong>
-      </p>
-
-      <div class="success-box glass-card">
-        <div class="success-row">
-          <span>Игрок:</span>
-          <strong>{{ nicknameInput }}</strong>
-        </div>
-        <div class="success-row">
-          <span>Товар:</span>
-          <strong>VIP статус (Логи сундуков)</strong>
-        </div>
-        <div class="success-row">
-          <span>Сумма Rollypay:</span>
-          <strong>{{ calculatePrice() }} ₽</strong>
-        </div>
-      </div>
-
-      <div class="success-instructions">
-        <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="color:var(--clr-gold-2);margin-right:6px;display:inline-block;vertical-align:middle;"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/></svg>Активация на сервере за 20 секунд:</h4>
-        <p>Зайдите на сервер <code>b1.qwertyx.host:26687</code> и введите команду:</p>
-        <div class="cmd-copy-box" (click)="copyGetCommand()">
-          <code>/don get {{ lastOrderId }}</code>
-          <span class="cmd-copy-tag">{{ commandCopied ? 'Скопировано!' : 'Скопировать' }}</span>
-        </div>
-        <small>(В демонстрационном режиме статус готов к выдаче на сервере!)</small>
-      </div>
-
-      <div class="modal-footer" style="justify-content: center; margin-top: 24px;">
-        <button class="btn btn-primary" (click)="closeBuyModal()">Отлично, перейти в игру</button>
-      </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline" (click)="closeBuyModal()">Отмена</button>
+      <button 
+        type="button" 
+        class="btn btn-primary btn-submit-pay" 
+        (click)="submitRollypayOrder()"
+        [disabled]="isProcessingPay"
+        *ngIf="checkoutStep === 1"
+      >
+        <span *ngIf="!isProcessingPay">Перейти к оплате {{ calculatePrice() }} ₽</span>
+        <span *ngIf="isProcessingPay">Создание платежа...</span>
+      </button>
     </div>
 
   </div>
