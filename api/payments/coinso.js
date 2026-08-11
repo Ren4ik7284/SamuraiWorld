@@ -5,7 +5,7 @@ import { checkRateLimit } from '../security.js';
 
 const PROJECT_ID = process.env.COINSO_PROJECT_ID || '955394417';
 const API_KEY = process.env.COINSO_API_KEY || '585c4cda8655ab5f9376947007b707d0';
-const SECRET_KEY = process.env.COINSO_SECRET_KEY || 'b1d88f54a8bb56e0cb93545253e84a1f';
+const SECRET_KEY = process.env.COINSO_SECRET_KEY || 'b801ecbecba3d24836254fc6ec7e566a';
 const TMP_USERS_FILE = path.join('/tmp', 'samurai_users_store.json');
 
 function hashPassword(password) {
