@@ -1,6 +1,6 @@
 <div class="store-page">
   
-  <!-- HERO SECTION -->
+  
   <section class="store-hero">
     <div class="store-hero__glow"></div>
     <div class="container store-hero__container">
@@ -79,7 +79,6 @@
 
 </div>
 
-<!-- CHECKOUT MODAL -->
 <div class="modal-overlay" *ngIf="showBuyModal" (click)="closeBuyModal()">
   <div class="modal-card card checkout-modal" (click)="$event.stopPropagation()">
     
@@ -93,10 +92,10 @@
       </button>
     </div>
 
-    <!-- STEP 1: Form & Payment Selector -->
+    
     <div class="modal-body" *ngIf="checkoutStep === 1">
       
-      <!-- Nickname Input -->
+      
       <div class="checkout-form-group">
         <label class="checkout-label">Ваш Никнейм на сервере *</label>
         <div class="nick-input-wrap">
@@ -112,7 +111,7 @@
         <span class="checkout-hint">На этот никнейм будет автоматически зачислен VIP статус</span>
       </div>
 
-      <!-- Item Info Box -->
+      
       <div class="checkout-info-box glass-card">
         <div class="info-box-row">
           <span>Товар:</span>
@@ -128,7 +127,7 @@
         </div>
       </div>
 
-      <!-- Promo Code Input -->
+      
       <div class="checkout-form-group" style="margin-top: 16px;">
         <label class="checkout-label">Промокод (если есть):</label>
         <div class="promo-wrap">
@@ -144,7 +143,7 @@
         <div class="promo-msg success" *ngIf="promoSuccess">{{ promoSuccess }}</div>
       </div>
 
-      <!-- Payment Method Selection via RollyPay -->
+      
       <div class="checkout-form-group" style="margin-top: 16px;">
         <label class="checkout-label">Способ оплаты (RollyPay):</label>
         <div class="payment-grid" style="display: flex; flex-direction: column; gap: 8px;">
@@ -195,7 +194,7 @@
         </div>
       </div>
 
-      <!-- Total Price Summary -->
+      
       <div class="checkout-summary">
         <div class="summary-row" *ngIf="discountPercent > 0">
           <span>Скидка по промокоду:</span>
@@ -209,7 +208,7 @@
 
     </div>
 
-    <!-- STEP 2: Instruction Modal after Order Creation -->
+    
     <div class="modal-body" *ngIf="checkoutStep === 2">
       <div class="success-box card">
         <div class="success-icon">

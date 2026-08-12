@@ -1,7 +1,7 @@
 <header class="navbar" [class.navbar--scrolled]="isScrolled">
   <div class="navbar__inner container">
 
-    <!-- Logo -->
+    
     <a class="navbar__logo" routerLink="/" (click)="closeMobileMenu()">
       <img class="navbar__logo-img" src="assets/server_logo.jpg" alt="SamuraiWorld logo" />
       <div class="navbar__logo-text">
@@ -10,7 +10,7 @@
       </div>
     </a>
 
-    <!-- Desktop nav -->
+    
     <nav class="navbar__nav" aria-label="Основная навигация">
       <ul class="navbar__list">
         <li *ngFor="let link of navLinks">
@@ -26,9 +26,9 @@
       </ul>
     </nav>
 
-    <!-- Auth & Action Area -->
+    
     <div class="navbar__actions">
-      <!-- User profile chip if logged in -->
+      
       <div class="navbar__user-chip" *ngIf="currentUser; else unauthButtons">
         <img [src]="currentUser.avatarUrl || DEFAULT_AVATAR" class="navbar__avatar" (click)="openAvatarModal()" style="cursor: pointer;" title="Нажмите, чтобы изменить аватарку" alt="avatar" />
         <div class="navbar__user-details" (click)="openAvatarModal()" style="cursor: pointer;" title="Нажмите, чтобы изменить аватарку">
@@ -54,7 +54,7 @@
         </div>
       </ng-template>
 
-      <!-- CTA -->
+      
       <a class="btn btn-primary navbar__cta" routerLink="/contacts">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M10 2L12.5 7.5L18 8.27L14 12.14L14.9 17.73L10 15L5.1 17.73L6 12.14L2 8.27L7.5 7.5L10 2Z"/>
@@ -63,9 +63,7 @@
       </a>
     </div>
 
-
-
-    <!-- Burger -->
+    
     <button
       class="navbar__burger"
       [class.navbar__burger--open]="isMobileMenuOpen"
@@ -79,7 +77,7 @@
     </button>
   </div>
 
-  <!-- Mobile Menu Drawer -->
+  
   <div class="navbar__drawer" [class.navbar__drawer--open]="isMobileMenuOpen" role="dialog" aria-label="Мобильное меню">
     <div class="navbar__drawer-header">
       <div class="navbar__logo">
@@ -98,7 +96,7 @@
     </div>
 
     <nav class="navbar__drawer-nav">
-      <!-- User profile chip in mobile drawer -->
+      
       <div class="navbar__drawer-user" *ngIf="currentUser; else drawerUnauth">
         <div class="navbar__drawer-user-meta">
           <img [src]="currentUser.avatarUrl || DEFAULT_AVATAR" class="navbar__avatar" (click)="openAvatarModal(); closeMobileMenu()" style="cursor: pointer;" alt="avatar" />
@@ -144,7 +142,7 @@
     </nav>
   </div>
 
-  <!-- Overlay -->
+  
   <div
     class="navbar__overlay"
     [class.navbar__overlay--visible]="isMobileMenuOpen"
@@ -155,7 +153,6 @@
 
 <div class="navbar__spacer"></div>
 
-<!-- ГЛОБАЛЬНОЕ МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ / РЕГИСТРАЦИИ -->
 <div class="auth-modal-overlay" *ngIf="showAuthModal" (click)="closeAuthModal()">
   <div class="auth-modal-card" (click)="$event.stopPropagation()">
     <div class="auth-modal-header">
@@ -163,13 +160,13 @@
       <button class="auth-modal-close" (click)="closeAuthModal()">&times;</button>
     </div>
 
-    <!-- Табы переключения -->
+    
     <div class="auth-modal-tabs">
       <button class="auth-modal-tab" [class.active]="authMode === 'login'" (click)="setAuthMode('login')">Вход</button>
       <button class="auth-modal-tab" [class.active]="authMode === 'register'" (click)="setAuthMode('register')">Регистрация</button>
     </div>
 
-    <!-- Ошибка -->
+    
     <div class="auth-alert error" *ngIf="authErrorMsg">
       {{ authErrorMsg }}
     </div>
@@ -210,8 +207,6 @@
         />
       </div>
 
-
-
       <div class="auth-modal-actions">
         <button type="button" class="btn-cancel" (click)="closeAuthModal()">Отмена</button>
         <button type="submit" class="btn-submit" [disabled]="isAuthSubmitting">
@@ -222,7 +217,6 @@
   </div>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО СМЕНЫ АВАТАРКИ -->
 <div class="auth-modal-overlay" *ngIf="showAvatarModal" (click)="closeAvatarModal()">
   <div class="auth-modal-card" (click)="$event.stopPropagation()" style="max-width: 440px; padding: 28px 24px;">
     <div class="auth-modal-header">
@@ -237,7 +231,7 @@
       {{ avatarErrorMsg }}
     </div>
 
-    <!-- Текущий предпросмотр -->
+    
     <div style="text-align: center; margin: 20px 0;">
       <div style="position: relative; display: inline-block;">
         <img 
@@ -249,7 +243,7 @@
       <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 8px; font-weight: 500;">Ваша новая аватарка</div>
     </div>
 
-    <!-- Нативная кнопка загрузки файлов с Галереи Телефона / ПК -->
+    
     <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px;">
       <label 
         for="mobileAvatarFileInput"
@@ -275,7 +269,7 @@
       </button>
     </div>
 
-    <!-- Ввод ссылки -->
+    
     <div class="auth-field">
       <label style="font-size: 0.78rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Или прямая ссылка на фото</label>
       <input 
@@ -294,4 +288,3 @@
     </div>
   </div>
 </div>
-

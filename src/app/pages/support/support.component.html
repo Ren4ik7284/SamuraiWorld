@@ -1,11 +1,11 @@
 <div class="page">
 
-  <!-- Header -->
+  
   <div class="page-header">
     <div class="page-header__glow"></div>
     <div class="container">
 
-      <!-- View Mode Bar Switcher (Виден ТОЛЬКО Администрации и Поддержке) -->
+      
       <div class="view-mode-bar" *ngIf="authService.isSupportOrAdmin">
         <span class="view-mode-label">Режим:</span>
         <button 
@@ -41,7 +41,7 @@
         {{ viewMode === 'admin' ? 'Управление обращениями игроков, ответы от лица Поддержки и модерация тикетов.' : 'Подавайте тикеты с JWT авторизацией, отслеживайте их статус и получайте быстрые ответы от Администрации.' }}
       </p>
 
-      <!-- Live metrics -->
+      
       <div class="header-metrics">
         <div class="metric-chip">
           <span class="metric-dot online"></span>
@@ -65,9 +65,9 @@
 
   <div class="section container">
 
-    <!-- USER VIEW -->
+    
     <ng-container *ngIf="viewMode === 'user'">
-      <!-- Navigation tabs -->
+      
       <nav class="support-nav">
         <button 
           class="support-nav__btn" 
@@ -96,10 +96,10 @@
         </button>
       </nav>
 
-      <!-- TAB 1: CREATE TICKET FORM -->
+      
       <div class="tab-content" *ngIf="activeTab === 'create'">
         
-        <!-- Category selector -->
+        
         <div class="category-section">
           <h3 class="section-sub-title">1. Выберите категорию обращения</h3>
           <div class="categories-grid">
@@ -116,7 +116,7 @@
           </div>
         </div>
 
-        <!-- Ticket form -->
+        
         <div class="form-container card">
           <h3 class="section-sub-title">2. Детали обращения</h3>
 
@@ -181,7 +181,7 @@
                 </select>
               </div>
 
-              <!-- Priority Selection (Restricted strictly to Support & Admin) -->
+              
               <div class="form-group" *ngIf="authService.isSupportOrAdmin">
                 <label class="form-label">Приоритет обращения (Администрация)</label>
                 <div class="priority-selector">
@@ -234,7 +234,7 @@
         </div>
       </div>
 
-      <!-- TAB 2: TICKET TRACKER -->
+      
       <div class="tab-content" *ngIf="activeTab === 'tracker'">
         <div class="tracker-header">
           <div class="search-box card">
@@ -294,7 +294,7 @@
         </ng-template>
       </div>
 
-      <!-- TAB 3: FAQ -->
+      
       <div class="tab-content" *ngIf="activeTab === 'faq'">
         <div class="faq-container card">
           <h3 class="section-sub-title" style="margin-bottom:24px;">Часто задаваемые вопросы (FAQ)</h3>
@@ -319,9 +319,9 @@
       </div>
     </ng-container>
 
-    <!-- ADMIN PANEL VIEW -->
+    
     <ng-container *ngIf="viewMode === 'admin'">
-      <!-- REGISTERED USERS WIDGET (Мини-окно зарегистрированных пользователей) -->
+      
       <div class="users-widget card" style="margin-bottom: 24px; border: 1px solid rgba(212, 160, 23, 0.25); background: rgba(18, 10, 14, 0.85); padding: 18px;">
         <div class="users-widget-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 10px;">
@@ -411,7 +411,7 @@
           </div>
         </div>
 
-        <!-- Admin Filters & Search -->
+        
         <div class="admin-filters">
           <div class="filter-buttons">
             <button 
@@ -455,7 +455,7 @@
           </div>
         </div>
 
-        <!-- Tickets List for Admin -->
+        
         <div class="admin-tickets-list" *ngIf="filteredTickets.length > 0; else noTicketsAdmin">
           <div 
             *ngFor="let ticket of filteredTickets" 
@@ -503,9 +503,7 @@
 
   </div>
 
-
-
-  <!-- TICKET DETAILS MODAL -->
+  
   <div class="modal-overlay" *ngIf="selectedTicket" (click)="closeTicketDetails()">
     <div class="modal-card card" (click)="$event.stopPropagation()">
       
@@ -533,7 +531,7 @@
         <span class="status-badge" [ngClass]="getStatusClass(selectedTicket.status)">{{ selectedTicket.status }}</span>
       </div>
 
-      <!-- Status Changer Controls (ТОЛЬКО для Администраторов и Поддержки) -->
+      
       <div class="status-changer-bar" *ngIf="authService.isSupportOrAdmin">
         <span class="form-label" style="font-size:0.78rem;">Изменить статус (Администрация):</span>
         <button class="btn-status status-pending" [class.btn-status--active]="selectedTicket.status === 'Нерешенные' || selectedTicket.status === 'Ожидает ответа'" (click)="changeStatus('Нерешенные')">
@@ -550,7 +548,7 @@
         </button>
       </div>
 
-      <!-- Messages timeline -->
+      
       <div class="chat-container">
         <div 
           *ngFor="let msg of selectedTicket.messages" 
@@ -567,7 +565,7 @@
         </div>
       </div>
 
-      <!-- Reply box -->
+      
       <div class="reply-container" *ngIf="selectedTicket.status !== 'Закрыто'">
         <div class="reply-role-indicator">
           {{ authService.isSupportOrAdmin ? 'Отправляете ответ ОТ ЛИЦА СЛУЖБЫ ПОДДЕРЖКИ:' : 'Отправляете сообщение от никнейма (' + (currentUser?.nickname || newTicket.nickname || selectedTicket.nickname) + '):' }}

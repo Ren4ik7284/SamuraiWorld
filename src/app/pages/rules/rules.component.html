@@ -1,6 +1,6 @@
 <div class="page">
 
-  <!-- Header -->
+  
   <div class="page-header">
     <div class="page-header__glow"></div>
     <div class="container">
@@ -15,7 +15,7 @@
 
   <div class="section container">
 
-    <!-- Notice -->
+    
     <div class="notice">
       <div class="notice__icon" [innerHTML]="sections[0].icon | safeHtml"></div>
       <div class="notice__text">
@@ -24,7 +24,7 @@
       </div>
     </div>
 
-    <!-- Sections navigation tabs -->
+    
     <nav class="rules-nav" aria-label="Разделы правил">
       <button 
         *ngFor="let s of sections" 
@@ -37,7 +37,7 @@
       </button>
     </nav>
 
-    <!-- Sections -->
+    
     <div class="rules-sections">
       <section
         *ngFor="let s of sections"
@@ -45,7 +45,7 @@
         class="rules-section"
         [class.rules-section--open]="isSectionOpen(s.num)"
       >
-        <!-- Section header -->
+        
         <div class="rules-section__head" (click)="toggleSection(s.num)">
           <div class="rules-section__head-left">
             <div class="rules-section__icon" [innerHTML]="s.icon | safeHtml"></div>
@@ -63,7 +63,7 @@
           </div>
         </div>
 
-        <!-- Section body -->
+        
         <div class="rules-section__body" *ngIf="isSectionOpen(s.num)">
           <ul class="rules-list">
             <li *ngFor="let item of s.items" class="rules-item">
@@ -83,7 +83,7 @@
       </section>
     </div>
 
-    <!-- Penalties -->
+    
     <div class="penalties-block">
       <header class="section-header-center" style="margin-bottom:36px">
         <p class="section-eyebrow">Меры воздействия</p>
@@ -99,7 +99,7 @@
       </div>
     </div>
 
-    <!-- Final rule -->
+    
     <div class="final-rule">
       <div class="final-rule__inner">
         <div class="final-rule__icon">

@@ -27,7 +27,6 @@
   position: relative;
 }
 
-/* Contacts grid */
 .contacts-grid {
   display: flex;
   justify-content: center;
@@ -141,7 +140,6 @@
   transform: translateX(3px);
 }
 
-/* IP Banner */
 .ip-banner {
   padding: 0 0 80px;
 }
@@ -201,7 +199,6 @@
   color: var(--clr-text-3);
 }
 
-/* FAQ */
 .faq-list {
   display: flex;
   flex-direction: column;
@@ -279,4 +276,3 @@
   .faq-item__header { padding: 18px 18px; }
   .faq-item__body--open { padding: 0 18px 18px; }
 }
-

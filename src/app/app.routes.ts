@@ -20,4 +20,3 @@ export const routes: Routes = [
   { path: 'terms', component: TermsComponent },
   { path: '**', redirectTo: '' }
 ];
-

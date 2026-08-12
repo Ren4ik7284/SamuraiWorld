@@ -54,7 +54,6 @@
   position: relative;
 }
 
-/* Zones */
 .zones-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -118,7 +117,6 @@
   line-height: 1.65;
 }
 
-/* Specs */
 .specs-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -149,7 +147,6 @@
   text-align: right;
 }
 
-/* Connect */
 .connect-section {
   padding: 0 0 100px;
 }
@@ -234,7 +231,6 @@
   .connect-step__num { min-width: 28px; font-size: 1.05rem; margin: 0 auto; text-align: center; }
 }
 
-/* Hardware Cards Brand Styling */
 .hardware-cards-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -302,4 +298,3 @@
     grid-template-columns: 1fr;
   }
 }
-

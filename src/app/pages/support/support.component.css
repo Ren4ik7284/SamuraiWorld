@@ -1,4 +1,3 @@
-/* ===== PAGE HEADER ===== */
 .page-header {
   position: relative;
   padding: 80px 0 50px;
@@ -12,7 +11,6 @@
   background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(201,146,10,0.12) 0%, transparent 65%);
 }
 
-/* View Mode Bar Switcher */
 .view-mode-bar {
   display: inline-flex;
   align-items: center;
@@ -121,7 +119,6 @@
   position: relative;
 }
 
-/* Header metrics */
 .header-metrics {
   display: flex;
   justify-content: center;
@@ -149,7 +146,6 @@
   box-shadow: 0 0 8px rgba(34,197,94,0.6);
 }
 
-/* ===== SUPPORT NAV TABS ===== */
 .support-nav {
   display: flex;
   gap: 12px;
@@ -203,7 +199,6 @@
   border-radius: 100px;
 }
 
-/* ===== CATEGORIES GRID ===== */
 .section-sub-title {
   font-family: var(--font-display);
   font-size: 1.15rem;
@@ -266,7 +261,6 @@
   line-height: 1.5;
 }
 
-/* ===== FORM CONTAINER ===== */
 .form-container {
   padding: 32px;
 }
@@ -336,7 +330,6 @@
   font-size: 0.8rem;
 }
 
-/* Priority selector */
 .priority-selector {
   display: flex;
   gap: 8px;
@@ -365,7 +358,6 @@
   color: var(--clr-red-3);
 }
 
-/* Alert boxes */
 .alert {
   padding: 18px 20px;
   border-radius: var(--radius-sm);
@@ -392,7 +384,6 @@
   gap: 10px;
 }
 
-/* ===== TICKET TRACKER & ADMIN PANEL ===== */
 .search-box {
   display: flex;
   align-items: center;
@@ -472,7 +463,6 @@
   gap: 4px;
 }
 
-/* Status badges */
 .status-badge {
   font-size: 0.72rem;
   font-weight: 600;
@@ -495,7 +485,6 @@
   border-radius: 4px;
 }
 
-/* ===== ADMIN PANEL STYLES ===== */
 .admin-panel {
   padding: 28px;
 }
@@ -605,7 +594,6 @@
   flex-shrink: 0;
 }
 
-/* Delete Button */
 .btn-delete {
   display: inline-flex;
   align-items: center;
@@ -632,7 +620,6 @@
   font-size: 0.75rem;
 }
 
-/* Status changer bar */
 .status-changer-bar {
   display: flex;
   align-items: center;
@@ -669,7 +656,6 @@
   color: var(--clr-gold-2);
 }
 
-/* Empty state */
 .empty-state {
   text-align: center;
   padding: 48px 24px;
@@ -683,13 +669,11 @@
   color: var(--clr-gold-2);
 }
 
-/* ===== FAQ ===== */
 .faq-container { padding: 32px; }
 .faq-list { display: flex; flex-direction: column; gap: 20px; }
 .faq-item__q { font-size: 0.98rem; font-weight: 600; color: var(--clr-gold-2); margin-bottom: 6px; }
 .faq-item__a { font-size: 0.88rem; color: var(--clr-text-2); line-height: 1.65; }
 
-/* ===== MODAL AUTH DIALOG ===== */
 .auth-modal {
   max-width: 440px;
 }
@@ -736,7 +720,6 @@
   text-align: center;
 }
 
-/* ===== MODAL TICKET DRAWER ===== */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -808,7 +791,6 @@
   color: var(--clr-text-2);
 }
 
-/* Chat timeline */
 .chat-container {
   flex: 1;
   overflow-y: auto;
@@ -880,7 +862,6 @@
   font-size: 0.8rem;
 }
 
-/* ===== MOBILE RESPONSIVE ADAPTATION ===== */
 @media (max-width: 768px) {
   .page-header { padding: 30px 0 20px; }
 
@@ -980,7 +961,7 @@
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
+    font-size: 16px !important; 
     word-break: break-word;
     overflow-wrap: anywhere;
   }
@@ -1075,7 +1056,7 @@
     justify-content: center;
   }
 
-  /* Modals on Mobile */
+  
   .modal-overlay {
     padding: 8px;
     align-items: center;
@@ -1191,7 +1172,6 @@
   .metric-chip { justify-content: center; width: 100%; }
 }
 
-/* ===== JWT AUTH PROFILE CHIP & MODAL STYLES ===== */
 .auth-status-chip {
   display: inline-flex;
   align-items: center;
@@ -1322,7 +1302,6 @@
   display: block;
 }
 
-/* ===== HIDE MAIN NAVBAR & PAGE HEADER ON MOBILE WHEN TICKET IS OPEN ===== */
 @media (max-width: 768px) {
   .page-header { padding: 50px 0 25px; text-align: center; }
   .view-mode-bar { width: 100%; justify-content: center; flex-wrap: wrap; border-radius: 16px; margin: 0 auto 16px; }
@@ -1544,5 +1523,3 @@
     justify-content: center !important;
   }
 }
-
-

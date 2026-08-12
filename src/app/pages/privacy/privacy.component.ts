@@ -18,7 +18,7 @@ import { RouterModule } from '@angular/router';
         <article class="card glass-card" style="background: rgba(22, 12, 16, 0.85); border: 1px solid rgba(212, 160, 23, 0.25); padding: 36px; border-radius: 16px; color: #cbd5e1; line-height: 1.7; font-size: 0.95rem;">
           <section style="margin-bottom: 28px;">
             <h2 style="font-size: 1.3rem; color: #f8fafc; margin-bottom: 12px; font-weight: 700;">1. Общие положения</h2>
-            <p>Настоящая Политика конфиденциальности персональных данных (далее — Политика) действует в отношении всей информации, которую проект <strong>SamuraiWorld</strong> (далее — Сервис), доступный по адресу <code>https://my-minecraft-site.vercel.app/</code>, может получить о Пользователе во время использования интернет-сайта и сервера Minecraft.</p>
+            <p>Настоящая Политика конфиденциальности персональных данных (далее — Политика) действует в отношении всей информации, которую проект <strong>SamuraiWorld</strong> (далее — Сервис), доступный по адресу <code>https:
           </section>
 
           <section style="margin-bottom: 28px;">

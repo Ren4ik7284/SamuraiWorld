@@ -49,10 +49,8 @@ export interface Ticket {
 export class SupportComponent implements OnInit, OnDestroy {
   readonly API_TICKETS_URL = '/api/support/tickets';
 
-  // Текущий пользователь из AuthService
   currentUser: User | null = null;
 
-  // Модалка авторизации / регистрации
   showAuthModal: boolean = false;
   authMode: 'login' | 'register' = 'login';
   authNicknameInput: string = '';
@@ -62,13 +60,10 @@ export class SupportComponent implements OnInit, OnDestroy {
   authSuccessMessage: string = '';
   isAuthSubmitting: boolean = false;
 
-  // Режим просмотра: 'user' (Игрок) или 'admin' (Панель техподдержки)
   viewMode: 'user' | 'admin' = 'user';
 
-  // Выбранная вкладка: 'create' | 'tracker' | 'faq'
   activeTab: 'create' | 'tracker' | 'faq' = 'create';
 
-  // Форма создания тикета
   newTicket = {
     nickname: '',
     contact: '',
@@ -113,17 +108,14 @@ export class SupportComponent implements OnInit, OnDestroy {
   createdTicketInfo: Ticket | null = null;
   errorMessage = '';
 
-  // Список тикетов и фильтры
   searchQuery = '';
   adminFilterStatus = 'ВСЕ';
   ticketsList: Ticket[] = [];
   selectedTicket: Ticket | null = null;
 
-  // Список пользователей для админ панели
   registeredUsers: (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[] = [];
   userSearchQuery = '';
 
-  // Ответы и действия поддержки
   replyText = '';
   isReplying = false;
 
@@ -151,7 +143,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       this.loadRegisteredUsers();
     });
 
-    // Автоматическое обновление каждые 4 секунды
     this.pollTimer = setInterval(() => {
       this.loadTickets(true);
       if (this.authService.isSupportOrAdmin) {
@@ -258,9 +249,6 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.newTicket.category = cat;
   }
 
-  /**
-   * Загрузка пользователей для панели управления Администрации
-   */
   loadRegisteredUsers(): void {
     const headers = this.authService.getAuthHeaders();
     let localUsers: any[] = [];
@@ -304,7 +292,6 @@ export class SupportComponent implements OnInit, OnDestroy {
   private mergeUsersList(serverUsers: (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[]): void {
     const map = new Map<string, User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean }>();
 
-    // 1. Сначала восстанавливаем все зарегистрированные аккаунты из браузерного хранилища
     try {
       const raw = localStorage.getItem('samurai_known_accounts_store');
       if (raw) {
@@ -331,7 +318,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       }
     } catch {}
 
-    // 2. Объединяем со свежими данными от сервера
     for (const u of serverUsers) {
       if (u && u.nickname) {
         const key = u.nickname.toLowerCase();
@@ -348,7 +334,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       }
     }
 
-    // 3. Сохраняем итоговый список аккаунтов обратно
     try {
       const cleanStore: any = {};
       map.forEach((user, key) => {
@@ -404,9 +389,6 @@ export class SupportComponent implements OnInit, OnDestroy {
     return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   }
 
-  /**
-   * Загрузка тикетов с передачей JWT токена
-   */
   readonly LOCAL_STORAGE_KEY = 'samurai_tickets_cache_v2';
   readonly GUEST_TICKETS_KEY = 'samurai_guest_ticket_ids_v2';
   readonly DELETED_TICKETS_KEY = 'samurai_deleted_ticket_ids_v2';
@@ -468,14 +450,10 @@ export class SupportComponent implements OnInit, OnDestroy {
     } catch {}
   }
 
-  /**
-   * Загрузка тикетов с сервера
-   */
   loadTickets(silent: boolean = false): void {
     const headers = this.authService.getAuthHeaders();
     let url = this.API_TICKETS_URL;
 
-    // Сначала мгновенно показываем кэш для избежания моргания UI
     if (this.ticketsList.length === 0) {
       const localCache = this.loadLocalTicketsCache();
       if (localCache.length > 0) {
@@ -499,8 +477,7 @@ export class SupportComponent implements OnInit, OnDestroy {
 
   private updateTicketsList(newList: Ticket[]): void {
     const deletedIds = new Set(this.getDeletedTicketIds());
-    
-    // Ответ сервера является единственным авторитетным источником активных тикетов
+
     const activeList = (newList || []).filter(
       (t) => t && t.id && !deletedIds.has(t.id) && (!t.ticketNumber || !deletedIds.has(t.ticketNumber))
     );
@@ -523,7 +500,7 @@ export class SupportComponent implements OnInit, OnDestroy {
           messages: [...updated.messages],
         };
       } else {
-        // Если тикет был удалён на сервере, автоматически закрываем окно деталей
+
         this.closeTicketDetails();
       }
     }
@@ -533,9 +510,6 @@ export class SupportComponent implements OnInit, OnDestroy {
     return !!ticket;
   }
 
-  /**
-   * Создание нового обращения с JWT привязкой
-   */
   submitTicket(): void {
     const nickname = (this.currentUser?.nickname || this.newTicket.nickname || 'Игрок').trim();
     if (!nickname || !this.newTicket.subject || !this.newTicket.description) {
@@ -546,7 +520,6 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
     this.isSubmitting = true;
 
-    // Игроки НЕ могут менять приоритет — для них всегда ставится 'Средний'. Приоритеты меняет только Поддержка/Админы.
     const priorityToUse = this.authService.isSupportOrAdmin ? this.newTicket.priority : 'Средний';
 
     const dto = {
@@ -597,13 +570,12 @@ export class SupportComponent implements OnInit, OnDestroy {
     const deletedIds = this.getDeletedTicketIds();
     let list = this.ticketsList.filter((t) => t && t.id && !deletedIds.includes(t.id));
 
-    // Ограничение доступа к чужим тикетам для игроков и гостей
     if (!this.authService.isSupportOrAdmin && this.viewMode !== 'admin') {
       if (this.currentUser) {
         const myNick = this.currentUser.nickname.toLowerCase();
         list = list.filter((t) => t.nickname.toLowerCase() === myNick || t.userId === this.currentUser?.id);
       } else {
-        // Незарегистрированный гость: видит ТОЛЬКО тикеты, созданные на его устройстве
+
         const guestIds = this.getGuestTicketIds();
         list = list.filter((t) => guestIds.includes(t.id));
       }
