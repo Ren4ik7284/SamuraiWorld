@@ -48,7 +48,7 @@
           </div>
           <button class="btn btn-gold btn-buy-now" (click)="openBuyModal()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            <span>Купить VIP за 200 ₽</span>
+            <span>Купить VIP за 50 ₽</span>
           </button>
         </div>
       </div>
@@ -59,13 +59,17 @@
   <!-- FEATURES LIST SECTION -->
   <section class="features-section">
     <div class="container">
-      <h2 class="section-title">Что входит в VIP статус</h2>
-      <p class="section-desc">Подробное описание всех возможностей, которые вы получаете после оплаты</p>
+      <div class="section-header-center">
+        <h2 class="section-title">Что входит в статус <span class="gold-gradient-text">VIP SAMURAI</span></h2>
+        <p class="section-desc">Полный перечень возможностей и привилегий, доступных сразу после активации</p>
+      </div>
 
       <div class="features-grid">
         <div class="feature-card card" *ngFor="let feat of vipFeatures">
-          <div class="feature-card__badge" *ngIf="feat.badge">{{ feat.badge }}</div>
-          <div class="feature-card__icon" [innerHTML]="getFeatureSvgIcon(feat.icon)"></div>
+          <div class="feature-card__top">
+            <div class="feature-card__icon" [innerHTML]="getFeatureSvgIcon(feat.icon)"></div>
+            <span class="feature-card__badge" *ngIf="feat.badge">{{ feat.badge }}</span>
+          </div>
           <h3 class="feature-card__title">{{ feat.title }}</h3>
           <p class="feature-card__desc">{{ feat.desc }}</p>
         </div>
