@@ -29,17 +29,38 @@
           </div>
 
           <div class="vip-features-chips">
-            <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Логи взаимодействия с сундуками</span>
-            <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Аудит изменений блоков</span>
-            <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Золотой цвет ника в чате</span>
-            <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Приоритет обращения в поддержку</span>
+            <span class="chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <polyline points="9 12 11 14 15 10"/>
+              </svg>
+              Защита от гриферства
+            </span>
+            <span class="chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+              </svg>
+              Логи сундуков
+            </span>
+            <span class="chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              Золотой ник в чате
+            </span>
+            <span class="chip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              Приоритет поддержки
+            </span>
           </div>
         </div>
 
         <div class="price-card card">
           <div class="price-card__label">Стоимость подписки</div>
           <div class="price-card__amount">
-            <span class="amount-val">50</span>
+            <span class="amount-val">200</span>
             <span class="currency">₽</span>
             <span class="period">/ 30 дней</span>
           </div>
@@ -48,32 +69,11 @@
           </div>
           <button class="btn btn-gold btn-buy-now" (click)="openBuyModal()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            <span>Купить VIP за 50 ₽</span>
+            <span>Купить VIP за 200 ₽</span>
           </button>
         </div>
       </div>
 
-    </div>
-  </section>
-
-  <!-- FEATURES LIST SECTION -->
-  <section class="features-section">
-    <div class="container">
-      <div class="section-header-center">
-        <h2 class="section-title">Что входит в статус <span class="gold-gradient-text">VIP SAMURAI</span></h2>
-        <p class="section-desc">Полный перечень возможностей и привилегий, доступных сразу после активации</p>
-      </div>
-
-      <div class="features-grid">
-        <div class="feature-card card" *ngFor="let feat of vipFeatures">
-          <div class="feature-card__top">
-            <div class="feature-card__icon" [innerHTML]="getFeatureSvgIcon(feat.icon)"></div>
-            <span class="feature-card__badge" *ngIf="feat.badge">{{ feat.badge }}</span>
-          </div>
-          <h3 class="feature-card__title">{{ feat.title }}</h3>
-          <p class="feature-card__desc">{{ feat.desc }}</p>
-        </div>
-      </div>
     </div>
   </section>
 

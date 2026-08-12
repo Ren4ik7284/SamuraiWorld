@@ -25,7 +25,7 @@ export class StoreComponent implements OnInit, OnDestroy {
   private userSub!: Subscription;
 
   // Pricing details
-  vipPrice = 50;
+  vipPrice = 200;
 
   // Checkout modal state
   showBuyModal = false;
@@ -42,57 +42,7 @@ export class StoreComponent implements OnInit, OnDestroy {
   lastOrderId = '';
   commandCopied = false;
 
-  // Core VIP features focusing on inspection, chest logs, helper RP functions (No command strings)
-  vipFeatures: VipFeature[] = [
-    {
-      icon: 'search',
-      title: 'Инспекция сундуков (CoreProtect)',
-      desc: 'Точная история всех операций с предметами: кто, что и в какую секунду забирал или клал ресурсы в сундуки.',
-      badge: 'ЛОГИ СУНДУКОВ'
-    },
-    {
-      icon: 'scroll',
-      title: 'Аудит территории и блоков',
-      desc: 'Просмотр истории изменения блоков, дверей и механизмов на вашей территории для защиты от гриферства.',
-      badge: 'БЕЗОПАСНОСТЬ'
-    },
-    {
-      icon: 'radar',
-      title: 'Радар игроков поблизости (/near)',
-      desc: 'Мгновенное определение присутствия других игроков в радиусе вокруг вас для безопасного выживания.',
-      badge: 'УТИЛИТА'
-    },
-    {
-      icon: 'clock',
-      title: 'Пинг и Статистика (/ping)',
-      desc: 'Проверка отклика соединения (/ping) и точный учёт проведённого времени на сервере (/playtime).',
-      badge: 'ИНФО'
-    },
-    {
-      icon: 'home',
-      title: 'Дополнительные точки дома',
-      desc: 'Возможность сохранять дополнительные приватные точки (/sethome) для быстрого перемещения между базами.',
-      badge: 'КОМФОРТ'
-    },
-    {
-      icon: 'unlock',
-      title: 'Вход на сервер без очереди',
-      desc: 'Выделенный приоритетный слот подключения. Заходите на сервер без ожидания даже в пиковый онлайн.',
-      badge: 'ПРИОРИТЕТ'
-    },
-    {
-      icon: 'paint',
-      title: 'Золотой никнейм в чате',
-      desc: 'Элегантный золотой градиент никнейма в игровом чате и в списке игроков по клавише TAB.',
-      badge: 'ПРЕСТИЖ'
-    },
-    {
-      icon: 'chat',
-      title: 'VIP роль в Discord',
-      desc: 'Автоматическая выдача роли VIP в официальном Discord и доступ в закрытый чат спонсоров проекта.',
-      badge: 'DISCORD'
-    }
-  ];
+  // VIP features removed - will be added later
 
   // FAQ Items
   faqItems = [
