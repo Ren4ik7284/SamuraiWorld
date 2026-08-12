@@ -24,8 +24,10 @@ export class StoreComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   private userSub!: Subscription;
 
+  // Pricing details
   vipPrice = 200;
 
+  // Checkout modal state
   showBuyModal = false;
   nicknameInput = '';
   promoCodeInput = '';
@@ -40,6 +42,9 @@ export class StoreComponent implements OnInit, OnDestroy {
   lastOrderId = '';
   commandCopied = false;
 
+  // VIP features removed - will be added later
+
+  // FAQ Items
   faqItems = [
     {
       q: 'Как работает VIP статус?',

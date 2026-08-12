@@ -1,3 +1,4 @@
+/* ===== SAKURA ===== */
 .sakura {
   position: fixed;
   inset: 0;
@@ -11,6 +12,7 @@
   animation: sakura linear infinite;
 }
 
+/* ===== HERO ===== */
 .hero {
   position: relative;
   min-height: 100svh;
@@ -158,6 +160,7 @@
 
 .hero__ip-addr { flex: 1; }
 
+/* Scroll cue */
 .hero__scroll {
   position: absolute;
   bottom: 36px;
@@ -181,6 +184,7 @@
   animation: scrollLine 2.4s ease-in-out infinite;
 }
 
+/* ===== STATS ===== */
 .stats {
   position: relative;
   z-index: 1;
@@ -262,6 +266,7 @@
   white-space: nowrap;
 }
 
+/* ===== FEATURES ===== */
 .features__grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -328,6 +333,7 @@
   flex: 1;
 }
 
+/* ===== NEWS ===== */
 .news__grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -390,6 +396,7 @@
   flex: 1;
 }
 
+/* ===== CTA ===== */
 .cta {
   position: relative;
   padding-block: 120px;
@@ -444,6 +451,7 @@
   padding-top: 4px;
 }
 
+/* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
   .features__grid { grid-template-columns: repeat(2, 1fr); }
   .cta__inner { grid-template-columns: 1fr; gap: 40px; }
@@ -508,3 +516,5 @@
   .stats__value { font-size: 0.95rem; }
   .stats__label { font-size: 0.72rem; }
 }
+
+

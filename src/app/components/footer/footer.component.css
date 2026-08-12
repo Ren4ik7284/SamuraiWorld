@@ -19,6 +19,7 @@
   padding-bottom: 56px;
 }
 
+/* Brand */
 .footer__logo {
   display: flex;
   align-items: center;
@@ -100,6 +101,7 @@
   fill: var(--clr-gold-3);
 }
 
+/* Columns */
 .footer__col-title {
   font-family: var(--font-display);
   font-size: 0.75rem;
@@ -128,6 +130,7 @@
   padding-left: 4px;
 }
 
+/* Info list */
 .footer__info-list {
   display: flex;
   flex-direction: column;
@@ -178,6 +181,7 @@
   flex-shrink: 0;
 }
 
+/* Bottom */
 .footer__bottom-row {
   display: flex;
   justify-content: space-between;
@@ -198,6 +202,7 @@
   font-style: italic;
 }
 
+/* Responsive */
 @media (max-width: 900px) {
   .footer__grid { grid-template-columns: 1fr 1fr; gap: 40px; }
   .footer__brand { grid-column: 1 / -1; }

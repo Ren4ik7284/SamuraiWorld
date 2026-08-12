@@ -19,7 +19,7 @@ import { RouterModule } from '@angular/router';
           <section style="margin-bottom: 28px;">
             <h2 style="font-size: 1.3rem; color: #f8fafc; margin-bottom: 12px; font-weight: 700;">1. Общие условия и предмет оферты</h2>
             <p>Настоящее Пользовательское соглашение (далее — Оферта) является официальным предложением проекта <strong>SamuraiWorld</strong> (далее — Исполнитель) заключить договор возмездного оказания цифровых услуг и приобретения внутриигровых цифровых статусов на сервере Minecraft.</p>
-            <p style="margin-top: 8px;">Оплата Пользователем любого цифрового товара или привилегии (включая VIP статус) на сайте <code>https:
+            <p style="margin-top: 8px;">Оплата Пользователем любого цифрового товара или привилегии (включая VIP статус) на сайте <code>https://my-minecraft-site.vercel.app/</code> является полным и безоговорочным акцептом данной Оферты.</p>
           </section>
 
           <section style="margin-bottom: 28px;">

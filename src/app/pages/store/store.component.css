@@ -1,3 +1,9 @@
+/* ============================================
+   SAMURAI WORLD — BRAND VIP STORE (100 ₽)
+   Refined Dark Japanese Brand Styling (No excess neon)
+   ============================================ */
+
+/* Hero Banner */
 .store-hero {
   position: relative;
   padding: 70px 0 45px;
@@ -51,6 +57,7 @@
   line-height: 1.6;
 }
 
+/* Info Strip (2 cards) */
 .store-hero__info-strip {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -89,6 +96,7 @@
   color: var(--text-muted);
 }
 
+/* VIP SHOWCASE CONTAINER */
 .vip-showcase {
   display: grid;
   grid-template-columns: 1.4fr 1fr;
@@ -148,6 +156,7 @@
   color: #cbd5e1;
 }
 
+/* Highlight Box */
 .vip-highlight-box {
   display: flex;
   flex-direction: column;
@@ -185,6 +194,7 @@
   line-height: 1.5;
 }
 
+/* Feature Chips */
 .vip-features-chips {
   display: flex;
   flex-wrap: wrap;
@@ -215,6 +225,7 @@
   flex-shrink: 0;
 }
 
+/* Price Card (Right Column) */
 .price-card {
   display: flex;
   flex-direction: column;
@@ -304,6 +315,7 @@
   justify-content: center;
 }
 
+/* FEATURES DETAIL GRID */
 .features-section {
   margin-bottom: 60px;
 }
@@ -396,6 +408,7 @@
   line-height: 1.6;
 }
 
+/* FAQ SECTION */
 .store-faq {
   margin-bottom: 50px;
 }
@@ -427,6 +440,7 @@
   line-height: 1.55;
 }
 
+/* MODAL COMMON STYLES */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -514,6 +528,7 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* CHECKOUT FORM IN MODAL */
 .checkout-form-group {
   margin-bottom: 16px;
 }
@@ -587,6 +602,7 @@
   margin-bottom: 0;
 }
 
+/* Promo Code */
 .promo-wrap {
   display: flex;
   gap: 8px;
@@ -613,6 +629,7 @@
 .promo-msg.error { color: var(--accent-red-bright); }
 .promo-msg.success { color: #00b894; }
 
+/* Payment Methods Grid */
 .payment-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -660,6 +677,7 @@
   color: #94a3b8;
 }
 
+/* Checkout Summary */
 .checkout-summary {
   background: rgba(24, 12, 18, 0.95);
   border: 1px solid rgba(212, 160, 23, 0.3);
@@ -701,6 +719,7 @@
   padding: 13px 20px;
 }
 
+/* SUCCESS CHECKOUT STEP */
 .checkout-success-body {
   text-align: center;
   padding: 16px 10px 10px;
@@ -810,6 +829,7 @@
   font-size: 0.76rem;
 }
 
+/* RESPONSIVE DESIGN FOR MOBILE PHONES */
 @media (max-width: 900px) {
   .vip-showcase {
     grid-template-columns: 1fr;

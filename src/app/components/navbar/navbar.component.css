@@ -21,6 +21,7 @@
   gap: 32px;
 }
 
+/* ---- Logo ---- */
 .navbar__logo {
   display: flex;
   align-items: center;
@@ -65,6 +66,7 @@
   opacity: 0.75;
 }
 
+/* ---- Nav Links ---- */
 .navbar__nav { flex: 1; display: flex; justify-content: center; }
 
 .navbar__list {
@@ -121,12 +123,14 @@
   color: var(--clr-gold-2);
 }
 
+/* ---- CTA ---- */
 .navbar__cta {
   flex-shrink: 0;
   padding: 10px 22px;
   font-size: 0.8rem;
 }
 
+/* ---- Burger ---- */
 .navbar__burger {
   display: none;
   flex-direction: column;
@@ -157,6 +161,7 @@
 .navbar__burger--open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
 .navbar__burger--open span:nth-child(3) { transform: rotate(-45deg) translate(4.5px, -4.5px); }
 
+/* ---- Drawer ---- */
 .navbar__drawer {
   position: fixed;
   top: 0; right: 0;
@@ -262,6 +267,7 @@
   border-top: 1px solid rgba(255,255,255,0.08);
 }
 
+/* ---- Overlay ---- */
 .navbar__overlay {
   position: fixed;
   inset: 0;
@@ -278,8 +284,10 @@
   visibility: visible;
 }
 
+/* ---- Spacer ---- */
 .navbar__spacer { height: 72px; }
 
+/* ---- Navbar Auth & Profile Chip ---- */
 .navbar__actions {
   display: flex;
   align-items: center;
@@ -452,6 +460,7 @@
   margin-bottom: 12px;
 }
 
+/* ---- Global Auth Modal ---- */
 .auth-modal-overlay {
   position: fixed;
   inset: 0;
@@ -650,6 +659,7 @@
   box-shadow: 0 4px 14px rgba(201, 146, 10, 0.4);
 }
 
+/* ---- Responsive ---- */
 @media (max-width: 900px) {
   .navbar__nav, .navbar__actions { display: none; }
   .navbar__burger { display: flex; }

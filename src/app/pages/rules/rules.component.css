@@ -1,3 +1,4 @@
+/* ===== PAGE HEADER ===== */
 .page-header {
   position: relative;
   padding: 100px 0 60px;
@@ -29,6 +30,7 @@
   margin: 0 auto;
 }
 
+/* ===== NOTICE ===== */
 .notice {
   display: flex;
   align-items: flex-start;
@@ -63,6 +65,7 @@
   color: var(--clr-text-1);
 }
 
+/* ===== NAV TABS ===== */
 .rules-nav {
   display: flex;
   flex-wrap: wrap;
@@ -115,6 +118,7 @@
   color: var(--clr-gold-2);
 }
 
+/* ===== SECTIONS ===== */
 .rules-sections {
   display: flex;
   flex-direction: column;
@@ -136,6 +140,7 @@
   border-color: rgba(201,146,10,0.25);
 }
 
+/* Section head */
 .rules-section__head {
   display: flex;
   align-items: center;
@@ -176,6 +181,7 @@
   flex-shrink: 0;
 }
 
+/* Discord section icon is fill-based */
 .rules-section__icon svg[fill="currentColor"] {
   stroke: none;
   fill: var(--clr-red-3);
@@ -226,12 +232,14 @@
   stroke: var(--clr-gold-2);
 }
 
+/* Section body */
 .rules-section__body {
   padding: 0 28px 28px;
   border-top: 1px solid rgba(255,255,255,0.05);
   animation: fadeIn 0.3s var(--ease-out);
 }
 
+/* Rules list */
 .rules-list {
   display: flex;
   flex-direction: column;
@@ -269,6 +277,7 @@
   line-height: 1.65;
 }
 
+/* Bullets */
 .rules-item__bullets {
   display: flex;
   flex-direction: column;
@@ -296,6 +305,7 @@
   opacity: 0.7;
 }
 
+/* ===== PENALTIES ===== */
 .penalties-block {
   margin-bottom: 80px;
 }
@@ -371,6 +381,7 @@
   line-height: 1.55;
 }
 
+/* ===== FINAL RULE ===== */
 .final-rule {
   position: relative;
   margin-bottom: 40px;
@@ -426,6 +437,7 @@
   position: relative;
 }
 
+/* ===== RESPONSIVE ===== */
 @media (max-width: 900px) {
   .penalties-grid { grid-template-columns: repeat(3, 1fr); }
 }
@@ -472,3 +484,4 @@
   .rules-section__count { font-size: 0.65rem; padding: 2px 6px; }
   .rules-section__chevron { width: 14px; height: 14px; }
 }
+

@@ -53,18 +53,19 @@ export class AuthService {
           localStorage.setItem(this.userKey, JSON.stringify(savedUser));
         }
         this.currentUserSubject.next(savedUser);
-
+        
+        // Подтверждаем сессию на сервере в фоновом режиме
         this.fetchProfile().subscribe({
           error: () => {
             this.refreshToken().subscribe({
               error: () => {
-
+                // При проблемах сети сохраняем локальную сессию
               },
             });
           },
         });
       } catch (e) {
-
+        // Ошибка парсинга
       }
     }
   }
@@ -86,6 +87,9 @@ export class AuthService {
     return !!user && (user.role === 'admin' || user.role === 'support' || ['ren4ik284', 'mydaf0n62'].includes(user.nickname?.toLowerCase()));
   }
 
+  /**
+   * Получение HTTP заголовка авторизации Bearer
+   */
   public getAuthHeaders(): { headers: HttpHeaders } {
     const token = this.accessToken;
     if (token) {
@@ -117,10 +121,13 @@ export class AuthService {
       };
       localStorage.setItem(this.accountsKey, JSON.stringify(accounts));
     } catch {
-
+      // Игнорируем ошибки кэша
     }
   }
 
+  /**
+   * Регистрация нового аккаунта
+   */
   register(dto: { nickname: string; email?: string; password: string }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, dto).pipe(
       tap((res) => this.handleAuthSuccess(res, dto.password)),
@@ -128,6 +135,9 @@ export class AuthService {
     );
   }
 
+  /**
+   * Вход в систему (Авторизация)
+   */
   login(dto: { nickname: string; password: string }): Observable<AuthResponse> {
     const accounts = this.getKnownAccounts();
     const clientUser = accounts[dto.nickname.trim().toLowerCase()];
@@ -135,7 +145,7 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { ...dto, clientUser }).pipe(
       tap((res) => this.handleAuthSuccess(res, dto.password)),
       catchError((err) => {
-
+        // Локальное возобновление сессии при холодном старте Vercel
         if (clientUser && clientUser.password === dto.password) {
           const fallbackRes: AuthResponse = {
             user: {
@@ -161,6 +171,9 @@ export class AuthService {
     );
   }
 
+  /**
+   * Обновление Access токена по Refresh токену
+   */
   refreshToken(): Observable<AuthTokens> {
     const refreshTokenStr = localStorage.getItem(this.refreshTokenKey);
     if (!refreshTokenStr) {
@@ -180,6 +193,9 @@ export class AuthService {
     );
   }
 
+  /**
+   * Получение профиля текущего пользователя
+   */
   fetchProfile(): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/me`, this.getAuthHeaders()).pipe(
       tap((user) => {
@@ -189,6 +205,9 @@ export class AuthService {
     );
   }
 
+  /**
+   * Смена аватарки пользователя на любую ссылку или пресет
+   */
   updateAvatar(newAvatarUrl: string): Observable<User> {
     const user = this.currentUserValue;
     if (!user) return throwError(() => new Error('Пользователь не авторизован'));
@@ -203,6 +222,9 @@ export class AuthService {
     );
   }
 
+  /**
+   * Выход из аккаунта
+   */
   logout(): void {
     localStorage.removeItem(this.accessTokenKey);
     localStorage.removeItem(this.refreshTokenKey);
