@@ -147,7 +147,7 @@ export async function grantVipInMinecraft(nickname, options = {}) {
   }
 
   // 2. Try RCON
-  const rconHost = options.rconHost || process.env.MINECRAFT_RCON_HOST || 'qwertyx.host';
+  const rconHost = options.rconHost || process.env.MINECRAFT_RCON_HOST || '188.127.241.231';
   const rconPassword = options.rconPassword || process.env.MINECRAFT_RCON_PASSWORD || 'Samurai2026Vip';
   const portsToTry = options.rconPort ? [parseInt(options.rconPort, 10)] : [25575, 26687];
 
