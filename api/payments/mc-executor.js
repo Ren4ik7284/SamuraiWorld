@@ -108,16 +108,19 @@ export async function grantVipInMinecraft(nickname, options = {}) {
   const nick = nickname.trim();
   const results = [];
 
-  // Commands executed to grant VIP rank and announce it in game
-  const commands = options.commands || [
-    `lp user ${nick} parent set vip`,
-    `luckperms user ${nick} parent set vip`,
-    `lp user ${nick} parent add vip`,
-    `luckperms user ${nick} parent add vip`,
-    `manuadd ${nick} vip`,
-    `say 🎉 [SamuraiWorld] Игрок ${nick} получил VIP статус! Спасибо за поддержку сервера!`,
-    `title ${nick} title {"text":"VIP АКТИВИРОВАН!","color":"gold"}`
+  // Commands executed to grant VIP rank for 30 days and announce it in game
+  const rawCommands = options.commands || [
+    `lp user ${nick} parent addtemp vip 30d`,
+    `luckperms user ${nick} parent addtemp vip 30d`,
+    `say 🎉 [SamuraiWorld] Игрок ${nick} получил VIP статус на 30 дней! Спасибо за поддержку сервера!`,
+    `title ${nick} title {"text":"VIP 30 ДНЕЙ АКТИВИРОВАН!","color":"gold"}`
   ];
+
+  const commands = rawCommands.map(cmd => 
+    cmd.replace(/\{player\}/gi, nick)
+       .replace(/%player%/gi, nick)
+       .replace(/\{nickname\}/gi, nick)
+  );
 
   // 1. Try Pterodactyl API (qwertyx.host)
   const pteroUrl = options.pteroUrl || process.env.PTERODACTYL_URL || 'https://qwertyx.host';

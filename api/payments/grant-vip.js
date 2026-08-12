@@ -38,8 +38,12 @@ export default async function handler(req, res) {
     if (rconPassword) options.rconPassword = rconPassword;
 
     if (customCommand) {
+      const formattedCmd = customCommand
+        .replace(/\{player\}/gi, cleanNick)
+        .replace(/%player%/gi, cleanNick)
+        .replace(/\{nickname\}/gi, cleanNick);
       options.commands = [
-        customCommand.replace('{nickname}', cleanNick),
+        formattedCmd,
         `say 🎉 Игрок ${cleanNick} получил услугу на сервере!`
       ];
     }
