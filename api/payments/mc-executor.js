@@ -127,7 +127,13 @@ export async function grantVipInMinecraft(nickname, options = {}) {
   const pteroKey = options.pteroKey || process.env.PTERODACTYL_API_KEY || '';
   const pteroServerId = options.pteroServerId || process.env.PTERODACTYL_SERVER_ID || '451a0a34';
 
-  if (pteroKey && pteroServerId) {
+  if (!pteroKey) {
+    results.push({
+      driver: 'Pterodactyl API (qwertyx.host)',
+      success: false,
+      error: 'Ключ PTERODACTYL_API_KEY не добавлен в Vercel Environment Variables! Зайдите в Vercel -> Settings -> Environment Variables и добавьте PTERODACTYL_API_KEY'
+    });
+  } else {
     try {
       for (const cmd of commands) {
         await sendPterodactylCommand(pteroUrl, pteroKey, pteroServerId, cmd);
@@ -135,13 +141,13 @@ export async function grantVipInMinecraft(nickname, options = {}) {
       results.push({
         driver: 'Pterodactyl API (qwertyx.host)',
         success: true,
-        message: `VIP выдана игроку ${nick} через консоль хостинга!`
+        message: `Команда выполена в консоли qwertyx.host для игрока ${nick}!`
       });
     } catch (err) {
       results.push({
         driver: 'Pterodactyl API (qwertyx.host)',
         success: false,
-        error: err.message
+        error: `Ошибка API хостинга: ${err.message}`
       });
     }
   }

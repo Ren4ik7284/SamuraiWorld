@@ -60,11 +60,13 @@ export default async function handler(req, res) {
       }
 
       const hasSuccess = execResult.results.some(r => r.success);
-      return res.status(200).json({
-        status: hasSuccess ? 'SUCCESS' : 'PENDING',
+      const errorsList = execResult.results.map(r => r.error).filter(Boolean).join(' | ');
+
+      return res.status(hasSuccess ? 200 : 400).json({
+        status: hasSuccess ? 'SUCCESS' : 'ERROR',
         message: hasSuccess
           ? `VIP статус успешно активирован в Minecraft для игрока ${cleanNick}!`
-          : `VIP зачислен в систему для игрока ${cleanNick}. Авто-выдача в процессе обработки.`,
+          : `Не удалось выполнить команду на сервере: ${errorsList || 'Нет ответа от сервера'}`,
         result: execResult
       });
     } catch (err) {
