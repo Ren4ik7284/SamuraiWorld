@@ -8,71 +8,143 @@
       <div class="store-hero__header">
         <div class="store-hero__badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;color:var(--clr-gold-2);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          <span>Единственная привилегия на сервере</span>
+          <span>Магазин SamuraiWorld</span>
         </div>
         <h1 class="store-hero__title">Магазин <span class="gold-gradient-text">SamuraiWorld</span></h1>
         <p class="store-hero__sub">
-          На нашем сервере нет продажных ресурсов или креатива. VIP статус даёт исключительно удобство (просмотр логов сундуков) и подчёркивает вашу поддержку проекта.
+          На нашем сервере нет продажных ресурсов или креатива. Проходка — это ваш билет на сервер, VIP даёт дополнительные инструменты и подчёркивает вашу поддержку проекта.
         </p>
       </div>
 
-      <div class="vip-showcase card">
-        <div class="vip-showcase__main">
-          <div class="vip-showcase__header">
-            <div class="vip-icon-ring">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:32px;height:32px;color:var(--clr-gold-2);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <!-- Products Grid -->
+      <div class="products-grid">
+
+        <!-- PASS CARD -->
+        <div class="vip-showcase card pass-card">
+          <div class="vip-showcase__main">
+            <div class="vip-showcase__header">
+              <div class="vip-icon-ring pass-icon-ring">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:32px;height:32px;color:#38bdf8;">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+                </svg>
+              </div>
+              <div>
+                <h2 class="vip-title">Проходка <span class="pass-gradient-text">на сервер</span></h2>
+                <p class="vip-subtitle">Доступ на сервер, группа member, базовые права игрока</p>
+              </div>
             </div>
-            <div>
-              <h2 class="vip-title">Статус <span class="gold-gradient-text">VIP SAMURAI</span></h2>
-              <p class="vip-subtitle">Логирование сундуков, аудит и выделенный статус</p>
+
+            <div class="vip-features-chips">
+              <span class="chip chip--pass">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                Игровой аккаунт
+              </span>
+              <span class="chip chip--pass">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                  <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                Доступ на сервер
+              </span>
+              <span class="chip chip--pass">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                Быстрая активация
+              </span>
+              <span class="chip chip--pass">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Чат и общение
+              </span>
             </div>
           </div>
 
-          <div class="vip-features-chips">
-            <span class="chip">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <polyline points="9 12 11 14 15 10"/>
+          <div class="price-card card">
+            <div class="price-card__label">Стоимость проходки</div>
+            <div class="price-card__amount">
+              <span class="amount-val">150</span>
+              <span class="currency">₽</span>
+              <span class="period">/ вход</span>
+            </div>
+            <div class="payment-badge-row">
+              <span class="coinso-tag">RollyPay • СБП • Карты • Cryptobot</span>
+            </div>
+            <button class="btn btn-pass btn-buy-now" (click)="openPassModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
               </svg>
-              Защита от гриферства
-            </span>
-            <span class="chip">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-              </svg>
-              Логи сундуков
-            </span>
-            <span class="chip">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-              </svg>
-              Золотой ник в чате
-            </span>
-            <span class="chip">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
-              Приоритет поддержки
-            </span>
+              <span>Купить Проходку за 150 ₽</span>
+            </button>
           </div>
         </div>
 
-        <div class="price-card card">
-          <div class="price-card__label">Стоимость подписки</div>
-          <div class="price-card__amount">
-            <span class="amount-val">200</span>
-            <span class="currency">₽</span>
-            <span class="period">/ 30 дней</span>
+        <!-- VIP CARD -->
+        <div class="vip-showcase card">
+          <div class="vip-showcase__main">
+            <div class="vip-showcase__header">
+              <div class="vip-icon-ring">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:32px;height:32px;color:var(--clr-gold-2);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div>
+                <h2 class="vip-title">Статус <span class="gold-gradient-text">VIP SAMURAI</span></h2>
+                <p class="vip-subtitle">Логирование сундуков, аудит и выделенный статус</p>
+              </div>
+            </div>
+
+            <div class="vip-features-chips">
+              <span class="chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <polyline points="9 12 11 14 15 10"/>
+                </svg>
+                Защита от гриферства
+              </span>
+              <span class="chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                Логи сундуков
+              </span>
+              <span class="chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                Золотой ник в чате
+              </span>
+              <span class="chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Приоритет поддержки
+              </span>
+            </div>
           </div>
-          <div class="payment-badge-row">
-            <span class="coinso-tag">RollyPay • СБП • Карты • Cryptobot</span>
+
+          <div class="price-card card">
+            <div class="price-card__label">Стоимость подписки</div>
+            <div class="price-card__amount">
+              <span class="amount-val">200</span>
+              <span class="currency">₽</span>
+              <span class="period">/ 30 дней</span>
+            </div>
+            <div class="payment-badge-row">
+              <span class="coinso-tag">RollyPay • СБП • Карты • Cryptobot</span>
+            </div>
+            <button class="btn btn-gold btn-buy-now" (click)="openBuyModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <span>Купить VIP за 200 ₽</span>
+            </button>
           </div>
-          <button class="btn btn-gold btn-buy-now" (click)="openBuyModal()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            <span>Купить VIP за 200 ₽</span>
-          </button>
         </div>
-      </div>
+
+      </div><!-- /products-grid -->
 
     </div>
   </section>
@@ -86,7 +158,10 @@
     <div class="modal-header">
       <div>
         <div class="modal-subtitle">Оформление покупки</div>
-        <h3 class="modal-title">VIP Статус на 30 дней</h3>
+        <h3 class="modal-title" *ngIf="modalType === 'vip'">VIP Статус на 30 дней</h3>
+        <h3 class="modal-title" *ngIf="modalType === 'pass'">
+          <span style="color:#38bdf8;display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:20px;height:20px;flex-shrink:0"><path d="M2 9a1 1 0 0 1 0-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a1 1 0 0 1 0 2v6a1 1 0 0 1 0 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2a1 1 0 0 1 0-2V9z"/><line x1="9" y1="5" x2="9" y2="19" stroke-dasharray="2 2"/></svg></span> Проходка на сервер
+        </h3>
       </div>
       <button class="modal-close" (click)="closeBuyModal()" title="Закрыть">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -116,11 +191,13 @@
       <div class="checkout-info-box glass-card">
         <div class="info-box-row">
           <span>Товар:</span>
-          <strong>VIP статус (Логи сундуков и утилиты)</strong>
+          <strong *ngIf="modalType === 'vip'">VIP статус (Логи сундуков и утилиты)</strong>
+          <strong *ngIf="modalType === 'pass'" style="display:inline-flex;align-items:center;gap:5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px;flex-shrink:0"><path d="M2 9a1 1 0 0 1 0-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a1 1 0 0 1 0 2v6a1 1 0 0 1 0 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2a1 1 0 0 1 0-2V9z"/><line x1="9" y1="5" x2="9" y2="19" stroke-dasharray="2 2"/></svg> Проходка на сервер (member)</strong>
         </div>
         <div class="info-box-row">
           <span>Период:</span>
-          <strong>1 месяц (30 дней)</strong>
+          <strong *ngIf="modalType === 'vip'">1 месяц (30 дней)</strong>
+          <strong *ngIf="modalType === 'pass'">Постоянный доступ</strong>
         </div>
         <div class="info-box-row">
           <span>Выдача:</span>
@@ -128,8 +205,8 @@
         </div>
       </div>
 
-      <!-- Promo Code Input -->
-      <div class="checkout-form-group" style="margin-top: 16px;">
+      <!-- Promo Code Input (only for VIP) -->
+      <div class="checkout-form-group" *ngIf="modalType === 'vip'" style="margin-top: 16px;">
         <label class="checkout-label">Промокод (если есть):</label>
         <div class="promo-wrap">
           <input 
@@ -143,6 +220,8 @@
         <div class="promo-msg error" *ngIf="promoError">{{ promoError }}</div>
         <div class="promo-msg success" *ngIf="promoSuccess">{{ promoSuccess }}</div>
       </div>
+      <!-- Error for pass -->
+      <div class="promo-msg error" *ngIf="promoError && modalType === 'pass'" style="margin-top: 12px;">{{ promoError }}</div>
 
       <!-- Payment Method Selection via RollyPay -->
       <div class="checkout-form-group" style="margin-top: 16px;">
@@ -197,13 +276,14 @@
 
       <!-- Total Price Summary -->
       <div class="checkout-summary">
-        <div class="summary-row" *ngIf="discountPercent > 0">
+        <div class="summary-row" *ngIf="discountPercent > 0 && modalType === 'vip'">
           <span>Скидка по промокоду:</span>
           <strong class="discount-val">-{{ discountPercent }}% ({{ appliedPromo }})</strong>
         </div>
         <div class="summary-row summary-row--total">
           <span>К оплате:</span>
-          <span class="total-price">{{ calculatePrice() }} ₽</span>
+          <span class="total-price" *ngIf="modalType === 'vip'">{{ calculatePrice() }} ₽</span>
+          <span class="total-price" *ngIf="modalType === 'pass'">150 ₽</span>
         </div>
       </div>
 
@@ -218,14 +298,20 @@
         <h3>Заказ зарегистрирован!</h3>
         <p>Игровой ник: <strong>{{ nicknameInput }}</strong></p>
         <p>Номер заказа: <strong>{{ lastOrderId }}</strong></p>
-        <p class="text-sm opacity-80 mt-2">После успешной оплаты VIP статус зачисляется автоматически прямо на сервере!</p>
+        <p class="text-sm opacity-80 mt-2">После успешной оплаты {{ modalType === 'pass' ? 'Проходка' : 'VIP статус' }} зачисляется автоматически прямо на сервере!</p>
 
         <div style="margin-top: 1rem; padding: 1rem; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px;">
-          <h4 style="margin: 0 0 0.5rem 0; color: #38bdf8; font-size: 0.95rem;">⚡ Автоматическая активация VIP</h4>
-          <p style="font-size: 0.85rem; margin-bottom: 0.75rem; color: #cbd5e1;">Если вы уже совершили оплату или хотите проверить выдачу статуса в игре:</p>
-          <button type="button" class="btn btn-primary" (click)="triggerInstantGrant()" [disabled]="isGranting" style="width: 100%; font-weight: 600;">
-            <span *ngIf="!isGranting">⚡ Активировать / Проверить VIP в игре сейчас</span>
+          <h4 style="margin: 0 0 0.5rem 0; color: #38bdf8; font-size: 0.95rem; display:flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Автоматическая активация</h4>
+          <p style="font-size: 0.85rem; margin-bottom: 0.75rem; color: #cbd5e1;">Если вы уже совершили оплату или хотите проверить выдачу в игре:</p>
+          <!-- VIP grant button -->
+          <button *ngIf="modalType === 'vip'" type="button" class="btn btn-primary" (click)="triggerInstantGrant()" [disabled]="isGranting" style="width: 100%; font-weight: 600;">
+            <span *ngIf="!isGranting" style="display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Активировать / Проверить VIP в игре сейчас</span>
             <span *ngIf="isGranting">Отправка команды на сервер...</span>
+          </button>
+          <!-- Pass grant button -->
+          <button *ngIf="modalType === 'pass'" type="button" class="btn btn-pass" (click)="triggerInstantGrantPass()" [disabled]="isGranting" style="width: 100%; font-weight: 600;">
+            <span *ngIf="!isGranting" style="display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px;flex-shrink:0"><path d="M2 9a1 1 0 0 1 0-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a1 1 0 0 1 0 2v6a1 1 0 0 1 0 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2a1 1 0 0 1 0-2V9z"/><line x1="9" y1="5" x2="9" y2="19" stroke-dasharray="2 2"/></svg> Активировать Проходку в игре сейчас</span>
+            <span *ngIf="isGranting">Активация Проходки...</span>
           </button>
           <div *ngIf="grantStatusMessage" style="margin-top: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #fde047; text-align: center;">
             {{ grantStatusMessage }}
@@ -243,7 +329,7 @@
         [disabled]="isProcessingPay"
         *ngIf="checkoutStep === 1"
       >
-        <span *ngIf="!isProcessingPay">Перейти к оплате {{ calculatePrice() }} ₽</span>
+        <span *ngIf="!isProcessingPay">Перейти к оплате {{ modalType === 'pass' ? 150 : calculatePrice() }} ₽</span>
         <span *ngIf="isProcessingPay">Создание платежа...</span>
       </button>
     </div>

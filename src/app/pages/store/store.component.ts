@@ -28,9 +28,12 @@ export class StoreComponent implements OnInit, OnDestroy {
 
   // Pricing details
   vipPrice = 200;
+  passPrice = 150;
 
   // Checkout modal state
   showBuyModal = false;
+  /** 'vip' — покупка VIP, 'pass' — покупка Проходки */
+  modalType: 'vip' | 'pass' = 'vip';
   nicknameInput = '';
   promoCodeInput = '';
   appliedPromo = '';
@@ -83,11 +86,17 @@ export class StoreComponent implements OnInit, OnDestroy {
     this.route.queryParams.subscribe(params => {
       if (params['payment'] === 'success') {
         const nick = params['nickname'] || 'Игрок';
+        const type = params['type'] === 'pass' ? 'pass' : 'vip';
         this.lastOrderId = params['order'] || 'ROLLY-SUCCESS';
         this.nicknameInput = nick;
+        this.modalType = type;
         this.showBuyModal = true;
         this.checkoutStep = 2;
-        this.triggerInstantGrant();
+        if (type === 'pass') {
+          this.triggerInstantGrantPass();
+        } else {
+          this.triggerInstantGrant();
+        }
       }
     });
   }
@@ -100,6 +109,22 @@ export class StoreComponent implements OnInit, OnDestroy {
 
   openBuyModal(): void {
     this.showBuyModal = true;
+    this.modalType = 'vip';
+    this.checkoutStep = 1;
+    this.discountPercent = 0;
+    this.appliedPromo = '';
+    this.promoError = '';
+    this.promoSuccess = '';
+    this.promoCodeInput = '';
+
+    if (this.currentUser?.nickname) {
+      this.nicknameInput = this.currentUser.nickname;
+    }
+  }
+
+  openPassModal(): void {
+    this.showBuyModal = true;
+    this.modalType = 'pass';
     this.checkoutStep = 1;
     this.discountPercent = 0;
     this.appliedPromo = '';
@@ -152,6 +177,11 @@ export class StoreComponent implements OnInit, OnDestroy {
   }
 
   submitRollypayOrder(): void {
+    if (this.modalType === 'pass') {
+      this.submitPassOrder();
+      return;
+    }
+
     const paymentResult = PaymentSchema.safeParse({
       nickname: (this.nicknameInput || '').trim(),
       promoCode: this.appliedPromo || undefined,
@@ -187,6 +217,36 @@ export class StoreComponent implements OnInit, OnDestroy {
     });
   }
 
+  submitPassOrder(): void {
+    const nick = (this.nicknameInput || '').trim();
+    if (!nick || nick.length < 3) {
+      this.promoError = 'Укажите верный никнейм (3-16 символов)';
+      return;
+    }
+
+    this.isProcessingPay = true;
+    this.promoError = '';
+
+    this.http.post<{ payUrl: string; orderId: string }>('/api/payments/pass', {
+      nickname: nick,
+      paymentMethod: this.selectedPayment,
+    }).subscribe({
+      next: (res: { payUrl: string; orderId: string }) => {
+        this.isProcessingPay = false;
+        this.lastOrderId = res.orderId;
+        if (res.payUrl) {
+          window.location.href = res.payUrl;
+        } else {
+          this.checkoutStep = 2;
+        }
+      },
+      error: (err: any) => {
+        this.isProcessingPay = false;
+        this.promoError = err.error?.message || 'Ошибка создания платежа для Проходки';
+      }
+    });
+  }
+
   grantStatusMessage = '';
   isGranting = false;
 
@@ -203,6 +263,27 @@ export class StoreComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.isGranting = false;
         this.grantStatusMessage = res.message || 'VIP статус выдан!';
+      },
+      error: (err) => {
+        this.isGranting = false;
+        this.grantStatusMessage = err.error?.message || err.error?.error || 'Не удалось отправить команду на сервер';
+      }
+    });
+  }
+
+  triggerInstantGrantPass(): void {
+    const nick = (this.nicknameInput || '').trim();
+    if (!nick) {
+      this.grantStatusMessage = 'Укажите никнейм!';
+      return;
+    }
+    this.isGranting = true;
+    this.grantStatusMessage = 'Активация Проходки на сервере...';
+
+    this.http.post<any>('/api/payments/grant-pass', { nickname: nick }).subscribe({
+      next: (res) => {
+        this.isGranting = false;
+        this.grantStatusMessage = res.message || 'Проходка активирована!';
       },
       error: (err) => {
         this.isGranting = false;
