@@ -146,13 +146,12 @@ a:hover { color: var(--accent-gold-bright); }
   border-radius: 16px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  transition: var(--transition);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
 }
 
 .glass-card:hover {
   border-color: var(--border-accent);
-  transform: translateY(-4px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 
 /* ---- Buttons ---- */
@@ -168,20 +167,20 @@ a:hover { color: var(--accent-gold-bright); }
   letter-spacing: 0.5px;
   cursor: pointer;
   border: none;
-  transition: var(--transition);
+  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
   text-transform: uppercase;
 }
 
 .btn-primary {
   background: linear-gradient(135deg, var(--accent-red) 0%, #8b1a14 100%);
   color: var(--text-primary);
-  box-shadow:;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
 }
 .btn-primary:hover {
   background: linear-gradient(135deg, var(--accent-red-bright) 0%, var(--accent-red) 100%);
-  transform: translateY(-2px);
-  box-shadow:;
   color: #fff;
+  opacity: 0.92;
+  box-shadow: 0 6px 20px rgba(192, 57, 43, 0.4);
 }
 
 .btn-outline {
@@ -192,8 +191,7 @@ a:hover { color: var(--accent-gold-bright); }
 .btn-outline:hover {
   background: var(--accent-gold);
   color: var(--bg-primary);
-  transform: translateY(-2px);
-  box-shadow:;
+  box-shadow: 0 6px 20px rgba(212, 160, 23, 0.3);
 }
 
 /* ---- Dividers ---- */

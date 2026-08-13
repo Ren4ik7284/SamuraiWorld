@@ -1032,11 +1032,12 @@
   font-size: 0.76rem;
 }
 
-/* RESPONSIVE DESIGN FOR MOBILE PHONES */
+/* RESPONSIVE DESIGN FOR MOBILE PHONES & TABLETS */
 @media (max-width: 900px) {
-  .vip-showcase {
+  .products-grid {
     grid-template-columns: 1fr;
-    padding: 20px 16px;
+    max-width: 500px;
+    margin: 0 auto;
     gap: 20px;
   }
 
@@ -1047,103 +1048,149 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 680px) {
   .store-hero {
     padding: 40px 0 20px;
   }
 
-  .store-hero__content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+  .store-hero__container {
+    padding: 0 12px;
   }
 
-  .info-strip__item {
-    justify-content: center;
-    text-align: center;
+  .store-hero__title {
+    font-size: 1.9rem;
   }
 
-  .vip-showcase {
-    padding: 20px 14px;
+  .store-hero__sub {
+    font-size: 0.92rem;
+    margin-bottom: 24px;
+  }
+
+  .products-grid {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+    width: 100%;
+    gap: 18px;
+    padding: 0;
+  }
+
+  .product-card {
+    padding: 18px 14px;
     border-radius: 16px;
-    display: flex;
-    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .product-card:hover {
+    transform: none;
+  }
+
+  .product-card__header {
+    gap: 12px;
+    margin-bottom: 16px;
     align-items: center;
-    text-align: center;
   }
 
-  .vip-badge-tag {
-    margin-inline: auto;
+  .product-card__title {
+    font-size: 1.35rem;
+    word-break: break-word;
   }
 
-  .vip-showcase__header {
-    flex-direction: column;
-    text-align: center;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .vip-title {
-    font-size: 1.4rem;
-    text-align: center;
-  }
-
-  .vip-subtitle {
-    text-align: center;
+  .product-card__subtitle {
+    font-size: 0.82rem;
+    line-height: 1.35;
   }
 
   .vip-icon-ring {
-    width: 48px;
-    height: 48px;
-    font-size: 1.5rem;
-    margin: 0 auto 10px;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
   }
 
-  .vip-highlight-box {
-    padding: 14px 12px;
-    border-radius: 12px;
-    align-items: center;
-    text-align: center;
-  }
-
-  .highlight-item {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .highlight-item p {
-    text-align: center;
+  .vip-icon-ring svg {
+    width: 24px !important;
+    height: 24px !important;
   }
 
   .vip-features-chips {
-    justify-content: center;
+    grid-template-columns: 1fr;
+    gap: 7px;
+    width: 100%;
+  }
+
+  .chip {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .chip svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
   }
 
   .price-card {
-    padding: 20px 14px;
-    border-radius: 16px;
-    align-items: center;
-    text-align: center;
+    padding: 16px 12px;
+    border-radius: 14px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .price-card__label {
+    font-size: 0.72rem;
+    margin-bottom: 4px;
   }
 
   .amount-val {
-    font-size: 2.8rem;
+    font-size: 2.6rem;
+  }
+
+  .currency {
+    font-size: 1.35rem;
+  }
+
+  .payment-badge-row {
+    margin-bottom: 12px;
+    width: 100%;
+  }
+
+  .coinso-tag {
+    font-size: 0.72rem;
+    padding: 4px 8px;
+    white-space: normal;
+    line-height: 1.3;
+    max-width: 100%;
+    display: inline-block;
+  }
+
+  .btn-pass,
+  .btn-gold {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .features-grid, .faq-grid {
     grid-template-columns: 1fr;
   }
 
-  .feature-card, .faq-card {
-    text-align: center;
-    align-items: center;
+  .feature-card {
+    padding: 18px 14px;
+  }
+
+  .feature-card:hover {
+    transform: none;
   }
 
   .modal-card {
-    padding: 20px 14px;
+    padding: 18px 14px;
     border-radius: 16px;
+    max-width: calc(100vw - 24px);
   }
 
   .payment-grid {
