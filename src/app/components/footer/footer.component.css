@@ -37,7 +37,7 @@
 
 .footer__logo:hover img {
   border-color: var(--clr-gold-2);
-  box-shadow: 0 0 16px rgba(201,146,10,0.35);
+  box-shadow:,146,10,0.35);
 }
 
 .footer__logo-name {
@@ -177,7 +177,7 @@
   width: 7px; height: 7px;
   border-radius: 50%;
   background: var(--clr-green);
-  box-shadow: 0 0 6px rgba(34,197,94,0.6);
+  box-shadow:,197,94,0.6);
   flex-shrink: 0;
 }
 

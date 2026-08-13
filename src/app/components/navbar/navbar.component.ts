@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { AuthService, User } from '../../services/auth.service';
+import { LoginSchema, RegisterSchema } from '../../schemas/api.schemas';
+import { z } from 'zod';
 
 interface NavLink {
   label: string;
@@ -103,47 +105,23 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   submitAuth(): void {
-    const nick = (this.authNicknameInput || '').trim();
-    const pass = this.authPasswordInput || '';
+    const schema = this.authMode === 'login' ? LoginSchema : RegisterSchema;
+    const payload = this.authMode === 'login'
+      ? { nickname: this.authNicknameInput.trim(), password: this.authPasswordInput }
+      : { nickname: this.authNicknameInput.trim(), email: this.authEmailInput, password: this.authPasswordInput };
 
-    if (!nick || !pass) {
-      this.authErrorMsg = 'Заполните никнейм и пароль!';
+    const result = schema.safeParse(payload);
+    if (!result.success) {
+      this.authErrorMsg = result.error.errors[0].message;
       return;
-    }
-
-    if (/\s/.test(this.authNicknameInput)) {
-      this.authErrorMsg = 'Никнейм не должен содержать пробелы!';
-      return;
-    }
-
-    if (!/^[a-zA-Z0-9_]{3,16}$/.test(nick)) {
-      this.authErrorMsg = 'Никнейм должен содержать от 3 до 16 латинских букв, цифр или _ (без кириллицы и пробелов)!';
-      return;
-    }
-
-    if (/\s/.test(pass)) {
-      this.authErrorMsg = 'Пароль не должен содержать пробелы!';
-      return;
-    }
-
-    if (this.authMode === 'register') {
-      if (pass.length < 8) {
-        this.authErrorMsg = 'Пароль должен содержать минимум 8 символов!';
-        return;
-      }
-
-      if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/.test(pass)) {
-        this.authErrorMsg = 'Пароль должен содержать только латинские буквы, цифры и стандартные символы!';
-        return;
-      }
     }
 
     this.isAuthSubmitting = true;
     this.authErrorMsg = '';
 
     const req$ = this.authMode === 'login'
-      ? this.authService.login({ nickname: nick, password: pass })
-      : this.authService.register({ nickname: nick, email: this.authEmailInput, password: pass });
+      ? this.authService.login({ nickname: result.data.nickname, password: this.authPasswordInput })
+      : this.authService.register({ nickname: result.data.nickname, email: this.authEmailInput, password: this.authPasswordInput });
 
     req$.subscribe({
       next: () => {

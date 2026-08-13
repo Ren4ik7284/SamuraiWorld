@@ -146,7 +146,7 @@
   width: 8px; height: 8px;
   border-radius: 50%;
   background: var(--clr-green);
-  box-shadow: 0 0 8px rgba(34,197,94,0.6);
+  box-shadow:,197,94,0.6);
 }
 
 /* ===== SUPPORT NAV TABS ===== */
@@ -234,7 +234,7 @@
 .category-card--selected {
   background: rgba(201,146,10,0.12);
   border-color: var(--clr-gold-2);
-  box-shadow: 0 0 20px rgba(201,146,10,0.15);
+  box-shadow:,146,10,0.15);
 }
 
 .category-card__icon {
@@ -328,7 +328,7 @@
 .form-control:focus {
   outline: none;
   border-color: var(--clr-gold-2);
-  box-shadow: 0 0 12px rgba(201,146,10,0.2);
+  box-shadow:,146,10,0.2);
 }
 
 .form-control-sm {

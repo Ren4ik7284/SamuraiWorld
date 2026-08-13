@@ -175,9 +175,11 @@ export class RulesComponent {
 
   scrollToSection(num: string): void {
     this.activeSection = num;
-    const el = document.getElementById('section-' + num);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    setTimeout(() => {
+      const el = document.getElementById('section-' + num);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
   }
 }

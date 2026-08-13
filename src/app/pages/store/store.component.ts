@@ -5,6 +5,8 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { AuthService, User } from '../../services/auth.service';
+import { NicknameSchema, PromoCodeSchema, PaymentSchema } from '../../schemas/api.schemas';
+import { z } from 'zod';
 
 export interface VipFeature {
   icon: string;
@@ -124,15 +126,16 @@ export class StoreComponent implements OnInit, OnDestroy {
   }
 
   applyPromoCode(): void {
-    const code = (this.promoCodeInput || '').trim().toUpperCase();
+    const result = PromoCodeSchema.safeParse((this.promoCodeInput || '').trim().toUpperCase());
     this.promoError = '';
     this.promoSuccess = '';
 
-    if (!code) {
-      this.promoError = 'Введите промокод!';
+    if (!result.success) {
+      this.promoError = result.error.errors[0].message;
       return;
     }
 
+    const code = result.data;
     if (code === 'SAMURAI' || code === 'ROLLY') {
       this.discountPercent = 10;
       this.appliedPromo = code;
@@ -149,14 +152,14 @@ export class StoreComponent implements OnInit, OnDestroy {
   }
 
   submitRollypayOrder(): void {
-    const nick = (this.nicknameInput || '').trim();
-    if (!nick) {
-      this.promoError = 'Укажите ваш игровой никнейм!';
-      return;
-    }
+    const paymentResult = PaymentSchema.safeParse({
+      nickname: (this.nicknameInput || '').trim(),
+      promoCode: this.appliedPromo || undefined,
+      paymentMethod: this.selectedPayment,
+    });
 
-    if (!/^[a-zA-Z0-9_]{3,16}$/.test(nick)) {
-      this.promoError = 'Никнейм должен состоять из латинских букв или цифр (3–16 символов)!';
+    if (!paymentResult.success) {
+      this.promoError = paymentResult.error.errors[0].message;
       return;
     }
 
@@ -164,9 +167,9 @@ export class StoreComponent implements OnInit, OnDestroy {
     this.promoError = '';
 
     this.http.post<{ payUrl: string; orderId: string }>('/api/payments/rollypay', {
-      nickname: nick,
-      promoCode: this.appliedPromo,
-      paymentMethod: this.selectedPayment
+      nickname: paymentResult.data.nickname,
+      promoCode: paymentResult.data.promoCode,
+      paymentMethod: paymentResult.data.paymentMethod,
     }).subscribe({
       next: (res: { payUrl: string; orderId: string }) => {
         this.isProcessingPay = false;

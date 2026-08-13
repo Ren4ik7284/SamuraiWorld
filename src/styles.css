@@ -20,10 +20,7 @@
   --accent-cherry: #e75480;
   --accent-jade: #00897b;
 
-  /* Glow effects */
-  --glow-red: rgba(192, 57, 43, 0.5);
-  --glow-gold: rgba(212, 160, 23, 0.4);
-  --glow-cherry: rgba(231, 84, 128, 0.4);
+
 
   /* Text */
   --text-primary: #f5e6d0;
@@ -155,7 +152,7 @@ a:hover { color: var(--accent-gold-bright); }
 .glass-card:hover {
   border-color: var(--border-accent);
   transform: translateY(-4px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px var(--glow-gold);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 /* ---- Buttons ---- */
@@ -178,12 +175,12 @@ a:hover { color: var(--accent-gold-bright); }
 .btn-primary {
   background: linear-gradient(135deg, var(--accent-red) 0%, #8b1a14 100%);
   color: var(--text-primary);
-  box-shadow: 0 4px 20px var(--glow-red);
+  box-shadow:;
 }
 .btn-primary:hover {
   background: linear-gradient(135deg, var(--accent-red-bright) 0%, var(--accent-red) 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px var(--glow-red);
+  box-shadow:;
   color: #fff;
 }
 
@@ -196,7 +193,7 @@ a:hover { color: var(--accent-gold-bright); }
   background: var(--accent-gold);
   color: var(--bg-primary);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px var(--glow-gold);
+  box-shadow:;
 }
 
 /* ---- Dividers ---- */
@@ -237,7 +234,7 @@ a:hover { color: var(--accent-gold-bright); }
 }
 .ip-box:hover {
   background: rgba(212, 160, 23, 0.15);
-  box-shadow: 0 0 20px var(--glow-gold);
+  box-shadow:;
 }
 
 /* ---- Animations ---- */
@@ -256,9 +253,8 @@ a:hover { color: var(--accent-gold-bright); }
   50% { transform: translateY(-12px); }
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px var(--glow-red); }
-  50% { box-shadow: 0 0 40px var(--glow-red), 0 0 60px var(--glow-gold); }
+
+  50% { box-shadow:; }
 }
 
 @keyframes sakura-fall {

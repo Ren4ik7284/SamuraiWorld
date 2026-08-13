@@ -1,15 +1,12 @@
 <div class="page">
-  <!-- Header -->
   <div class="page-header">
     <div class="page-header__glow"></div>
     <div class="container">
-      <p class="section-eyebrow" style="justify-content:center;margin-bottom:20px">連絡</p>
       <h1 class="page-header__title">Контакты</h1>
       <p class="page-header__sub">Присоединяйся к нашему сообществу</p>
     </div>
   </div>
 
-  <!-- Contact cards -->
   <section class="section container">
     <div class="contacts-grid">
       <a
@@ -22,7 +19,6 @@
       >
         <div class="contact-card__accent-line"></div>
         <div class="contact-card__icon" [innerHTML]="c.icon | safeHtml"></div>
-        <div class="contact-card__meta">{{ c.jpName }}</div>
         <h3 class="contact-card__name">{{ c.platform }}</h3>
         <p class="contact-card__desc">{{ c.desc }}</p>
         <div class="contact-card__btn">
@@ -35,12 +31,10 @@
     </div>
   </section>
 
-  <!-- IP block -->
   <div class="ip-banner">
     <div class="container">
       <div class="ip-banner__inner card">
         <div class="ip-banner__text">
-          <p class="section-eyebrow" style="margin-bottom:8px">接続</p>
           <h2 class="ip-banner__title">Подключись прямо сейчас</h2>
           <p class="ip-banner__sub">Скопируй IP и начни своё приключение</p>
         </div>
