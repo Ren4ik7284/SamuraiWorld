@@ -131,7 +131,7 @@ export class StoreComponent implements OnInit, OnDestroy {
     this.promoSuccess = '';
 
     if (!result.success) {
-      this.promoError = result.error.errors[0].message;
+      this.promoError = result.error.issues[0].message;
       return;
     }
 
@@ -159,7 +159,7 @@ export class StoreComponent implements OnInit, OnDestroy {
     });
 
     if (!paymentResult.success) {
-      this.promoError = paymentResult.error.errors[0].message;
+      this.promoError = paymentResult.error.issues[0].message;
       return;
     }
 

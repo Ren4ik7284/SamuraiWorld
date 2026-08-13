@@ -112,7 +112,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
     const result = schema.safeParse(payload);
     if (!result.success) {
-      this.authErrorMsg = result.error.errors[0].message;
+      this.authErrorMsg = result.error.issues[0].message;
       return;
     }
 
