@@ -52,20 +52,24 @@ export class StoreComponent implements OnInit, OnDestroy {
   // FAQ Items
   faqItems = [
     {
-      q: 'Как работает VIP статус?',
-      a: 'VIP статус подчёркивает вашу поддержку сервера и предоставляет полезный вспомогательный функционал: инспекцию истории сундуков, просмотр логов блоков и удобные утилиты.'
+      q: 'Как работает VIP статус и какие команды доступны?',
+      a: 'VIP статус открывает полезные команды: co i (режим инспектора сундуков и блоков: кто взял вещи), /crawl (возможность лечь на пол), /disc (добавление своей музыки на пластинку с модом PlasmoVoice), а также золотой никнейм и приоритетную поддержку.'
     },
     {
-      q: 'Как работают логи сундуков?',
-      a: 'При включении режима инспекции и нажатии на сундук вы получаете полную историю: точный список предметов, никнеймы игроков и дату с точностью до секунд.'
+      q: 'Как работают логи сундуков (co i)?',
+      a: 'Команда co i включает режим инспекции. При клике на сундук или блок вы увидите подробную историю: никнейм игрока, точный список взятых/положенных предметов и время.'
+    },
+    {
+      q: 'Как работает своя музыка на пластинке (/disc)?',
+      a: 'С помощью команды /disc вы можете записать свой трек на пластинку (работает с модом PlasmoVoice) и включать музыку себе и друзьям.'
     },
     {
       q: 'Как проходит оплата через RollyPay?',
-      a: 'Оплата происходит через сервис RollyPay. Поддерживаются СБП (по QR-коду), банковские карты РФ и мира, Cryptobot, xrocket и криптовалюта (USDT, TON, BTC).'
+      a: 'Оплата происходит через шлюз RollyPay, где вы можете выбрать любой способ: СБП (по QR-коду), банковские карты РФ и мира, Cryptobot, xrocket или криптовалюту (USDT, TON, BTC).'
     },
     {
-      q: 'Как быстро выдается статус?',
-      a: 'После успешной оплаты через RollyPay статус автоматически зачисляется на ваш никнейм прямо в игре в течение 5 секунд.'
+      q: 'Как быстро выдается статус или проходка?',
+      a: 'После успешной оплаты статус автоматически зачисляется на ваш никнейм прямо на сервере в течение 10–20 секунд.'
     }
   ];
 
@@ -185,7 +189,6 @@ export class StoreComponent implements OnInit, OnDestroy {
     const paymentResult = PaymentSchema.safeParse({
       nickname: (this.nicknameInput || '').trim(),
       promoCode: this.appliedPromo || undefined,
-      paymentMethod: this.selectedPayment,
     });
 
     if (!paymentResult.success) {
@@ -199,7 +202,6 @@ export class StoreComponent implements OnInit, OnDestroy {
     this.http.post<{ payUrl: string; orderId: string }>('/api/payments/rollypay', {
       nickname: paymentResult.data.nickname,
       promoCode: paymentResult.data.promoCode,
-      paymentMethod: paymentResult.data.paymentMethod,
     }).subscribe({
       next: (res: { payUrl: string; orderId: string }) => {
         this.isProcessingPay = false;
@@ -229,7 +231,6 @@ export class StoreComponent implements OnInit, OnDestroy {
 
     this.http.post<{ payUrl: string; orderId: string }>('/api/payments/pass', {
       nickname: nick,
-      paymentMethod: this.selectedPayment,
     }).subscribe({
       next: (res: { payUrl: string; orderId: string }) => {
         this.isProcessingPay = false;

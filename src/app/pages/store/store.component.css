@@ -962,11 +962,119 @@
 }
 
 .success-box {
-  padding: 14px 18px;
-  margin-bottom: 20px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
   background: rgba(24, 12, 18, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Dedicated Grant Box & Buttons (Fits cleanly without overflowing) */
+.grant-box {
+  margin-top: 1.25rem;
+  padding: 1.1rem 1rem;
+  background: rgba(192, 57, 43, 0.08);
+  border: 1px solid rgba(192, 57, 43, 0.3);
   border-radius: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  text-align: center;
+}
+
+.grant-box__title {
+  margin: 0 0 0.5rem 0;
+  color: #f87171;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.grant-box__desc {
+  font-size: 0.84rem;
+  margin-bottom: 0.9rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.btn-grant {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  text-align: center;
+  white-space: normal;
+  line-height: 1.35;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  text-transform: none;
+  letter-spacing: 0.2px;
+}
+
+.btn-grant:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.btn-grant:active {
+  transform: translateY(0);
+}
+
+.btn-grant:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-grant--pass {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 60%, #922b21 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(192, 57, 43, 0.4);
+}
+
+.btn-grant--vip {
+  background: linear-gradient(135deg, #fde047 0%, #eab308 60%, #ca8a04 100%);
+  color: #1a0a00;
+  box-shadow: 0 4px 16px rgba(234, 179, 8, 0.35);
+}
+
+.btn-grant__content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.btn-grant__content svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.grant-status-msg {
+  margin-top: 0.75rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #fde047;
+  text-align: center;
+  line-height: 1.4;
+  word-break: break-word;
 }
 
 .success-row {

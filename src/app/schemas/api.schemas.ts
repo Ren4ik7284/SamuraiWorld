@@ -31,7 +31,7 @@ export const RegisterSchema = z.object({
 export const PaymentSchema = z.object({
   nickname: NicknameSchema,
   promoCode: z.string().optional(),
-  paymentMethod: z.enum(['sbp', 'card', 'crypto']),
+  paymentMethod: z.string().optional(),
 });
 
 export const PromoCodeSchema = z

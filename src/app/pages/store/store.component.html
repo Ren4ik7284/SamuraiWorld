@@ -94,35 +94,47 @@
               </div>
               <div class="product-card__title-group">
                 <h2 class="product-card__title">Статус <span class="gold-gradient-text">VIP SAMURAI</span></h2>
-                <p class="product-card__subtitle">Логирование сундуков, аудит и выделенный статус</p>
+                <p class="product-card__subtitle">Инспектор сундуков (co i), анимация Crawl, своя музыка (disc) и VIP статус</p>
               </div>
             </div>
 
             <div class="vip-features-chips">
-              <span class="chip">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  <polyline points="9 12 11 14 15 10"/>
-                </svg>
-                Защита от гриферства
-              </span>
-              <span class="chip">
+              <span class="chip" title="Режим инспектора: показывает, кто взял ваши вещи в сундуке">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
                 </svg>
-                Логи сундуков
+                <span><b>co i</b> — кто взял вещи</span>
+              </span>
+              <span class="chip" title="Возможность лечь на пол">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M2 18h20M7 14l3-3 4 4 5-5"/>
+                </svg>
+                <span><b>Crawl</b> — лечь на пол</span>
+              </span>
+              <span class="chip" title="Добавить свою музыку на пластинку (работает только с модом PlasmoVoice)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><path d="M12 2a10 10 0 0 1 10 10"/>
+                </svg>
+                <span><b>disc</b> — своя музыка (PlasmoVoice)</span>
               </span>
               <span class="chip">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                 </svg>
-                Золотой ник в чате
+                <span>Золотой ник в чате</span>
+              </span>
+              <span class="chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <polyline points="9 12 11 14 15 10"/>
+                </svg>
+                <span>Защита от гриферства</span>
               </span>
               <span class="chip">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
-                Приоритет поддержки
+                <span>Приоритет поддержки</span>
               </span>
             </div>
           </div>
@@ -168,7 +180,7 @@
       </button>
     </div>
 
-    <!-- STEP 1: Form & Payment Selector -->
+    <!-- STEP 1: Form & Order Details -->
     <div class="modal-body" *ngIf="checkoutStep === 1">
       
       <!-- Nickname Input -->
@@ -184,14 +196,14 @@
             maxLength="16"
           />
         </div>
-        <span class="checkout-hint">На этот никнейм будет автоматически зачислен VIP статус</span>
+        <span class="checkout-hint">На этот никнейм будет автоматически зачислен {{ modalType === 'pass' ? 'доступ' : 'VIP статус' }}</span>
       </div>
 
       <!-- Item Info Box -->
       <div class="checkout-info-box glass-card">
         <div class="info-box-row">
           <span>Товар:</span>
-          <strong *ngIf="modalType === 'vip'">VIP статус (Логи сундуков и утилиты)</strong>
+          <strong *ngIf="modalType === 'vip'">VIP статус (co i, crawl, disc, золотой ник)</strong>
           <strong *ngIf="modalType === 'pass'" style="display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="1.8" style="width:15px;height:15px;flex-shrink:0;vertical-align:middle;"><path d="M2 9a1 1 0 0 1 0-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a1 1 0 0 1 0 2v6a1 1 0 0 1 0 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2a1 1 0 0 1 0-2V9z"/><line x1="9" y1="5" x2="9" y2="19" stroke-dasharray="2 2"/></svg> Проходка на сервер (member)</strong>
         </div>
         <div class="info-box-row">
@@ -200,8 +212,12 @@
           <strong *ngIf="modalType === 'pass'">Постоянный доступ</strong>
         </div>
         <div class="info-box-row">
+          <span>Оплата через:</span>
+          <strong>RollyPay (СБП, Карты РФ/Мира, Crypto)</strong>
+        </div>
+        <div class="info-box-row">
           <span>Выдача:</span>
-          <strong>Автоматически за 20 секунд</strong>
+          <strong>Автоматически за 10-20 секунд</strong>
         </div>
       </div>
 
@@ -222,57 +238,6 @@
       </div>
       <!-- Error for pass -->
       <div class="promo-msg error" *ngIf="promoError && modalType === 'pass'" style="margin-top: 12px;">{{ promoError }}</div>
-
-      <!-- Payment Method Selection via RollyPay -->
-      <div class="checkout-form-group" style="margin-top: 16px;">
-        <label class="checkout-label">Способ оплаты (RollyPay):</label>
-        <div class="payment-grid" style="display: flex; flex-direction: column; gap: 8px;">
-          <button 
-            type="button" 
-            class="payment-card"
-            [class.active]="selectedPayment === 'sbp'"
-            (click)="selectedPayment = 'sbp'"
-          >
-            <span class="payment-icon" style="color:#38bdf8;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            </span>
-            <div class="payment-info">
-              <strong>СБП (Система Быстрых Платежей)</strong>
-              <span>Мгновенная оплата по QR-коду любого банка</span>
-            </div>
-          </button>
-
-          <button 
-            type="button" 
-            class="payment-card"
-            [class.active]="selectedPayment === 'card'"
-            (click)="selectedPayment = 'card'"
-          >
-            <span class="payment-icon" style="color:#22c55e;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            </span>
-            <div class="payment-info">
-              <strong>Банковские карты (МИР / Visa / MC)</strong>
-              <span>Оплата любой картой РФ и зарубежных банков</span>
-            </div>
-          </button>
-
-          <button 
-            type="button" 
-            class="payment-card"
-            [class.active]="selectedPayment === 'crypto'"
-            (click)="selectedPayment = 'crypto'"
-          >
-            <span class="payment-icon" style="color:#fde047;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M8 10h8"/></svg>
-            </span>
-            <div class="payment-info">
-              <strong>Cryptobot, xrocket и Криптовалюта</strong>
-              <span>USDT, TON, BTC, CryptoBot</span>
-            </div>
-          </button>
-        </div>
-      </div>
 
       <!-- Total Price Summary -->
       <div class="checkout-summary">
@@ -300,20 +265,32 @@
         <p>Номер заказа: <strong>{{ lastOrderId }}</strong></p>
         <p class="text-sm opacity-80 mt-2">После успешной оплаты {{ modalType === 'pass' ? 'Проходка' : 'VIP статус' }} зачисляется автоматически прямо на сервере!</p>
 
-        <div style="margin-top: 1rem; padding: 1rem; background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.25); border-radius: 8px;">
-          <h4 style="margin: 0 0 0.5rem 0; color: #e74c3c; font-size: 0.95rem; display:flex;align-items:center;justify-content:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;vertical-align:middle;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Автоматическая активация</h4>
-          <p style="font-size: 0.85rem; margin-bottom: 0.75rem; color: #cbd5e1;">Если вы уже совершили оплату или хотите проверить выдачу в игре:</p>
+        <div class="grant-box">
+          <h4 class="grant-box__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Автоматическая активация
+          </h4>
+          <p class="grant-box__desc">Если вы уже совершили оплату или хотите проверить выдачу в игре:</p>
+          
           <!-- VIP grant button -->
-          <button *ngIf="modalType === 'vip'" type="button" class="btn btn-primary" (click)="triggerInstantGrant()" [disabled]="isGranting" style="width: 100%; font-weight: 600;">
-            <span *ngIf="!isGranting" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0;vertical-align:middle;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Активировать / Проверить VIP в игре сейчас</span>
+          <button *ngIf="modalType === 'vip'" type="button" class="btn-grant btn-grant--vip" (click)="triggerInstantGrant()" [disabled]="isGranting">
+            <span *ngIf="!isGranting" class="btn-grant__content">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span>Активировать / Проверить VIP в игре сейчас</span>
+            </span>
             <span *ngIf="isGranting">Отправка команды на сервер...</span>
           </button>
+          
           <!-- Pass grant button -->
-          <button *ngIf="modalType === 'pass'" type="button" class="btn btn-pass" (click)="triggerInstantGrantPass()" [disabled]="isGranting" style="width: 100%; font-weight: 600;">
-            <span *ngIf="!isGranting" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px;flex-shrink:0;vertical-align:middle;"><path d="M2 9a1 1 0 0 1 0-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a1 1 0 0 1 0 2v6a1 1 0 0 1 0 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2a1 1 0 0 1 0-2V9z"/><line x1="9" y1="5" x2="9" y2="19" stroke-dasharray="2 2"/></svg> Активировать Проходку в игре сейчас</span>
+          <button *ngIf="modalType === 'pass'" type="button" class="btn-grant btn-grant--pass" (click)="triggerInstantGrantPass()" [disabled]="isGranting">
+            <span *ngIf="!isGranting" class="btn-grant__content">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 9a1 1 0 0 1 0-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a1 1 0 0 1 0 2v6a1 1 0 0 1 0 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2a1 1 0 0 1 0-2V9z"/><line x1="9" y1="5" x2="9" y2="19" stroke-dasharray="2 2"/></svg>
+              <span>Активировать Проходку в игре сейчас</span>
+            </span>
             <span *ngIf="isGranting">Активация Проходки...</span>
           </button>
-          <div *ngIf="grantStatusMessage" style="margin-top: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #fde047; text-align: center;">
+
+          <div *ngIf="grantStatusMessage" class="grant-status-msg">
             {{ grantStatusMessage }}
           </div>
         </div>
