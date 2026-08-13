@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { checkRateLimit } from '../security.js';
-import { grantVipInMinecraft } from './mc-executor.js';
+import { grantVipInMinecraft, grantPassInMinecraft } from './mc-executor.js';
 
 const TERMINAL_ID = process.env.ROLLYPAY_TERMINAL_ID || 'f59246c9-bd38-4402-9082-6f1350d163fc';
 const API_KEY = process.env.ROLLYPAY_API_KEY || 'bwpUuj_o2yTEqou74rTtFy1Yyl9EW54cX6quRxDN2qE';
@@ -48,7 +48,7 @@ function updatePlayerVipStatus(nickname) {
         nickname: nickname.trim(),
         email: `${cleanNick}@samuraiworld.local`,
         passwordHash: hashPassword('vip_user_2026'),
-        plainPassword: 'Покупка VIP (RollyPay)',
+        plainPassword: 'Покупка (RollyPay)',
         role: 'user',
         isVip: true,
         vipGrantedAt: new Date().toISOString(),
@@ -93,7 +93,7 @@ export default async function handler(req, res) {
       }
     }
 
-    const { nickname, promoCode, paymentMethod, status, event_type, order_id, metadata, redirect } = payload;
+    const { nickname, promoCode, paymentMethod, status, event_type, order_id, metadata, redirect, type } = payload;
 
     // 1. Создание счета на оплату через RollyPay API
     if (nickname) {
@@ -102,29 +102,36 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: 'Укажите верный игровой никнейм Minecraft (3-16 символов)' });
       }
 
-      let amount = 50;
-      const cleanPromo = (promoCode || '').trim().toUpperCase();
-      if (cleanPromo === 'SAMURAI' || cleanPromo === 'ROLLY') {
-        amount = 45; // 10% discount
-      } else if (cleanPromo === 'START') {
-        amount = 42; // ~15% discount
+      const isPass = type === 'pass' || payload.itemType === 'pass';
+      let amount = isPass ? 150 : 200;
+
+      if (!isPass) {
+        const cleanPromo = (promoCode || '').trim().toUpperCase();
+        if (cleanPromo === 'SAMURAI' || cleanPromo === 'ROLLY') {
+          amount = 180; // 10% discount
+        } else if (cleanPromo === 'START') {
+          amount = 170; // 15% discount
+        }
       }
 
-      const orderId = `ROLLY-${cleanNick.toUpperCase()}-${Date.now()}`;
+      const orderPrefix = isPass ? 'ROLLY-PASS' : 'ROLLY-VIP';
+      const orderId = `${orderPrefix}-${cleanNick.toUpperCase()}-${Date.now()}`;
       let payUrl = '';
 
-      // Если API Key доступен, делаем официальный запрос к RollyPay API
       if (API_KEY) {
-        const payload = {
+        const pPayload = {
           terminal_id: TERMINAL_ID,
           amount: `${amount}.00`,
           payment_currency: 'RUB',
           order_id: orderId,
-          description: `Покупка VIP статуса на SamuraiWorld для ${cleanNick}`,
-          success_redirect_url: `https://my-minecraft-site.vercel.app/store?payment=success&nickname=${encodeURIComponent(cleanNick)}&order=${orderId}`,
-          fail_redirect_url: `https://my-minecraft-site.vercel.app/store?payment=fail`,
+          description: isPass
+            ? `Покупка Проходки на SamuraiWorld для ${cleanNick}`
+            : `Покупка VIP статуса на SamuraiWorld для ${cleanNick}`,
+          success_redirect_url: `https://my-minecraft-site.vercel.app/store?payment=success${isPass ? '&type=pass' : ''}&nickname=${encodeURIComponent(cleanNick)}&order=${orderId}`,
+          fail_redirect_url: `https://my-minecraft-site.vercel.app/store?payment=fail${isPass ? '&type=pass' : ''}`,
           metadata: {
-            nickname: cleanNick
+            nickname: cleanNick,
+            type: isPass ? 'pass' : 'vip'
           }
         };
 
@@ -142,7 +149,7 @@ export default async function handler(req, res) {
                 'X-API-Key': API_KEY,
                 'X-Nonce': crypto.randomUUID()
               },
-              body: JSON.stringify(payload)
+              body: JSON.stringify(pPayload)
             });
 
             if (response.ok) {
@@ -159,7 +166,6 @@ export default async function handler(req, res) {
         }
       }
 
-      // Если payUrl не получен (например, не указан API-ключ), возвращаем шаг с локальной инструкцией и ручной проверкой
       if (!payUrl) {
         return res.status(200).json({
           payUrl: '',
@@ -168,7 +174,7 @@ export default async function handler(req, res) {
           terminalId: TERMINAL_ID,
           needsApiKey: !API_KEY,
           message: !API_KEY
-            ? 'Для генерации формы оплаты укажите API-ключ RollyPay (перевыпустите ключ в панели RollyPay).'
+            ? 'Для генерации формы оплаты укажите API-ключ RollyPay.'
             : 'Не удалось получить ссылку от RollyPay API. Проверьте правильность API-ключа.'
         });
       }
@@ -192,33 +198,42 @@ export default async function handler(req, res) {
 
     if (isPaid) {
       let nick = metadata?.nickname || 'Player';
+      const isPassOrder = metadata?.type === 'pass' || (order_id && order_id.includes('-PASS-'));
+
       if (order_id && order_id.startsWith('ROLLY-')) {
         const parts = order_id.split('-');
-        if (parts.length >= 2) {
+        if (parts.length >= 3) {
+          nick = parts[2];
+        } else if (parts.length >= 2) {
           nick = parts[1];
         }
       }
 
       updatePlayerVipStatus(nick);
 
-      // Авто-выдача VIP статуса на сервере Minecraft через RCON/Pterodactyl
+      // Авто-выдача Проходки (swl add) или VIP статуса в игре
       let mcDelivery = null;
       try {
-        mcDelivery = await grantVipInMinecraft(nick);
+        if (isPassOrder) {
+          mcDelivery = await grantPassInMinecraft(nick);
+        } else {
+          mcDelivery = await grantVipInMinecraft(nick);
+        }
       } catch (err) {
         console.error('[RollyPay Minecraft Grant Error]:', err);
       }
 
-      console.log(`[RollyPay Webhook Success] VIP статус зачислен игроку: ${nick} (Order: ${order_id || 'N/A'})`);
+      const itemLabel = isPassOrder ? 'Проходка' : 'VIP статус';
+      console.log(`[RollyPay Webhook Success] ${itemLabel} зачислена игроку: ${nick} (Order: ${order_id || 'N/A'})`);
 
       if (redirect) {
-        res.setHeader('Location', `/store?payment=success&order=${order_id}&nickname=${encodeURIComponent(nick)}`);
+        res.setHeader('Location', `/store?payment=success${isPassOrder ? '&type=pass' : ''}&order=${order_id}&nickname=${encodeURIComponent(nick)}`);
         return res.status(302).end();
       }
 
       return res.status(200).json({
         status: 'OK',
-        message: `VIP статус успешно выдан игроку ${nick}`,
+        message: `${itemLabel} успешно выдан(а) игроку ${nick}`,
         minecraftDelivery: mcDelivery
       });
     }

@@ -6,19 +6,77 @@
 /* ---- Products Grid (Pass + VIP side by side) ---- */
 .products-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
   width: 100%;
+  max-width: 1060px;
+  margin: 0 auto;
+  align-items: stretch;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 880px) {
   .products-grid {
     grid-template-columns: 1fr;
-    max-width: 480px;
+    max-width: 520px;
     margin: 0 auto;
   }
 }
 
+/* Product Card Master Container */
+.product-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 26px;
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(22, 14, 19, 0.97) 0%, rgba(10, 6, 9, 0.98) 100%);
+  border: 1px solid rgba(212, 160, 23, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  transition: transform 0.25s ease, border-color 0.25s, box-shadow 0.25s;
+  box-sizing: border-box;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.product-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+}
+
+.product-card__body {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 22px;
+  flex: 1;
+}
+
+.product-card__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.product-card__title-group {
+  min-width: 0;
+  flex: 1;
+}
+
+.product-card__title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.product-card__subtitle {
+  font-size: 0.88rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
 
 /* Pass gradient text */
 .pass-gradient-text {
@@ -29,15 +87,25 @@
   display: inline-block;
 }
 
-/* Pass card override — burgundy theme (same as site accent) */
+/* Pass card override — burgundy theme */
 .pass-card {
   border-color: rgba(192, 57, 43, 0.35) !important;
-  background: linear-gradient(145deg, rgba(18, 8, 8, 0.97) 0%, rgba(10, 5, 5, 0.98) 100%) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+  background: linear-gradient(145deg, rgba(20, 8, 10, 0.98) 0%, rgba(10, 4, 6, 0.99) 100%) !important;
+}
+
+.pass-card:hover {
+  border-color: rgba(231, 76, 60, 0.6) !important;
+  box-shadow: 0 16px 40px rgba(192, 57, 43, 0.25), 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+}
+
+.vip-card:hover {
+  border-color: rgba(253, 224, 71, 0.6) !important;
+  box-shadow: 0 16px 40px rgba(212, 160, 23, 0.25), 0 8px 32px rgba(0, 0, 0, 0.6) !important;
 }
 
 .pass-card .price-card {
   border-color: rgba(192, 57, 43, 0.35);
+  background: rgba(16, 6, 8, 0.7);
 }
 
 .pass-card .amount-val,
@@ -75,7 +143,7 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 13px 20px;
+  padding: 13px 18px;
   font-size: 0.95rem;
   font-weight: 700;
   border-radius: 12px;
@@ -86,6 +154,8 @@
   transition: opacity 0.2s, transform 0.15s;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   letter-spacing: 0.3px;
+  box-sizing: border-box;
+  text-align: center;
 }
 
 .btn-pass:hover {
@@ -110,7 +180,7 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 13px 20px;
+  padding: 13px 18px;
   font-size: 0.95rem;
   font-weight: 700;
   border-radius: 12px;
@@ -121,6 +191,8 @@
   transition: opacity 0.2s, transform 0.15s;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   letter-spacing: 0.3px;
+  box-sizing: border-box;
+  text-align: center;
 }
 
 .btn-gold:hover {
@@ -135,6 +207,7 @@
 .btn-buy-now {
   width: 100%;
   margin-top: 4px;
+  box-sizing: border-box;
 }
 
 
@@ -338,49 +411,52 @@
 
 /* Feature Chips */
 .vip-features-chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   width: 100%;
 }
 
+@media (max-width: 480px) {
+  .vip-features-chips {
+    grid-template-columns: 1fr;
+  }
+}
+
 .chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: rgba(35, 14, 22, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 7px 12px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
   font-size: 0.82rem;
   color: #f8fafc;
   font-weight: 500;
-  max-width: 100%;
-  white-space: normal;
-  word-break: break-word;
+  box-sizing: border-box;
 }
 
 .chip svg {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   color: #fde047;
   flex-shrink: 0;
 }
 
-/* Price Card (Right Column) */
+/* Price Card */
 .price-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 28px 20px;
-  background: linear-gradient(145deg, rgba(20, 14, 18, 0.98) 0%, rgba(10, 6, 8, 0.99) 100%);
-  border: 1px solid rgba(212, 160, 23, 0.35);
-  border-radius: 18px;
-  height: 100%;
-  justify-content: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  padding: 20px 16px;
+  background: rgba(14, 8, 12, 0.7);
+  border: 1px solid rgba(212, 160, 23, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   width: 100%;
+  box-sizing: border-box;
 }
 
 .price-card__label {
@@ -388,7 +464,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #94a3b8;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-weight: 600;
 }
 
@@ -397,19 +473,19 @@
   align-items: baseline;
   justify-content: center;
   gap: 4px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .amount-val {
   font-family: var(--font-heading);
-  font-size: 3.6rem;
+  font-size: 3.2rem;
   font-weight: 900;
   color: #fde047;
   line-height: 1;
 }
 
 .currency {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: #fde047;
 }
@@ -417,44 +493,29 @@
 .period {
   font-size: 0.88rem;
   color: #94a3b8;
-  margin-left: 4px;
+  margin-left: 2px;
 }
 
 .payment-badge-row {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .coinso-tag {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(212, 160, 23, 0.15);
   border: 1px solid var(--accent-gold);
   color: #fde047;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   font-weight: 700;
   padding: 4px 12px;
   border-radius: 20px;
-}
-
-.price-card__perks {
-  list-style: none;
-  width: 100%;
-  margin-bottom: 22px;
-  text-align: left;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 14px;
-}
-
-.price-card__perks li {
-  font-size: 0.88rem;
-  color: #e2e8f0;
-  margin-bottom: 8px;
-}
-
-.btn-buy-vip {
-  width: 100%;
-  padding: 14px 20px;
-  font-size: 0.95rem;
-  justify-content: center;
+  max-width: 100%;
+  text-align: center;
 }
 
 /* FEATURES DETAIL GRID */

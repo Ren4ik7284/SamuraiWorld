@@ -141,7 +141,7 @@ export async function grantVipInMinecraft(nickname, options = {}) {
       results.push({
         driver: 'Pterodactyl API (qwertyx.host)',
         success: true,
-        message: `Команда выполена в консоли qwertyx.host для игрока ${nick}!`
+        message: `Команда выполнена в консоли qwertyx.host для игрока ${nick}!`
       });
     } catch (err) {
       results.push({
@@ -168,7 +168,7 @@ export async function grantVipInMinecraft(nickname, options = {}) {
         results.push({
           driver: `RCON (${rconHost}:${port})`,
           success: true,
-          message: `VIP зачислена игроку ${nick} через RCON!`,
+          message: `Команды отправлены игроку ${nick} через RCON!`,
           output: outputs
         });
         break;
@@ -189,3 +189,24 @@ export async function grantVipInMinecraft(nickname, options = {}) {
     results
   };
 }
+
+/**
+ * Master Pass Grant function: executes `swl add {player}` + fallback whitelist/member commands.
+ */
+export async function grantPassInMinecraft(nickname, options = {}) {
+  const nick = nickname.trim();
+  const rawCommands = options.commands || [
+    `swl add ${nick}`,
+    `simplewhitelist add ${nick}`,
+    `whitelist add ${nick}`,
+    `lp user ${nick} parent set member`,
+    `luckperms user ${nick} parent set member`,
+    `lp user ${nick} parent add member`,
+    `luckperms user ${nick} parent add member`,
+    `say 🎉 [SamuraiWorld] Игрок ${nick} получил Проходку на сервер! Добро пожаловать!`,
+    `title ${nick} title {"text":"ПРОХОДКА АКТИВИРОВАНА!","color":"aqua"}`
+  ];
+
+  return grantVipInMinecraft(nick, { ...options, commands: rawCommands });
+}
+

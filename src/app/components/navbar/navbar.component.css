@@ -417,30 +417,65 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(201, 146, 10, 0.25);
   border-radius: 12px;
   margin-bottom: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .navbar__drawer-user-meta {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.navbar__drawer-user .navbar__user-details {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.navbar__drawer-user .navbar__user-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.navbar__drawer-user .navbar__user-role {
+  font-size: 0.65rem;
+  color: var(--clr-gold-2);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
 }
 
 .navbar__drawer-logout-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 5px;
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.35);
   color: #f87171;
-  padding: 7px 14px;
+  padding: 7px 10px;
   border-radius: 8px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
