@@ -1,13 +1,10 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-
 const JWT_SECRET = process.env.JWT_SECRET || 'samuraiworld_super_secret_jwt_key_2026';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'samuraiworld_super_secret_refresh_key_2026';
 const TMP_USERS_FILE = path.join('/tmp', 'samurai_users_store.json');
-
 const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.03-4.84-2.6.03-1.61 3.22-2.4 4.84-2.4 1.61 0 4.81.79 4.84 2.4C15.8 18.97 14.03 20 12 20z"/></svg>';
-
 let users = [
   {
     id: 'usr-ren4ik284-admin',
@@ -21,7 +18,6 @@ let users = [
     lastLogin: '2026-08-10T12:00:00.000Z',
   },
 ];
-
 function loadPersistedUsers() {
   try {
     if (fs.existsSync(TMP_USERS_FILE)) {
@@ -43,44 +39,32 @@ function loadPersistedUsers() {
       }
     }
   } catch (e) {
-    // Ignore tmp file read errors
   }
-
-  // Очищаем только старые фейковые тестовые аккаунты
   users = users.filter((u) => !['admin_samurai', 'support_agent', 'playerone'].includes(u.nickname?.toLowerCase()));
-
-  // Гарантируем права администратора для Ren4ik284 и Mydaf0n62
   users.forEach((u) => {
     if (['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase())) {
       u.role = 'admin';
     }
   });
 }
-
 function savePersistedUsers() {
   try {
     fs.writeFileSync(TMP_USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
   } catch (e) {
-    // Ignore tmp file write errors
   }
 }
-
-// Initial load
 loadPersistedUsers();
-
 function hashPassword(password) {
   const salt = 'samurai_salt_2026';
   return crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
 }
-
 function base64urlEncode(str) {
   return Buffer.from(str)
     .toString('base64')
     .replace(/=/g, '')
     .replace(/\+/g, '-')
-    .replace(/\//g, '_');
+    .replace(/\
 }
-
 function base64urlDecode(str) {
   let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
   while (base64.length % 4) {
@@ -88,53 +72,41 @@ function base64urlDecode(str) {
   }
   return Buffer.from(base64, 'base64').toString('utf8');
 }
-
 function signToken(payload, secret) {
   const header = { alg: 'HS256', typ: 'JWT' };
   const encodedHeader = base64urlEncode(JSON.stringify(header));
   const encodedPayload = base64urlEncode(JSON.stringify(payload));
   const signatureInput = `${encodedHeader}.${encodedPayload}`;
-
   const signature = crypto
     .createHmac('sha256', secret)
     .update(signatureInput)
     .digest('base64url');
-
   return `${signatureInput}.${signature}`;
 }
-
 function verifyToken(token, secret) {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
-
     const [encodedHeader, encodedPayload, signature] = parts;
     const signatureInput = `${encodedHeader}.${encodedPayload}`;
-
     const expectedSignature = crypto
       .createHmac('sha256', secret)
       .update(signatureInput)
       .digest('base64url');
-
     if (signature !== expectedSignature) return null;
-
     const payloadStr = base64urlDecode(encodedPayload);
     const payload = JSON.parse(payloadStr);
-
     const now = Math.floor(Date.now() / 1000);
     if (payload.exp && payload.exp < now) return null;
-
     return payload;
   } catch (e) {
     return null;
   }
 }
-
 function generateTokens(user) {
   const now = Math.floor(Date.now() / 1000);
-  const THIRTY_DAYS = 30 * 86400; // 30 дней доступ без выхода
-  const ONE_YEAR = 365 * 86400; // 1 год refresh
-
+  const THIRTY_DAYS = 30 * 86400; 
+  const ONE_YEAR = 365 * 86400; 
   const accessPayload = {
     sub: user.id,
     nickname: user.nickname,
@@ -148,7 +120,6 @@ function generateTokens(user) {
     iat: now,
     exp: now + THIRTY_DAYS,
   };
-
   const refreshPayload = {
     sub: user.id,
     nickname: user.nickname,
@@ -162,7 +133,6 @@ function generateTokens(user) {
     iat: now,
     exp: now + ONE_YEAR,
   };
-
   return {
     accessToken: signToken(accessPayload, JWT_SECRET),
     refreshToken: signToken(refreshPayload, REFRESH_SECRET),
@@ -170,9 +140,7 @@ function generateTokens(user) {
     expiresIn: THIRTY_DAYS,
   };
 }
-
 import { checkRateLimit } from './security.js';
-
 export default function handler(req, res) {
   if (!checkRateLimit(req, res, true)) return;
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -182,27 +150,21 @@ export default function handler(req, res) {
     'Access-Control-Allow-Headers',
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
   );
-
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
-
   loadPersistedUsers();
   const { url, method, body, headers } = req;
   const path = url.split('?')[0];
-
-  // POST /api/auth/register
   if (method === 'POST' && path.endsWith('/register')) {
     const { nickname, email, password } = body || {};
-
     if (!nickname || /\s/.test(nickname)) {
       return res.status(400).json({ message: 'Никнейм не может содержать пробелы!' });
     }
     if (!/^[a-zA-Z0-9_]{3,16}$/.test(nickname)) {
       return res.status(400).json({ message: 'Никнейм должен содержать от 3 до 16 символов (только латинские буквы, цифры и _)' });
     }
-
     if (!password || /\s/.test(password)) {
       return res.status(400).json({ message: 'Пароль не может содержать пробелы!' });
     }
@@ -212,12 +174,10 @@ export default function handler(req, res) {
     if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/.test(password)) {
       return res.status(400).json({ message: 'Пароль может содержать только латинские буквы, цифры и стандартные символы!' });
     }
-
     const existing = users.find((u) => u.nickname.toLowerCase() === nickname.toLowerCase());
     if (existing) {
       return res.status(409).json({ message: `Пользователь "${nickname}" уже существует` });
     }
-
     const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.03-4.84-2.6.03-1.61 3.22-2.4 4.84-2.4 1.61 0 4.81.79 4.84 2.4C15.8 18.97 14.03 20 12 20z"/></svg>';
     const isSuperAdmin = ['ren4ik284', 'mydaf0n62'].includes(nickname.trim().toLowerCase());
     const newUser = {
@@ -231,26 +191,21 @@ export default function handler(req, res) {
       createdAt: new Date().toISOString(),
       lastLogin: new Date().toISOString(),
     };
-
     users.push(newUser);
     savePersistedUsers();
-
     const tokens = generateTokens(newUser);
     const { passwordHash, ...safeUser } = newUser;
     return res.status(201).json({ user: safeUser, tokens });
   }
-
   // POST /api/auth/login
   if (method === 'POST' && path.endsWith('/login')) {
     const { nickname, password, clientUser } = body || {};
     if (!nickname || !password) {
       return res.status(400).json({ message: 'Введите никнейм и пароль' });
     }
-
     const cleanNick = nickname.trim().toLowerCase();
     const pwdHash = hashPassword(password);
     let user = users.find((u) => u.nickname.toLowerCase() === cleanNick);
-
     // Восстановление аккаунта из клиентского кэша при повторном деплое/холодном старте
     if (!user && clientUser && clientUser.nickname?.toLowerCase() === cleanNick) {
       if (clientUser.passwordHash === pwdHash || clientUser.password === password || clientUser.plainPassword === password) {
@@ -269,35 +224,29 @@ export default function handler(req, res) {
         savePersistedUsers();
       }
     }
-
     if (!user || user.passwordHash !== pwdHash) {
       return res.status(401).json({ message: 'Неверный никнейм или пароль' });
     }
-
     if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
     }
     user.plainPassword = password || user.plainPassword;
     user.lastLogin = new Date().toISOString();
     savePersistedUsers();
-
     const tokens = generateTokens(user);
     const { passwordHash: p, ...safeUser } = user;
     return res.status(200).json({ user: safeUser, tokens });
   }
-
   // POST /api/auth/refresh
   if (method === 'POST' && path.endsWith('/refresh')) {
     const { refreshToken } = body || {};
     if (!refreshToken) {
       return res.status(401).json({ message: 'Отсутствует Refresh Token' });
     }
-
     const payload = verifyToken(refreshToken, REFRESH_SECRET);
     if (!payload || payload.type !== 'refresh') {
       return res.status(401).json({ message: 'Невалидный или истекший Refresh Token' });
     }
-
     let user = users.find((u) => u.id === payload.sub || u.nickname.toLowerCase() === payload.nickname.toLowerCase());
     if (!user && payload.nickname) {
       user = {
@@ -314,11 +263,9 @@ export default function handler(req, res) {
       users.push(user);
       savePersistedUsers();
     }
-
     if (!user) {
       return res.status(401).json({ message: 'Пользователь не найден' });
     }
-
     if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
     }
@@ -326,26 +273,21 @@ export default function handler(req, res) {
       user.plainPassword = payload.pwd;
     }
     user.lastLogin = new Date().toISOString();
-
     const tokens = generateTokens(user);
     return res.status(200).json(tokens);
   }
-
   // GET /api/auth/me
   if (method === 'GET' && path.endsWith('/me')) {
     const authHeader = headers['authorization'];
     if (!authHeader) {
       return res.status(401).json({ message: 'Отсутствует заголовок Authorization' });
     }
-
     const token = authHeader.split(' ')[1];
     const payload = verifyToken(token, JWT_SECRET);
     if (!payload || payload.type !== 'access') {
       return res.status(401).json({ message: 'Недействительный или истекший JWT токен' });
     }
-
     let user = users.find((u) => u.id === payload.sub || u.nickname.toLowerCase() === payload.nickname.toLowerCase());
-
     // Самодостаточная подпись JWT: если сервер перезапустился, восстанавливаем пользователя из подлинного токена
     if (!user && payload.nickname) {
       user = {
@@ -362,11 +304,9 @@ export default function handler(req, res) {
       users.push(user);
       savePersistedUsers();
     }
-
     if (!user) {
       return res.status(404).json({ message: 'Пользователь не найден' });
     }
-
     if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
     }
@@ -374,11 +314,9 @@ export default function handler(req, res) {
       user.plainPassword = payload.pwd;
     }
     user.lastLogin = new Date().toISOString();
-
     const { passwordHash: p, pwdHash: ph, ...safeUser } = user;
     return res.status(200).json(safeUser);
   }
-
   // GET /api/auth/users — Список всех зарегистрированных пользователей
   if (method === 'GET' && (path.endsWith('/users') || path.endsWith('/users/'))) {
     const safeUsers = users.map(({ passwordHash, pwdHash, ...u }) => ({
@@ -390,7 +328,6 @@ export default function handler(req, res) {
     }));
     return res.status(200).json(safeUsers);
   }
-
   // POST /api/auth/sync_users — Двусторонняя синхронизация аккаунтов (включая оффлайн-пользователей)
   if (method === 'POST' && path.endsWith('/sync_users')) {
     const { users: clientUsers } = body || {};
@@ -399,7 +336,6 @@ export default function handler(req, res) {
         if (!u || !u.nickname) continue;
         const cleanNick = u.nickname.toLowerCase();
         if (['admin_samurai', 'support_agent', 'playerone'].includes(cleanNick)) continue;
-
         let existing = users.find((ex) => ex.nickname.toLowerCase() === cleanNick);
         if (existing) {
           if (u.lastLogin) existing.lastLogin = u.lastLogin;
@@ -430,7 +366,6 @@ export default function handler(req, res) {
     }));
     return res.status(200).json(safeUsers);
   }
-
   // PATCH /api/auth/users/:id/role — Изменение роли пользователя администратором
   if (method === 'PATCH' && path.includes('/users')) {
     const parts = path.split('/');
@@ -446,7 +381,6 @@ export default function handler(req, res) {
     }
     return res.status(404).json({ message: 'Пользователь не найден' });
   }
-
   // POST / PATCH /api/auth/avatar — Изменение аватарки пользователя
   if ((method === 'POST' || method === 'PATCH') && path.endsWith('/avatar')) {
     const authHeader = headers['authorization'];
@@ -455,11 +389,9 @@ export default function handler(req, res) {
       const token = authHeader.split(' ')[1];
       userPayload = verifyToken(token, JWT_SECRET);
     }
-
     const { avatarUrl, nickname } = body || {};
     const targetNick = (userPayload?.nickname || nickname || '').toLowerCase();
     const targetUser = users.find((u) => u.nickname?.toLowerCase() === targetNick);
-
     if (targetUser && avatarUrl) {
       targetUser.avatarUrl = avatarUrl.trim();
       savePersistedUsers();
@@ -484,6 +416,5 @@ export default function handler(req, res) {
     }
     return res.status(400).json({ message: 'Укажите верную ссылку на аватарку' });
   }
-
   return res.status(404).json({ message: 'Endpoint not found' });
 }

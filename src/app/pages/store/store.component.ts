@@ -7,14 +7,12 @@ import { Subscription } from 'rxjs';
 import { AuthService, User } from '../../services/auth.service';
 import { NicknameSchema, PromoCodeSchema, PaymentSchema } from '../../schemas/api.schemas';
 import { z } from 'zod';
-
 export interface VipFeature {
   icon: string;
   title: string;
   desc: string;
   badge?: string;
 }
-
 @Component({
   selector: 'app-store',
   standalone: true,
@@ -25,14 +23,9 @@ export interface VipFeature {
 export class StoreComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   private userSub!: Subscription;
-
-  // Pricing details
   vipPrice = 200;
   passPrice = 150;
-
-  // Checkout modal state
   showBuyModal = false;
-  /** 'vip' — покупка VIP, 'pass' — покупка Проходки */
   modalType: 'vip' | 'pass' = 'vip';
   nicknameInput = '';
   promoCodeInput = '';
@@ -40,16 +33,10 @@ export class StoreComponent implements OnInit, OnDestroy {
   discountPercent = 0;
   promoError = '';
   promoSuccess = '';
-  selectedPayment: 'sbp' | 'card' | 'crypto' = 'sbp';
-
   checkoutStep: 1 | 2 = 1;
   isProcessingPay = false;
   lastOrderId = '';
   commandCopied = false;
-
-  // VIP features removed - will be added later
-
-  // FAQ Items
   faqItems = [
     {
       q: 'Как работает VIP статус и какие команды доступны?',
@@ -64,21 +51,19 @@ export class StoreComponent implements OnInit, OnDestroy {
       a: 'С помощью команды /disc вы можете записать свой трек на пластинку (работает с модом PlasmoVoice) и включать музыку себе и друзьям.'
     },
     {
-      q: 'Как проходит оплата через RollyPay?',
-      a: 'Оплата происходит через шлюз RollyPay, где вы можете выбрать любой способ: СБП (по QR-коду), банковские карты РФ и мира, Cryptobot, xrocket или криптовалюту (USDT, TON, BTC).'
+      q: 'Как проходит оплата через ЮMoney?',
+      a: 'После нажатия кнопки оплаты вы будете перенаправлены на страницу ЮMoney, где можно оплатить банковской картой или с кошелька ЮMoney. После успешного платежа статус зачисляется автоматически.'
     },
     {
       q: 'Как быстро выдается статус или проходка?',
       a: 'После успешной оплаты статус автоматически зачисляется на ваш никнейм прямо на сервере в течение 10–20 секунд.'
     }
   ];
-
   constructor(
     private authService: AuthService,
     private http: HttpClient,
     private route: ActivatedRoute
   ) {}
-
   ngOnInit(): void {
     this.userSub = this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
@@ -86,7 +71,6 @@ export class StoreComponent implements OnInit, OnDestroy {
         this.nicknameInput = user.nickname;
       }
     });
-
     this.route.queryParams.subscribe(params => {
       if (params['payment'] === 'success') {
         const nick = params['nickname'] || 'Игрок';
@@ -104,13 +88,11 @@ export class StoreComponent implements OnInit, OnDestroy {
       }
     });
   }
-
   ngOnDestroy(): void {
     if (this.userSub) {
       this.userSub.unsubscribe();
     }
   }
-
   openBuyModal(): void {
     this.showBuyModal = true;
     this.modalType = 'vip';
@@ -120,12 +102,10 @@ export class StoreComponent implements OnInit, OnDestroy {
     this.promoError = '';
     this.promoSuccess = '';
     this.promoCodeInput = '';
-
     if (this.currentUser?.nickname) {
       this.nicknameInput = this.currentUser.nickname;
     }
   }
-
   openPassModal(): void {
     this.showBuyModal = true;
     this.modalType = 'pass';
@@ -135,17 +115,14 @@ export class StoreComponent implements OnInit, OnDestroy {
     this.promoError = '';
     this.promoSuccess = '';
     this.promoCodeInput = '';
-
     if (this.currentUser?.nickname) {
       this.nicknameInput = this.currentUser.nickname;
     }
   }
-
   closeBuyModal(): void {
     this.showBuyModal = false;
     this.checkoutStep = 1;
   }
-
   calculatePrice(): number {
     let base = this.vipPrice;
     if (this.discountPercent > 0) {
@@ -153,17 +130,14 @@ export class StoreComponent implements OnInit, OnDestroy {
     }
     return base;
   }
-
   applyPromoCode(): void {
     const result = PromoCodeSchema.safeParse((this.promoCodeInput || '').trim().toUpperCase());
     this.promoError = '';
     this.promoSuccess = '';
-
     if (!result.success) {
       this.promoError = result.error.issues[0].message;
       return;
     }
-
     const code = result.data;
     if (code === 'SAMURAI' || code === 'ROLLY') {
       this.discountPercent = 10;
@@ -179,27 +153,22 @@ export class StoreComponent implements OnInit, OnDestroy {
       this.appliedPromo = '';
     }
   }
-
-  submitRollypayOrder(): void {
+  submitYooMoneyOrder(): void {
     if (this.modalType === 'pass') {
       this.submitPassOrder();
       return;
     }
-
     const paymentResult = PaymentSchema.safeParse({
       nickname: (this.nicknameInput || '').trim(),
       promoCode: this.appliedPromo || undefined,
     });
-
     if (!paymentResult.success) {
       this.promoError = paymentResult.error.issues[0].message;
       return;
     }
-
     this.isProcessingPay = true;
     this.promoError = '';
-
-    this.http.post<{ payUrl: string; orderId: string }>('/api/payments/rollypay', {
+    this.http.post<{ payUrl: string; orderId: string }>('/api/payments/yoomoney', {
       nickname: paymentResult.data.nickname,
       promoCode: paymentResult.data.promoCode,
     }).subscribe({
@@ -218,17 +187,14 @@ export class StoreComponent implements OnInit, OnDestroy {
       }
     });
   }
-
   submitPassOrder(): void {
     const nick = (this.nicknameInput || '').trim();
     if (!nick || nick.length < 3) {
       this.promoError = 'Укажите верный никнейм (3-16 символов)';
       return;
     }
-
     this.isProcessingPay = true;
     this.promoError = '';
-
     this.http.post<{ payUrl: string; orderId: string }>('/api/payments/pass', {
       nickname: nick,
     }).subscribe({
@@ -247,10 +213,8 @@ export class StoreComponent implements OnInit, OnDestroy {
       }
     });
   }
-
   grantStatusMessage = '';
   isGranting = false;
-
   triggerInstantGrant(): void {
     const nick = (this.nicknameInput || '').trim();
     if (!nick) {
@@ -259,7 +223,6 @@ export class StoreComponent implements OnInit, OnDestroy {
     }
     this.isGranting = true;
     this.grantStatusMessage = 'Отправка команды на сервер...';
-
     this.http.post<any>('/api/payments/grant-vip', { nickname: nick }).subscribe({
       next: (res) => {
         this.isGranting = false;
@@ -271,7 +234,6 @@ export class StoreComponent implements OnInit, OnDestroy {
       }
     });
   }
-
   triggerInstantGrantPass(): void {
     const nick = (this.nicknameInput || '').trim();
     if (!nick) {
@@ -280,7 +242,6 @@ export class StoreComponent implements OnInit, OnDestroy {
     }
     this.isGranting = true;
     this.grantStatusMessage = 'Активация Проходки на сервере...';
-
     this.http.post<any>('/api/payments/grant-pass', { nickname: nick }).subscribe({
       next: (res) => {
         this.isGranting = false;
@@ -292,7 +253,6 @@ export class StoreComponent implements OnInit, OnDestroy {
       }
     });
   }
-
   copyGetCommand(): void {
     const cmd = `/don get ${this.lastOrderId}`;
     navigator.clipboard.writeText(cmd).finally(() => {
@@ -300,16 +260,13 @@ export class StoreComponent implements OnInit, OnDestroy {
       setTimeout(() => { this.commandCopied = false; }, 2500);
     });
   }
-
   readonly DEFAULT_AVATAR = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.03-4.84-2.6.03-1.61 3.22-2.4 4.84-2.4 1.61 0 4.81.79 4.84 2.4C15.8 18.97 14.03 20 12 20z"/></svg>';
-
   getUserAvatar(): string {
     if (this.currentUser?.avatarUrl) {
       return this.currentUser.avatarUrl;
     }
     return this.DEFAULT_AVATAR;
   }
-
   getFeatureSvgIcon(icon: string): string {
     switch (icon) {
       case 'search':
@@ -322,7 +279,6 @@ export class StoreComponent implements OnInit, OnDestroy {
         return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;color:#a855f7;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
     }
   }
-
   getAvatarUrl(nick: string): string {
     return this.getUserAvatar();
   }

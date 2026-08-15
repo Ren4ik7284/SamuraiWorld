@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-
 export interface ServerInfo {
   name: string;
   ip: string;
@@ -16,7 +15,6 @@ export interface ServerInfo {
   latencyMs?: number;
   onlinePlayers?: Array<{ name: string; id: string; skinUrl: string }>;
 }
-
 export interface Rule {
   id: number;
   category: string;
@@ -24,7 +22,6 @@ export interface Rule {
   description: string;
   svgIcon?: string;
 }
-
 export interface NewsItem {
   id: string | number;
   title: string;
@@ -33,7 +30,6 @@ export interface NewsItem {
   tag: string;
   author?: string;
 }
-
 export interface Citizen {
   id: string;
   username: string;
@@ -45,7 +41,6 @@ export interface Citizen {
   skinUrl: string;
   netWorth: number;
 }
-
 export interface Law {
   id: number;
   title: string;
@@ -55,7 +50,6 @@ export interface Law {
   status: string;
   summary: string;
 }
-
 export interface Party {
   id: string;
   name: string;
@@ -65,11 +59,9 @@ export interface Party {
   membersCount: number;
   color: string;
 }
-
 @Injectable({ providedIn: 'root' })
 export class ServerService {
   private apiUrl = '/api';
-
   private defaultServerInfo: ServerInfo = {
     name: 'SamuraiWorld',
     ip: 'b1.qwertyx.host:26687',
@@ -86,27 +78,22 @@ export class ServerService {
       { name: 'Miner_Joe', id: '3', skinUrl: 'https://crafatar.com/avatars/Miner_Joe?overlay=true' }
     ]
   };
-
   constructor(private http: HttpClient) {}
-
   getServerInfo(): Observable<ServerInfo> {
     return this.http.get<ServerInfo>(`${this.apiUrl}/info`).pipe(
       catchError(() => of(this.defaultServerInfo))
     );
   }
-
   getRules(): Observable<Rule[]> {
     return this.http.get<Rule[]>(`${this.apiUrl}/rules`).pipe(
       catchError(() => of(this.getDefaultRules()))
     );
   }
-
   getNews(): Observable<NewsItem[]> {
     return this.http.get<NewsItem[]>(`${this.apiUrl}/news`).pipe(
       catchError(() => of(this.getDefaultNews()))
     );
   }
-
   getCitizens(): Observable<Citizen[]> {
     return this.http.get<Citizen[]>(`${this.apiUrl}/government/citizens`).pipe(
       catchError(() => of([
@@ -135,7 +122,6 @@ export class ServerService {
       ]))
     );
   }
-
   getLaws(): Observable<Law[]> {
     return this.http.get<Law[]>(`${this.apiUrl}/government/laws`).pipe(
       catchError(() => of([
@@ -151,7 +137,6 @@ export class ServerService {
       ]))
     );
   }
-
   private getDefaultRules(): Rule[] {
     return [
       { id: 1, category: 'Политика', title: 'Честные выборы', description: 'Запрещено принуждать других игроков голосовать за кандидата. Выборы должны быть свободными и прозрачными.' },
@@ -162,7 +147,6 @@ export class ServerService {
       { id: 6, category: 'Общество', title: 'Без читов', description: 'Использование читов, дюпов и эксплойтов — бан. Это разрушает экономику и политическую систему сервера.' }
     ];
   }
-
   private getDefaultNews(): NewsItem[] {
     return [
       { id: '1', title: 'SamuraiWorld открыт — начинается новая эпоха!', content: 'Сервер запущен. Мир чист, ресурсы нетронуты. Именно сейчас решается, кто станет первым президентом и какие законы будут действовать.', date: '2025-08-01', tag: 'Открытие', author: 'Администрация' },

@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
-
 interface Contact {
   platform: string;
   jpName: string;
@@ -11,12 +10,10 @@ interface Contact {
   btnLabel: string;
   accentColor: string;
 }
-
 interface Faq {
   q: string;
   a: string;
 }
-
 @Component({
   selector: 'app-contacts',
   standalone: true,
@@ -45,14 +42,12 @@ export class ContactsComponent {
       accentColor: '#2AABEE'
     }
   ];
-
   faqs: Faq[] = [
     { q: 'Какая версия Minecraft нужна?', a: 'Сервер работает на Minecraft Java Edition 1.21. Нужна именно Java-версия, не Bedrock.' },
     { q: 'Могу ли я стать президентом?', a: 'Да! Любой игрок может баллотироваться. Надо собрать голоса игроков, провести кампанию и победить на выборах.' },
     { q: 'Что такое игровые документы?', a: 'Паспорт, лицензия на бизнес, договоры — всё оформляется через чиновников или специальную систему в игре. Без паспорта нельзя занимать должности и вести бизнес.' },
     { q: 'Есть ли PvP?', a: 'Прямой PvP запрещён. Конфликты разрешаются через суд. Это ванильный сервер с политикой, а не PvP-арена.' },
   ];
-
   openFaq: number | null = null;
   toggleFaq(i: number) { this.openFaq = this.openFaq === i ? null : i; }
 }

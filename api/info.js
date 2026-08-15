@@ -1,31 +1,25 @@
 import { checkRateLimit } from './security.js';
-
 export default async function handler(req, res) {
   if (!checkRateLimit(req, res, false)) return;
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-
   let isOnline = false;
   let onlinePlayersCount = 0;
   let maxPlayersCount = 60;
   let motdText = 'Ванильный Minecraft с политической системой';
   let serverVersion = '1.21.4';
   let onlinePlayerList = [];
-
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3500);
-
     const response = await fetch('https://api.mcstatus.io/v2/status/java/b1.qwertyx.host:26687', {
       signal: controller.signal
     });
     clearTimeout(timeoutId);
-
     if (response.ok) {
       const data = await response.json();
       isOnline = Boolean(data.online);
@@ -50,7 +44,6 @@ export default async function handler(req, res) {
   } catch (e) {
     isOnline = false;
   }
-
   return res.status(200).json({
     name: 'SamuraiWorld',
     ip: 'b1.qwertyx.host:26687',

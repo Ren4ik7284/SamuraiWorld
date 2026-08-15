@@ -1,7 +1,6 @@
 .zones-grid {
   grid-template-columns: repeat(3, 1fr);
 }
-
 .zone-card__details {
   display: flex;
   flex-direction: column;
@@ -10,7 +9,6 @@
   padding-top: 16px;
   border-top: 1px solid rgba(255,255,255,0.06);
 }
-
 .zone-card__details li {
   display: flex;
   align-items: center;
@@ -18,26 +16,22 @@
   font-size: 0.8rem;
   color: var(--clr-text-3);
 }
-
 .zone-card__details li svg {
   width: 12px; height: 12px;
   stroke: var(--clr-gold-2);
   flex-shrink: 0;
 }
-
 .page-header {
   position: relative;
   padding: 100px 0 60px;
   text-align: center;
   overflow: hidden;
 }
-
 .page-header__glow {
   position: absolute;
   inset: 0;
   background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(46,139,58,0.08) 0%, transparent 65%);
 }
-
 .page-header__title {
   font-family: var(--font-display);
   font-size: clamp(2.4rem, 5vw, 3.5rem);
@@ -46,28 +40,23 @@
   margin-bottom: 14px;
   position: relative;
 }
-
 .page-header__sub {
   font-size: 1.05rem;
   color: var(--clr-text-2);
   font-style: italic;
   position: relative;
 }
-
-/* Zones */
 .zones-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
-
 .zone-card {
   padding: 32px 28px;
   position: relative;
   overflow: hidden;
   cursor: default;
 }
-
 .zone-card__line {
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -77,7 +66,6 @@
   transition: opacity var(--duration);
 }
 .zone-card:hover .zone-card__line { opacity: 1; }
-
 .zone-card__icon {
   width: 48px; height: 48px;
   display: flex;
@@ -88,12 +76,10 @@
   border-radius: 12px;
   margin-bottom: 14px;
 }
-
 .zone-card__icon svg {
   width: 24px; height: 24px;
   stroke: var(--z-accent, var(--clr-gold-2));
 }
-
 .zone-card__jp {
   font-family: var(--font-jp);
   font-size: 0.65rem;
@@ -103,7 +89,6 @@
   text-transform: uppercase;
   margin-bottom: 8px;
 }
-
 .zone-card__title {
   font-family: var(--font-display);
   font-size: 1.1rem;
@@ -111,20 +96,16 @@
   color: var(--clr-text-1);
   margin-bottom: 10px;
 }
-
 .zone-card__desc {
   font-size: 0.875rem;
   color: var(--clr-text-2);
   line-height: 1.65;
 }
-
-/* Specs */
 .specs-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
-
 .spec-row {
   display: flex;
   align-items: center;
@@ -132,28 +113,22 @@
   padding: 18px 24px;
   gap: 24px;
 }
-
 .spec-row:hover { transform: none; box-shadow: none; }
-
 .spec-row__label {
   font-size: 0.8rem;
   color: var(--clr-text-3);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
-
 .spec-row__value {
   font-weight: 600;
   font-size: 0.9rem;
   color: var(--clr-text-1);
   text-align: right;
 }
-
-/* Connect */
 .connect-section {
   padding: 0 0 100px;
 }
-
 .connect-card {
   display: grid;
   grid-template-columns: 1fr 1.5fr;
@@ -161,15 +136,12 @@
   padding: 56px;
   align-items: center;
 }
-
 .connect-card:hover { transform: none; }
-
 .connect-card__steps {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
-
 .connect-step {
   display: flex;
   align-items: flex-start;
@@ -177,9 +149,7 @@
   padding: 22px 0;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
-
 .connect-step:last-child { border-bottom: none; }
-
 .connect-step__num {
   font-family: var(--font-display);
   font-size: 1.2rem;
@@ -189,19 +159,16 @@
   line-height: 1.2;
   padding-top: 2px;
 }
-
 .connect-step__head {
   font-weight: 600;
   font-size: 0.95rem;
   color: var(--clr-text-1);
   margin-bottom: 4px;
 }
-
 .connect-step__sub {
   font-size: 0.85rem;
   color: var(--clr-text-3);
 }
-
 .connect-step__sub--ip {
   font-family: 'Courier New', monospace;
   color: var(--clr-gold-3);
@@ -213,12 +180,10 @@
   display: inline-block;
   margin-top: 6px;
 }
-
 @media (max-width: 1024px) {
   .zones-grid { grid-template-columns: repeat(2, 1fr); }
   .connect-card { grid-template-columns: 1fr; gap: 40px; }
 }
-
 @media (max-width: 640px) {
   .page-header { padding: 60px 0 30px; text-align: center; }
   .zones-grid { grid-template-columns: 1fr; }
@@ -233,15 +198,12 @@
   .connect-step { flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 16px 0; }
   .connect-step__num { min-width: 28px; font-size: 1.05rem; margin: 0 auto; text-align: center; }
 }
-
-/* Hardware Cards Brand Styling */
 .hardware-cards-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 24px;
 }
-
 .hw-card {
   padding: 24px 20px;
   text-align: center;
@@ -250,12 +212,10 @@
   border: 1px solid rgba(56, 189, 248, 0.2);
   transition: all var(--duration, 0.2s);
 }
-
 .hw-card:hover {
   border-color: rgba(56, 189, 248, 0.5);
   box-shadow: 0 10px 25px -5px rgba(56, 189, 248, 0.15);
 }
-
 .hw-card__icon-box {
   width: 44px;
   height: 44px;
@@ -267,13 +227,11 @@
   border: 1px solid rgba(212, 160, 23, 0.3);
   border-radius: 10px;
 }
-
 .hw-card__icon-box svg {
   width: 22px;
   height: 22px;
   stroke: #f0c040;
 }
-
 .hw-card__label {
   font-size: 0.75rem;
   font-weight: 700;
@@ -282,7 +240,6 @@
   text-transform: uppercase;
   margin-bottom: 4px;
 }
-
 .hw-card__value {
   font-family: var(--font-display);
   font-size: 1.15rem;
@@ -290,16 +247,13 @@
   color: var(--clr-text-1, #f8fafc);
   margin-bottom: 4px;
 }
-
 .hw-card__sub {
   font-size: 0.8rem;
   color: #f0c040;
   font-weight: 600;
 }
-
 @media (max-width: 860px) {
   .hardware-cards-grid {
     grid-template-columns: 1fr;
   }
 }
-

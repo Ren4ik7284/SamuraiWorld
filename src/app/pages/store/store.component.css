@@ -1,9 +1,3 @@
-/* ============================================
-   SAMURAI WORLD — BRAND VIP STORE
-   Refined Dark Japanese Brand Styling (No excess neon)
-   ============================================ */
-
-/* ---- Products Grid (Pass + VIP side by side) ---- */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -13,7 +7,6 @@
   margin: 0 auto;
   align-items: stretch;
 }
-
 @media (max-width: 880px) {
   .products-grid {
     grid-template-columns: 1fr;
@@ -21,8 +14,6 @@
     margin: 0 auto;
   }
 }
-
-/* Product Card Master Container */
 .product-card {
   display: flex;
   flex-direction: column;
@@ -38,19 +29,16 @@
   width: 100%;
   height: 100%;
 }
-
 .product-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
 }
-
 .product-card__body {
   display: flex;
   flex-direction: column;
   margin-bottom: 22px;
   flex: 1;
 }
-
 .product-card__header {
   display: flex;
   align-items: center;
@@ -58,12 +46,10 @@
   margin-bottom: 20px;
   text-align: left;
 }
-
 .product-card__title-group {
   min-width: 0;
   flex: 1;
 }
-
 .product-card__title {
   font-size: 1.5rem;
   font-weight: 800;
@@ -71,14 +57,11 @@
   line-height: 1.2;
   margin-bottom: 4px;
 }
-
 .product-card__subtitle {
   font-size: 0.88rem;
   color: #cbd5e1;
   line-height: 1.4;
 }
-
-/* Pass gradient text */
 .pass-gradient-text {
   background: linear-gradient(135deg, #e74c3c 0%, #c0392b 55%, #922b21 100%);
   -webkit-background-clip: text;
@@ -86,57 +69,43 @@
   font-weight: 900;
   display: inline-block;
 }
-
-/* Pass card override — burgundy theme */
 .pass-card {
   border-color: rgba(192, 57, 43, 0.35) !important;
   background: linear-gradient(145deg, rgba(20, 8, 10, 0.98) 0%, rgba(10, 4, 6, 0.99) 100%) !important;
 }
-
 .pass-card:hover {
   border-color: rgba(231, 76, 60, 0.6) !important;
   box-shadow: 0 16px 40px rgba(192, 57, 43, 0.25), 0 8px 32px rgba(0, 0, 0, 0.6) !important;
 }
-
 .vip-card:hover {
   border-color: rgba(253, 224, 71, 0.6) !important;
   box-shadow: 0 16px 40px rgba(212, 160, 23, 0.25), 0 8px 32px rgba(0, 0, 0, 0.6) !important;
 }
-
 .pass-card .price-card {
   border-color: rgba(192, 57, 43, 0.35);
   background: rgba(16, 6, 8, 0.7);
 }
-
 .pass-card .amount-val,
 .pass-card .currency {
   color: #e74c3c;
 }
-
 .pass-card .coinso-tag {
   background: rgba(192, 57, 43, 0.12);
   border-color: rgba(192, 57, 43, 0.45);
   color: #e74c3c;
 }
-
-/* Pass icon ring */
 .pass-icon-ring {
   background: rgba(192, 57, 43, 0.1) !important;
   border-color: rgba(192, 57, 43, 0.4) !important;
   box-shadow: none !important;
 }
-
-/* Pass chips */
 .chip--pass {
   background: rgba(38, 10, 10, 0.88);
   border-color: rgba(192, 57, 43, 0.25);
 }
-
 .chip--pass svg {
   color: #e74c3c !important;
 }
-
-/* btn-pass — burgundy purchase button */
 .btn-pass {
   display: inline-flex;
   align-items: center;
@@ -157,23 +126,18 @@
   box-sizing: border-box;
   text-align: center;
 }
-
 .btn-pass:hover {
   opacity: 0.88;
   transform: translateY(-1px);
 }
-
 .btn-pass:active {
   transform: translateY(0);
 }
-
 .btn-pass:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
 }
-
-/* btn-gold (VIP purchase button) */
 .btn-gold {
   display: inline-flex;
   align-items: center;
@@ -194,24 +158,18 @@
   box-sizing: border-box;
   text-align: center;
 }
-
 .btn-gold:hover {
   opacity: 0.88;
   transform: translateY(-1px);
 }
-
 .btn-gold:active {
   transform: translateY(0);
 }
-
 .btn-buy-now {
   width: 100%;
   margin-top: 4px;
   box-sizing: border-box;
 }
-
-
-/* Hero Banner */
 .store-hero {
   position: relative;
   padding: 70px 0 45px;
@@ -219,12 +177,10 @@
   overflow: hidden;
   text-align: center;
 }
-
 .store-hero__content {
   position: relative;
   z-index: 2;
 }
-
 .store-hero__badge {
   display: inline-flex;
   align-items: center;
@@ -238,7 +194,6 @@
   margin-bottom: 18px;
   font-family: var(--font-jp);
 }
-
 .store-hero__title {
   font-size: clamp(2.2rem, 4.5vw, 3.4rem);
   font-weight: 900;
@@ -247,7 +202,6 @@
   text-transform: uppercase;
   color: #ffffff;
 }
-
 .store-hero__title span, .gold-gradient-text {
   background: linear-gradient(135deg, #fde047 0%, #eab308 50%, #ca8a04 100%);
   -webkit-background-clip: text;
@@ -256,7 +210,6 @@
   font-weight: 900;
   display: inline-block;
 }
-
 .store-hero__sub {
   max-width: 680px;
   margin: 0 auto 32px;
@@ -264,8 +217,6 @@
   font-size: 1.05rem;
   line-height: 1.6;
 }
-
-/* Info Strip (2 cards) */
 .store-hero__info-strip {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -273,7 +224,6 @@
   max-width: 680px;
   margin: 0 auto;
 }
-
 .info-strip__item {
   display: flex;
   align-items: center;
@@ -285,26 +235,21 @@
   text-align: left;
   backdrop-filter: blur(8px);
 }
-
 .info-strip__item svg {
   width: 26px;
   height: 26px;
   color: var(--accent-gold-bright);
   flex-shrink: 0;
 }
-
 .info-strip__item strong {
   display: block;
   font-size: 0.95rem;
   color: var(--text-primary);
 }
-
 .info-strip__item span {
   font-size: 0.8rem;
   color: var(--text-muted);
 }
-
-/* VIP SHOWCASE CONTAINER */
 .vip-showcase {
   display: grid;
   grid-template-columns: 1.5fr 1fr;
@@ -317,7 +262,6 @@
   margin-bottom: 0;
   overflow: hidden;
 }
-
 @media (max-width: 640px) {
   .vip-showcase {
     grid-template-columns: 1fr;
@@ -325,7 +269,6 @@
     gap: 16px;
   }
 }
-
 .vip-badge-tag {
   display: inline-block;
   font-size: 0.7rem;
@@ -338,14 +281,12 @@
   border-radius: 6px;
   margin-bottom: 14px;
 }
-
 .vip-showcase__header {
   display: flex;
   align-items: center;
   gap: 16px;
   margin-bottom: 22px;
 }
-
 .vip-icon-ring {
   width: 56px;
   height: 56px;
@@ -358,20 +299,16 @@
   flex-shrink: 0;
   box-shadow: none;
 }
-
 .vip-title {
   font-size: 1.8rem;
   font-weight: 800;
   color: #ffffff;
   line-height: 1.2;
 }
-
 .vip-subtitle {
   font-size: 0.92rem;
   color: #cbd5e1;
 }
-
-/* Highlight Box */
 .vip-highlight-box {
   display: flex;
   flex-direction: column;
@@ -383,18 +320,15 @@
   margin-bottom: 22px;
   width: 100%;
 }
-
 .highlight-item {
   display: flex;
   align-items: flex-start;
   gap: 12px;
 }
-
 .hl-icon {
   font-size: 1.5rem;
   flex-shrink: 0;
 }
-
 .highlight-item strong {
   display: block;
   font-size: 0.95rem;
@@ -402,27 +336,22 @@
   margin-bottom: 3px;
   font-weight: 700;
 }
-
 .highlight-item p {
   font-size: 0.88rem;
   color: #e2e8f0;
   line-height: 1.5;
 }
-
-/* Feature Chips */
 .vip-features-chips {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   width: 100%;
 }
-
 @media (max-width: 480px) {
   .vip-features-chips {
     grid-template-columns: 1fr;
   }
 }
-
 .chip {
   display: flex;
   align-items: center;
@@ -436,15 +365,12 @@
   font-weight: 500;
   box-sizing: border-box;
 }
-
 .chip svg {
   width: 15px;
   height: 15px;
   color: #fde047;
   flex-shrink: 0;
 }
-
-/* Price Card */
 .price-card {
   display: flex;
   flex-direction: column;
@@ -458,7 +384,6 @@
   width: 100%;
   box-sizing: border-box;
 }
-
 .price-card__label {
   font-size: 0.78rem;
   text-transform: uppercase;
@@ -467,7 +392,6 @@
   margin-bottom: 6px;
   font-weight: 600;
 }
-
 .price-card__amount {
   display: flex;
   align-items: baseline;
@@ -475,7 +399,6 @@
   gap: 4px;
   margin-bottom: 8px;
 }
-
 .amount-val {
   font-family: var(--font-heading);
   font-size: 3.2rem;
@@ -483,26 +406,22 @@
   color: #fde047;
   line-height: 1;
 }
-
 .currency {
   font-size: 1.6rem;
   font-weight: 700;
   color: #fde047;
 }
-
 .period {
   font-size: 0.88rem;
   color: #94a3b8;
   margin-left: 2px;
 }
-
 .payment-badge-row {
   margin-bottom: 14px;
   display: flex;
   justify-content: center;
   width: 100%;
 }
-
 .coinso-tag {
   display: inline-flex;
   align-items: center;
@@ -517,37 +436,30 @@
   max-width: 100%;
   text-align: center;
 }
-
-/* FEATURES DETAIL GRID */
 .features-section {
   margin-bottom: 60px;
 }
-
 .section-header-center {
   text-align: center;
   margin-bottom: 36px;
 }
-
 .section-title {
   font-size: clamp(1.8rem, 3.2vw, 2.4rem);
   font-weight: 800;
   color: #ffffff;
   margin-bottom: 10px;
 }
-
 .section-desc {
   font-size: 0.98rem;
   color: #94a3b8;
   max-width: 580px;
   margin: 0 auto;
 }
-
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 22px;
 }
-
 .feature-card {
   position: relative;
   padding: 24px 22px;
@@ -560,20 +472,17 @@
   backdrop-filter: blur(12px);
   transition: transform 0.28s ease, border-color 0.28s, box-shadow 0.28s;
 }
-
 .feature-card:hover {
   transform: translateY(-4px);
   border-color: rgba(212, 160, 23, 0.55);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 160, 23, 0.15);
 }
-
 .feature-card__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
 }
-
 .feature-card__icon {
   width: 44px;
   height: 44px;
@@ -585,7 +494,6 @@
   justify-content: center;
   flex-shrink: 0;
 }
-
 .feature-card__badge {
   font-size: 0.68rem;
   font-weight: 800;
@@ -596,7 +504,6 @@
   padding: 3px 10px;
   border-radius: 20px;
 }
-
 .feature-card__title {
   font-size: 1.1rem;
   font-weight: 700;
@@ -604,24 +511,19 @@
   margin-bottom: 8px;
   line-height: 1.3;
 }
-
 .feature-card__desc {
   font-size: 0.88rem;
   color: #cbd5e1;
   line-height: 1.6;
 }
-
-/* FAQ SECTION */
 .store-faq {
   margin-bottom: 50px;
 }
-
 .faq-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 20px;
 }
-
 .faq-item {
   padding: 22px;
   background: linear-gradient(145deg, rgba(20, 14, 18, 0.95) 0%, rgba(10, 6, 8, 0.98) 100%);
@@ -629,21 +531,17 @@
   border-radius: 14px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
-
 .faq-item h4 {
   font-size: 1.05rem;
   margin-bottom: 8px;
   color: #fde047;
   font-weight: 700;
 }
-
 .faq-item p {
   color: #e2e8f0;
   font-size: 0.88rem;
   line-height: 1.55;
 }
-
-/* MODAL COMMON STYLES */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -657,7 +555,6 @@
   padding: 85px 16px 20px;
   animation: fadeIn 0.25s ease forwards;
 }
-
 .modal-card {
   position: relative;
   width: 100%;
@@ -672,7 +569,6 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(212, 160, 23, 0.3) transparent;
 }
-
 .modal-close {
   position: absolute;
   top: 18px;
@@ -690,38 +586,31 @@
   cursor: pointer;
   transition: var(--transition);
 }
-
 .modal-close:hover {
   background: var(--accent-red);
   color: #fff;
 }
-
 .modal-header {
   display: flex;
   align-items: center;
   gap: 14px;
   margin-bottom: 20px;
 }
-
 .modal-header__icon {
   font-size: 2.2rem;
 }
-
 .modal-title {
   font-size: 1.35rem;
   font-weight: 700;
   color: #ffffff;
 }
-
 .modal-sub-label {
   font-size: 0.82rem;
   color: #94a3b8;
 }
-
 .modal-body {
   margin-bottom: 20px;
 }
-
 .modal-footer {
   display: flex;
   align-items: center;
@@ -730,12 +619,9 @@
   padding-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
-
-/* CHECKOUT FORM IN MODAL */
 .checkout-form-group {
   margin-bottom: 16px;
 }
-
 .checkout-label {
   display: block;
   font-size: 0.86rem;
@@ -743,7 +629,6 @@
   margin-bottom: 6px;
   color: #f8fafc;
 }
-
 .nick-input-wrap {
   display: flex;
   align-items: center;
@@ -753,7 +638,6 @@
   border-radius: 12px;
   padding: 8px 12px;
 }
-
 .nick-avatar {
   width: 38px;
   height: 38px;
@@ -763,7 +647,6 @@
   background: #12070b;
   flex-shrink: 0;
 }
-
 .checkout-input {
   width: 100%;
   background: transparent;
@@ -773,14 +656,12 @@
   font-weight: 600;
   outline: none;
 }
-
 .checkout-hint {
   display: block;
   font-size: 0.76rem;
   color: #94a3b8;
   margin-top: 5px;
 }
-
 .checkout-info-box {
   padding: 14px 16px;
   border-radius: 12px;
@@ -788,7 +669,6 @@
   background: rgba(24, 12, 18, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 .info-box-row {
   display: flex;
   justify-content: space-between;
@@ -796,49 +676,38 @@
   margin-bottom: 6px;
   color: #cbd5e1;
 }
-
 .info-box-row strong {
   color: #ffffff;
 }
-
 .info-box-row:last-child {
   margin-bottom: 0;
 }
-
-/* Promo Code */
 .promo-wrap {
   display: flex;
   gap: 8px;
 }
-
 .promo-input {
   background: rgba(24, 12, 18, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
   padding: 8px 12px;
 }
-
 .btn-promo {
   padding: 8px 14px;
   white-space: nowrap;
   font-size: 0.85rem;
 }
-
 .promo-msg {
   font-size: 0.8rem;
   margin-top: 5px;
 }
-
 .promo-msg.error { color: var(--accent-red-bright); }
 .promo-msg.success { color: #00b894; }
-
-/* Payment Methods Grid */
 .payment-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 10px;
 }
-
 .payment-card {
   display: flex;
   align-items: center;
@@ -851,36 +720,28 @@
   text-align: left;
   transition: var(--transition);
 }
-
 .payment-card:hover {
   border-color: var(--accent-gold);
 }
-
 .payment-card.active {
   background: rgba(212, 160, 23, 0.18);
   border-color: #fde047;
 }
-
 .payment-icon {
   font-size: 1.4rem;
 }
-
 .payment-info {
   display: flex;
   flex-direction: column;
 }
-
 .payment-info strong {
   font-size: 0.86rem;
   color: #ffffff;
 }
-
 .payment-info span {
   font-size: 0.72rem;
   color: #94a3b8;
 }
-
-/* Checkout Summary */
 .checkout-summary {
   background: rgba(24, 12, 18, 0.95);
   border: 1px solid rgba(212, 160, 23, 0.3);
@@ -888,7 +749,6 @@
   padding: 14px 18px;
   margin-top: 16px;
 }
-
 .summary-row {
   display: flex;
   justify-content: space-between;
@@ -896,7 +756,6 @@
   margin-bottom: 6px;
   color: #cbd5e1;
 }
-
 .summary-row--total {
   font-size: 1.05rem;
   font-weight: 700;
@@ -905,29 +764,23 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   color: #ffffff;
 }
-
 .discount-val {
   color: #00b894;
 }
-
 .total-price {
   font-family: var(--font-heading);
   font-size: 1.3rem;
   color: #fde047;
 }
-
 .btn-submit-pay {
   width: 100%;
   justify-content: center;
   padding: 13px 20px;
 }
-
-/* SUCCESS CHECKOUT STEP */
 .checkout-success-body {
   text-align: center;
   padding: 16px 10px 10px;
 }
-
 .success-icon-wrap {
   width: 64px;
   height: 64px;
@@ -939,28 +792,23 @@
   align-items: center;
   justify-content: center;
 }
-
 .success-icon-wrap svg {
   width: 32px;
   height: 32px;
 }
-
 .success-title {
   font-size: 1.4rem;
   margin-bottom: 6px;
   color: #ffffff;
 }
-
 .success-sub {
   color: #cbd5e1;
   font-size: 0.9rem;
   margin-bottom: 18px;
 }
-
 .order-id {
   color: #fde047;
 }
-
 .success-box {
   padding: 18px 20px;
   margin-bottom: 16px;
@@ -970,8 +818,6 @@
   box-sizing: border-box;
   width: 100%;
 }
-
-/* Dedicated Grant Box & Buttons (Fits cleanly without overflowing) */
 .grant-box {
   margin-top: 1.25rem;
   padding: 1.1rem 1rem;
@@ -982,7 +828,6 @@
   width: 100%;
   text-align: center;
 }
-
 .grant-box__title {
   margin: 0 0 0.5rem 0;
   color: #f87171;
@@ -993,7 +838,6 @@
   gap: 6px;
   font-weight: 700;
 }
-
 .grant-box__desc {
   font-size: 0.84rem;
   margin-bottom: 0.9rem;
@@ -1001,7 +845,6 @@
   line-height: 1.4;
   text-align: center;
 }
-
 .btn-grant {
   display: flex;
   align-items: center;
@@ -1024,34 +867,28 @@
   text-transform: none;
   letter-spacing: 0.2px;
 }
-
 .btn-grant:hover {
   opacity: 0.92;
   transform: translateY(-1px);
 }
-
 .btn-grant:active {
   transform: translateY(0);
 }
-
 .btn-grant:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
 }
-
 .btn-grant--pass {
   background: linear-gradient(135deg, #e74c3c 0%, #c0392b 60%, #922b21 100%);
   color: #ffffff;
   box-shadow: 0 4px 16px rgba(192, 57, 43, 0.4);
 }
-
 .btn-grant--vip {
   background: linear-gradient(135deg, #fde047 0%, #eab308 60%, #ca8a04 100%);
   color: #1a0a00;
   box-shadow: 0 4px 16px rgba(234, 179, 8, 0.35);
 }
-
 .btn-grant__content {
   display: inline-flex;
   align-items: center;
@@ -1060,13 +897,11 @@
   flex-wrap: wrap;
   width: 100%;
 }
-
 .btn-grant__content svg {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
 }
-
 .grant-status-msg {
   margin-top: 0.75rem;
   font-size: 0.88rem;
@@ -1076,7 +911,6 @@
   line-height: 1.4;
   word-break: break-word;
 }
-
 .success-row {
   display: flex;
   justify-content: space-between;
@@ -1084,27 +918,22 @@
   margin-bottom: 6px;
   color: #cbd5e1;
 }
-
 .success-row strong {
   color: #ffffff;
 }
-
 .success-row:last-child {
   margin-bottom: 0;
 }
-
 .success-instructions h4 {
   font-size: 0.95rem;
   margin-bottom: 6px;
   color: #fde047;
 }
-
 .success-instructions p {
   font-size: 0.85rem;
   color: #cbd5e1;
   margin-bottom: 10px;
 }
-
 .cmd-copy-box {
   display: inline-flex;
   align-items: center;
@@ -1119,11 +948,9 @@
   cursor: pointer;
   transition: var(--transition);
 }
-
 .cmd-copy-box:hover {
   background: rgba(212, 160, 23, 0.2);
 }
-
 .cmd-copy-tag {
   font-size: 0.72rem;
   background: var(--accent-red);
@@ -1132,15 +959,12 @@
   border-radius: 4px;
   font-family: var(--font-body);
 }
-
 .success-instructions small {
   display: block;
   margin-top: 10px;
   color: #94a3b8;
   font-size: 0.76rem;
 }
-
-/* RESPONSIVE DESIGN FOR MOBILE PHONES & TABLETS */
 @media (max-width: 900px) {
   .products-grid {
     grid-template-columns: 1fr;
@@ -1148,32 +972,26 @@
     margin: 0 auto;
     gap: 20px;
   }
-
   .store-hero__info-strip {
     grid-template-columns: 1fr;
     max-width: 360px;
     margin: 0 auto;
   }
 }
-
 @media (max-width: 680px) {
   .store-hero {
     padding: 40px 0 20px;
   }
-
   .store-hero__container {
     padding: 0 12px;
   }
-
   .store-hero__title {
     font-size: 1.9rem;
   }
-
   .store-hero__sub {
     font-size: 0.92rem;
     margin-bottom: 24px;
   }
-
   .products-grid {
     grid-template-columns: 1fr;
     max-width: 100%;
@@ -1181,7 +999,6 @@
     gap: 18px;
     padding: 0;
   }
-
   .product-card {
     padding: 18px 14px;
     border-radius: 16px;
@@ -1189,44 +1006,36 @@
     box-sizing: border-box;
     overflow: hidden;
   }
-
   .product-card:hover {
     transform: none;
   }
-
   .product-card__header {
     gap: 12px;
     margin-bottom: 16px;
     align-items: center;
   }
-
   .product-card__title {
     font-size: 1.35rem;
     word-break: break-word;
   }
-
   .product-card__subtitle {
     font-size: 0.82rem;
     line-height: 1.35;
   }
-
   .vip-icon-ring {
     width: 44px;
     height: 44px;
     flex-shrink: 0;
   }
-
   .vip-icon-ring svg {
     width: 24px !important;
     height: 24px !important;
   }
-
   .vip-features-chips {
     grid-template-columns: 1fr;
     gap: 7px;
     width: 100%;
   }
-
   .chip {
     padding: 8px 10px;
     font-size: 0.8rem;
@@ -1234,38 +1043,31 @@
     width: 100%;
     box-sizing: border-box;
   }
-
   .chip svg {
     width: 14px;
     height: 14px;
     flex-shrink: 0;
   }
-
   .price-card {
     padding: 16px 12px;
     border-radius: 14px;
     width: 100%;
     box-sizing: border-box;
   }
-
   .price-card__label {
     font-size: 0.72rem;
     margin-bottom: 4px;
   }
-
   .amount-val {
     font-size: 2.6rem;
   }
-
   .currency {
     font-size: 1.35rem;
   }
-
   .payment-badge-row {
     margin-bottom: 12px;
     width: 100%;
   }
-
   .coinso-tag {
     font-size: 0.72rem;
     padding: 4px 8px;
@@ -1274,7 +1076,6 @@
     max-width: 100%;
     display: inline-block;
   }
-
   .btn-pass,
   .btn-gold {
     padding: 12px 14px;
@@ -1282,33 +1083,26 @@
     width: 100%;
     box-sizing: border-box;
   }
-
   .features-grid, .faq-grid {
     grid-template-columns: 1fr;
   }
-
   .feature-card {
     padding: 18px 14px;
   }
-
   .feature-card:hover {
     transform: none;
   }
-
   .modal-card {
     padding: 18px 14px;
     border-radius: 16px;
     max-width: calc(100vw - 24px);
   }
-
   .payment-grid {
     grid-template-columns: 1fr;
   }
-
   .modal-footer {
     flex-direction: column-reverse;
   }
-
   .modal-footer button {
     width: 100%;
   }

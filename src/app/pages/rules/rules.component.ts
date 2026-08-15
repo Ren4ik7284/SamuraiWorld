@@ -1,27 +1,23 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
-
 interface RuleSection {
   num: string;
   title: string;
   icon: string;
   items: RuleItem[];
 }
-
 interface RuleItem {
   id: string;
   text: string;
   bullets?: string[];
 }
-
 interface Penalty {
   title: string;
   desc: string;
   icon: string;
   severe: boolean;
 }
-
 @Component({
   selector: 'app-rules',
   standalone: true,
@@ -30,9 +26,7 @@ interface Penalty {
   styleUrls: ['./rules.component.css']
 })
 export class RulesComponent {
-
   activeSection: string | null = null;
-
   sections: RuleSection[] = [
     {
       num: '1',
@@ -147,7 +141,6 @@ export class RulesComponent {
       ]
     }
   ];
-
   penalties: Penalty[] = [
     { title: 'Предупреждение', desc: 'Первичная мера за лёгкое нарушение.', severe: false, icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>` },
     { title: 'Мут', desc: 'Запрет на общение в чате от 1 часа до 7 дней.', severe: false, icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 005.12 2.12M15 9.34V4a3 3 0 00-5.94-.6"/><path d="M17 16.95A7 7 0 015 12v-1M15.54 8.46A5 5 0 0119 12"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>` },
@@ -155,7 +148,6 @@ export class RulesComponent {
     { title: 'Временный бан', desc: 'Блокировка аккаунта на определённый срок.', severe: false, icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>` },
     { title: 'Постоянный бан', desc: 'Необратимая блокировка за грубые нарушения.', severe: true, icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>` },
   ];
-
   getItemsCountText(count: number): string {
     const mod10 = count % 10;
     const mod100 = count % 100;
@@ -164,15 +156,12 @@ export class RulesComponent {
     if (mod10 >= 2 && mod10 <= 4) return `${count} пункта`;
     return `${count} пунктов`;
   }
-
   toggleSection(num: string): void {
     this.activeSection = this.activeSection === num ? null : num;
   }
-
   isSectionOpen(num: string): boolean {
     return this.activeSection === null || this.activeSection === num;
   }
-
   scrollToSection(num: string): void {
     this.activeSection = num;
     setTimeout(() => {

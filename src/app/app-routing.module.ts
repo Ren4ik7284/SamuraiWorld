@@ -8,7 +8,6 @@ import { StoreComponent } from './pages/store/store.component';
 import { SupportComponent } from './pages/support/support.component';
 import { PrivacyComponent } from './pages/privacy/privacy.component';
 import { TermsComponent } from './pages/terms/terms.component';
-
 const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'store', component: StoreComponent },
@@ -21,10 +20,8 @@ const routes: Routes = [
   { path: 'terms', component: TermsComponent },
   { path: '**', redirectTo: '' }
 ];
-
 @NgModule({
   imports: [RouterModule.forRoot(routes, { scrollPositionRestoration: 'top' })],
   exports: [RouterModule]
 })
 export class AppRoutingModule { }
-

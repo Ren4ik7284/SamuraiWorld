@@ -1,11 +1,7 @@
 <div class="page">
-
-  <!-- Header -->
   <div class="page-header">
     <div class="page-header__glow"></div>
     <div class="container">
-
-      <!-- View Mode Bar Switcher (Виден ТОЛЬКО Администрации и Поддержке) -->
       <div class="view-mode-bar" *ngIf="authService.isSupportOrAdmin">
         <span class="view-mode-label">Режим:</span>
         <button 
@@ -26,7 +22,6 @@
           <span class="admin-pulse"></span>
         </button>
       </div>
-
       <p class="section-eyebrow" style="justify-content:center;margin-bottom:16px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:16px;height:16px"><path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z"/></svg>
         <span>{{ viewMode === 'admin' ? 'Панель Управления Поддержки' : 'Технический Центр & JWT Поддержка' }}</span>
@@ -40,8 +35,6 @@
       <p class="page-header__sub">
         {{ viewMode === 'admin' ? 'Управление обращениями игроков, ответы от лица Поддержки и модерация тикетов.' : 'Подавайте тикеты с JWT авторизацией, отслеживайте их статус и получайте быстрые ответы от Администрации.' }}
       </p>
-
-      <!-- Live metrics -->
       <div class="header-metrics">
         <div class="metric-chip">
           <span class="metric-dot online"></span>
@@ -62,12 +55,8 @@
       </div>
     </div>
   </div>
-
   <div class="section container">
-
-    <!-- USER VIEW -->
     <ng-container *ngIf="viewMode === 'user'">
-      <!-- Navigation tabs -->
       <nav class="support-nav">
         <button 
           class="support-nav__btn" 
@@ -95,11 +84,7 @@
           <span>База знаний (FAQ)</span>
         </button>
       </nav>
-
-      <!-- TAB 1: CREATE TICKET FORM -->
       <div class="tab-content" *ngIf="activeTab === 'create'">
-        
-        <!-- Category selector -->
         <div class="category-section">
           <h3 class="section-sub-title">1. Выберите категорию обращения</h3>
           <div class="categories-grid">
@@ -115,11 +100,8 @@
             </div>
           </div>
         </div>
-
-        <!-- Ticket form -->
         <div class="form-container card">
           <h3 class="section-sub-title">2. Детали обращения</h3>
-
           <div *ngIf="submitSuccess && createdTicketInfo" class="alert alert-success card">
             <div class="alert__icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px;color:#22c55e;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -137,13 +119,11 @@
               </div>
             </div>
           </div>
-
           <form (ngSubmit)="submitTicket()" *ngIf="!submitSuccess">
             <div *ngIf="errorMessage" class="alert alert-error">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
               <span>{{ errorMessage }}</span>
             </div>
-
             <div class="form-grid">
               <div class="form-group">
                 <label class="form-label" for="nickname">Игровой ник в Minecraft *</label>
@@ -159,7 +139,6 @@
                 />
                 <span class="field-hint" *ngIf="currentUser"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" width="12" height="12" style="color:#22c55e;margin-right:4px;display:inline-block;vertical-align:middle;"><polyline points="20 6 9 17 4 12"/></svg>Авторизован как {{ currentUser.nickname }} (JWT токен прикреплён)</span>
               </div>
-
               <div class="form-group">
                 <label class="form-label" for="contact">Контакты для связи (Discord / Telegram / Email)</label>
                 <input 
@@ -172,7 +151,6 @@
                 />
               </div>
             </div>
-
             <div class="form-grid" style="margin-top:20px;">
               <div class="form-group">
                 <label class="form-label" for="category">Категория</label>
@@ -180,8 +158,6 @@
                   <option *ngFor="let cat of categories" [value]="cat.title">{{ cat.title }}</option>
                 </select>
               </div>
-
-              <!-- Priority Selection (Restricted strictly to Support & Admin) -->
               <div class="form-group" *ngIf="authService.isSupportOrAdmin">
                 <label class="form-label">Приоритет обращения (Администрация)</label>
                 <div class="priority-selector">
@@ -197,7 +173,6 @@
                 </div>
               </div>
             </div>
-
             <div class="form-group" style="margin-top:20px;">
               <label class="form-label" for="subject">Тема обращения *</label>
               <input 
@@ -210,7 +185,6 @@
                 required 
               />
             </div>
-
             <div class="form-group" style="margin-top:20px;">
               <label class="form-label" for="description">Подробное описание *</label>
               <textarea 
@@ -223,7 +197,6 @@
                 required
               ></textarea>
             </div>
-
             <div class="form-actions" style="margin-top:28px;">
               <button type="submit" class="btn-submit-ticket" [disabled]="isSubmitting">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -233,8 +206,6 @@
           </form>
         </div>
       </div>
-
-      <!-- TAB 2: TICKET TRACKER -->
       <div class="tab-content" *ngIf="activeTab === 'tracker'">
         <div class="tracker-header">
           <div class="search-box card">
@@ -247,7 +218,6 @@
             />
           </div>
         </div>
-
         <div class="tickets-grid" *ngIf="filteredTickets.length > 0; else noTicketsUser">
           <div 
             *ngFor="let ticket of filteredTickets" 
@@ -258,9 +228,7 @@
               <span class="ticket-number">{{ ticket.ticketNumber }}</span>
               <span class="status-badge" [ngClass]="getStatusClass(ticket.status)">{{ ticket.status }}</span>
             </div>
-
             <h4 class="ticket-card__title">{{ ticket.subject }}</h4>
-
             <div class="ticket-card__meta">
               <span>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -277,7 +245,6 @@
             </div>
           </div>
         </div>
-
         <ng-template #noTicketsUser>
           <div class="empty-state card">
             <div class="empty-state__icon">
@@ -293,23 +260,18 @@
           </div>
         </ng-template>
       </div>
-
-      <!-- TAB 3: FAQ -->
       <div class="tab-content" *ngIf="activeTab === 'faq'">
         <div class="faq-container card">
           <h3 class="section-sub-title" style="margin-bottom:24px;">Часто задаваемые вопросы (FAQ)</h3>
-
           <div class="faq-list">
             <div class="faq-item">
               <h4 class="faq-item__q">Зачем нужна JWT авторизация в техподдержке?</h4>
               <p class="faq-item__a">JWT (JSON Web Token) авторизация гарантирует, что ваши обращения и тикеты привязаны к вашему аккаунту и видны только вам и агентам поддержки. Никто посторонний не сможет прочитать или изменить ваши тикеты.</p>
             </div>
-
             <div class="faq-item">
               <h4 class="faq-item__q">Какое среднее время ответа техподдержки?</h4>
               <p class="faq-item__a">Агенты поддержки отвечают в течение 10–30 минут в дневное время. Все тикеты мгновенно отправляются в единую NestJS API систему и сопоставляются в реальном времени.</p>
             </div>
-
             <div class="faq-item">
               <h4 class="faq-item__q">Что делать, если не выдались донат-предметы или валюта?</h4>
               <p class="faq-item__a">Создайте тикет в категории «Донат & Экономика», указав ваш ник и способ оплаты. Наша система сверит транзакцию и начислит предметы.</p>
@@ -318,10 +280,7 @@
         </div>
       </div>
     </ng-container>
-
-    <!-- ADMIN PANEL VIEW -->
     <ng-container *ngIf="viewMode === 'admin'">
-      <!-- REGISTERED USERS WIDGET (Мини-окно зарегистрированных пользователей) -->
       <div class="users-widget card" style="margin-bottom: 24px; border: 1px solid rgba(212, 160, 23, 0.25); background: rgba(18, 10, 14, 0.85); padding: 18px;">
         <div class="users-widget-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 10px;">
@@ -346,7 +305,6 @@
             />
           </div>
         </div>
-
         <div class="users-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; max-height: 320px; overflow-y: auto; padding-right: 6px;">
           <div 
             *ngFor="let u of filteredRegisteredUsers" 
@@ -365,7 +323,6 @@
                   <span *ngIf="u.role === 'admin'" style="background: rgba(220, 38, 38, 0.25); color: #f87171; border: 1px solid rgba(220, 38, 38, 0.4); font-size: 0.65rem; padding: 1px 5px; border-radius: 4px; font-weight: 700;">АДМИН</span>
                   <span *ngIf="u.role === 'support'" style="background: rgba(234, 179, 8, 0.25); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.4); font-size: 0.65rem; padding: 1px 5px; border-radius: 4px; font-weight: 700;">ПОДДЕРЖКА</span>
                 </div>
-
                 <div style="font-size: 0.74rem; color: #aaa; display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; width: fit-content;">
                   <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="color:#ffd700;"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5l3 3"/></svg></span>
                   <code style="font-family: monospace; font-weight: 600; color: #ffd700;">{{ u.showPassword ? (u.plainPassword || u.password || 'Не указан') : '••••••••' }}</code>
@@ -379,14 +336,12 @@
                     <svg *ngIf="u.showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 12px; height: 12px;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                   </button>
                 </div>
-
                 <div style="font-size: 0.70rem; color: #777; display: flex; align-items: center; gap: 4px;">
                   <span style="width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
                   <span>Вход: {{ formatDateAgo(u.lastLogin || u.createdAt) }}</span>
                 </div>
               </div>
             </div>
-
             <div style="flex-shrink: 0;">
               <select 
                 class="form-control" 
@@ -402,7 +357,6 @@
           </div>
         </div>
       </div>
-
       <div class="admin-panel card">
         <div class="admin-header">
           <div>
@@ -410,8 +364,6 @@
             <p class="admin-sub">Здесь вы отвечаете игрокам <strong>от лица Службы Поддержки / Администрации</strong> и управляете тикетами.</p>
           </div>
         </div>
-
-        <!-- Admin Filters & Search -->
         <div class="admin-filters">
           <div class="filter-buttons">
             <button 
@@ -443,7 +395,6 @@
               Выполненные
             </button>
           </div>
-
           <div class="search-box" style="margin:0; flex:1;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
             <input 
@@ -454,8 +405,6 @@
             />
           </div>
         </div>
-
-        <!-- Tickets List for Admin -->
         <div class="admin-tickets-list" *ngIf="filteredTickets.length > 0; else noTicketsAdmin">
           <div 
             *ngFor="let ticket of filteredTickets" 
@@ -476,7 +425,6 @@
                 <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="color:var(--clr-gold-2);margin-right:4px;display:inline-block;vertical-align:middle;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{ ticket.createdAt | date:'d MMM HH:mm' }}</span>
               </div>
             </div>
-
             <div class="admin-ticket-actions" (click)="$event.stopPropagation()">
               <button class="btn btn-ghost btn-sm" (click)="openTicketDetails(ticket)">
                 Ответить
@@ -488,7 +436,6 @@
             </div>
           </div>
         </div>
-
         <ng-template #noTicketsAdmin>
           <div class="empty-state card">
             <div class="empty-state__icon">
@@ -500,15 +447,9 @@
         </ng-template>
       </div>
     </ng-container>
-
   </div>
-
-
-
-  <!-- TICKET DETAILS MODAL -->
   <div class="modal-overlay" *ngIf="selectedTicket" (click)="closeTicketDetails()">
     <div class="modal-card card" (click)="$event.stopPropagation()">
-      
       <div class="modal-header">
         <div>
           <div class="modal-subtitle">Тикет {{ selectedTicket.ticketNumber }}</div>
@@ -524,7 +465,6 @@
           </button>
         </div>
       </div>
-
       <div class="modal-info-row">
         <span class="info-chip"><strong>Автор:</strong> {{ selectedTicket.nickname }}</span>
         <span class="info-chip"><strong>Контакты:</strong> {{ selectedTicket.contact }}</span>
@@ -532,8 +472,6 @@
         <span class="info-chip"><strong>Приоритет:</strong> {{ selectedTicket.priority }}</span>
         <span class="status-badge" [ngClass]="getStatusClass(selectedTicket.status)">{{ selectedTicket.status }}</span>
       </div>
-
-      <!-- Status Changer Controls (ТОЛЬКО для Администраторов и Поддержки) -->
       <div class="status-changer-bar" *ngIf="authService.isSupportOrAdmin">
         <span class="form-label" style="font-size:0.78rem;">Изменить статус (Администрация):</span>
         <button class="btn-status status-pending" [class.btn-status--active]="selectedTicket.status === 'Нерешенные' || selectedTicket.status === 'Ожидает ответа'" (click)="changeStatus('Нерешенные')">
@@ -549,8 +487,6 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="margin-right:4px;display:inline-block;vertical-align:middle;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Закрыто
         </button>
       </div>
-
-      <!-- Messages timeline -->
       <div class="chat-container">
         <div 
           *ngFor="let msg of selectedTicket.messages" 
@@ -566,8 +502,6 @@
           <div class="chat-bubble__text">{{ msg.text }}</div>
         </div>
       </div>
-
-      <!-- Reply box -->
       <div class="reply-container" *ngIf="selectedTicket.status !== 'Закрыто'">
         <div class="reply-role-indicator">
           {{ authService.isSupportOrAdmin ? 'Отправляете ответ ОТ ЛИЦА СЛУЖБЫ ПОДДЕРЖКИ:' : 'Отправляете сообщение от никнейма (' + (currentUser?.nickname || newTicket.nickname || selectedTicket.nickname) + '):' }}
@@ -584,8 +518,6 @@
           </button>
         </div>
       </div>
-
     </div>
   </div>
-
 </div>

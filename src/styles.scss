@@ -1,54 +1,36 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;700&display=swap');
-
-/* =============================================
-   DESIGN TOKENS
-   ============================================= */
 :root {
   --clr-bg-0: #060408;
   --clr-bg-1: #0d090c;
   --clr-bg-2: #150f13;
   --clr-bg-3: #1c1419;
-
   --clr-surface-1: rgba(255,255,255,0.03);
   --clr-surface-2: rgba(255,255,255,0.06);
   --clr-surface-border: rgba(255,255,255,0.08);
-
   --clr-red:    #c0392b;
   --clr-red-2:  #e74c3c;
   --clr-red-3:  #ff6b5b;
   --clr-gold:   #c9920a;
   --clr-gold-2: #e8ab12;
   --clr-gold-3: #f5c842;
-
   --clr-text-1: #f2e8df;
   --clr-text-2: rgba(242,232,223,0.65);
   --clr-text-3: rgba(242,232,223,0.38);
-
   --clr-green:  #22c55e;
-
   --glow-red:   0 0 40px rgba(192,57,43,0.35);
   --glow-gold:  0 0 40px rgba(201,146,10,0.3);
-
   --radius-sm:  8px;
   --radius-md:  14px;
   --radius-lg:  20px;
-
   --font-display: 'Cinzel', serif;
   --font-body:    'Inter', sans-serif;
   --font-jp:      'Noto Sans JP', sans-serif;
-
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   --duration: 0.3s;
 }
-
-/* =============================================
-   RESET & BASE
-   ============================================= */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 html { scroll-behavior: smooth; font-size: 16px; }
-
 body {
   font-family: var(--font-body);
   background: var(--clr-bg-0);
@@ -57,40 +39,26 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
-
 img { display: block; max-width: 100%; }
 a { color: inherit; text-decoration: none; }
 button { border: none; cursor: pointer; font-family: inherit; }
 ul, ol { list-style: none; }
 svg path { fill-rule: evenodd; clip-rule: evenodd; }
-
-/* =============================================
-   SCROLLBAR
-   ============================================= */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--clr-bg-0); }
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, var(--clr-red), var(--clr-gold));
   border-radius: 4px;
 }
-
-/* =============================================
-   LAYOUT UTILITIES
-   ============================================= */
 .container {
   width: 100%;
   max-width: 1200px;
   margin-inline: auto;
   padding-inline: 28px;
 }
-
 .section {
   padding-block: 110px;
 }
-
-/* =============================================
-   TYPOGRAPHY
-   ============================================= */
 .section-eyebrow {
   display: inline-flex;
   align-items: center;
@@ -102,7 +70,6 @@ svg path { fill-rule: evenodd; clip-rule: evenodd; }
   text-transform: uppercase;
   margin-bottom: 16px;
 }
-
 .section-eyebrow::before,
 .section-eyebrow::after {
   content: '';
@@ -112,7 +79,6 @@ svg path { fill-rule: evenodd; clip-rule: evenodd; }
   background: var(--clr-gold-2);
   opacity: 0.5;
 }
-
 .section-heading {
   font-family: var(--font-display);
   font-size: clamp(2rem, 4vw, 2.75rem);
@@ -121,31 +87,24 @@ svg path { fill-rule: evenodd; clip-rule: evenodd; }
   line-height: 1.15;
   margin-bottom: 14px;
 }
-
 .section-heading span {
   background: linear-gradient(135deg, var(--clr-gold-3), var(--clr-red-3));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-
 .section-sub {
   font-size: 1.05rem;
   color: var(--clr-text-2);
   max-width: 520px;
   margin-bottom: 64px;
 }
-
 .section-header-center {
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-
-/* =============================================
-   BUTTONS
-   ============================================= */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -163,15 +122,12 @@ svg path { fill-rule: evenodd; clip-rule: evenodd; }
   overflow: hidden;
   white-space: nowrap;
 }
-
 .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
-
 .btn-primary {
   background: linear-gradient(135deg, var(--clr-red) 0%, #7a1e15 100%);
   color: #fff;
   box-shadow: 0 4px 20px rgba(192,57,43,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
 }
-
 .btn-primary::before {
   content: '';
   position: absolute;
@@ -180,11 +136,9 @@ svg path { fill-rule: evenodd; clip-rule: evenodd; }
   opacity: 0;
   transition: opacity var(--duration);
 }
-
 .btn-primary:hover::before { opacity: 1; }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(192,57,43,0.55); }
 .btn-primary:active { transform: translateY(0); }
-
 .btn-ghost {
   background: transparent;
   color: var(--clr-gold-2);
@@ -196,10 +150,6 @@ svg path { fill-rule: evenodd; clip-rule: evenodd; }
   color: var(--clr-gold-3);
   transform: translateY(-2px);
 }
-
-/* =============================================
-   CARD / SURFACE
-   ============================================= */
 .card {
   background: var(--clr-surface-1);
   border: 1px solid var(--clr-surface-border);
@@ -207,90 +157,66 @@ svg path { fill-rule: evenodd; clip-rule: evenodd; }
   backdrop-filter: blur(12px);
   transition: border-color var(--duration), transform var(--duration) var(--ease-out), box-shadow var(--duration);
 }
-
 .card:hover {
   border-color: rgba(201,146,10,0.25);
   transform: translateY(-4px);
   box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(201,146,10,0.08);
 }
-
-/* =============================================
-   DIVIDER
-   ============================================= */
 .hr-glow {
   border: none;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(201,146,10,0.25), transparent);
 }
-
-/* =============================================
-   ANIMATIONS
-   ============================================= */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(32px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-
 @keyframes pulseDot {
   0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
   50% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
 }
-
 @keyframes scrollLine {
   0%   { transform: scaleY(0); transform-origin: top; }
   50%  { transform: scaleY(1); transform-origin: top; }
   51%  { transform: scaleY(1); transform-origin: bottom; }
   100% { transform: scaleY(0); transform-origin: bottom; }
 }
-
 @keyframes float {
   0%,100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
-
 @keyframes sakura {
   0%   { transform: translateY(-40px) rotate(0deg) translateX(0); opacity: 0.8; }
   50%  { transform: translateY(45vh) rotate(200deg) translateX(40px); opacity: 0.5; }
   100% { transform: translateY(105vh) rotate(400deg) translateX(-20px); opacity: 0; }
 }
-
 .anim-fade-up { animation: fadeUp 0.8s var(--ease-out) both; }
 .d1 { animation-delay: 0.05s; }
 .d2 { animation-delay: 0.15s; }
 .d3 { animation-delay: 0.25s; }
 .d4 { animation-delay: 0.35s; }
 .d5 { animation-delay: 0.45s; }
-
-/* =============================================
-   RESPONSIVE & MOBILE TOUCH OPTIMIZATIONS
-   ============================================= */
 *, *::before, *::after {
   -webkit-tap-highlight-color: transparent;
 }
-
 button, a, input, select, textarea {
   touch-action: manipulation;
 }
-
 @media (max-width: 768px) {
   .section { padding-block: 60px; }
   .container { padding-inline: 18px; }
   .section-sub { margin-bottom: 40px; font-size: 0.95rem; }
   .section-heading { font-size: clamp(1.75rem, 6vw, 2.4rem); }
 }
-
 @media (max-width: 480px) {
   .section { padding-block: 48px; }
   .container { padding-inline: 14px; }
   .btn { width: 100%; justify-content: center; }
 }
-
-/* ===== GLOBAL RULE: HIDE MAIN SITE NAVBAR & LOGO/BURGER HEADER ON MOBILE WHEN TICKET IS OPEN ===== */
 @media (max-width: 768px) {
   body.ticket-modal-open header.navbar,
   body.ticket-modal-open .navbar,

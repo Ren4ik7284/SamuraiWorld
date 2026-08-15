@@ -3,14 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
 import { ServerService, ServerInfo, NewsItem } from '../../services/server.service';
-
 interface Feature {
   svgIcon: string;
   title: string;
   tag: string;
   desc: string;
 }
-
 @Component({
   selector: 'app-home',
   standalone: true,
@@ -23,7 +21,6 @@ export class HomeComponent implements OnInit {
   news: NewsItem[] = [];
   ipCopied = false;
   particles: { x: number; size: number; speed: number; opacity: number }[] = [];
-
   features: Feature[] = [
     {
       svgIcon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>`,
@@ -62,9 +59,7 @@ export class HomeComponent implements OnInit {
       desc: 'Объединяйся с игроками, создавай партию, разрабатывай программу и бори&#39;тесь за большинство в парламенте.'
     }
   ];
-
   constructor(private serverService: ServerService) {}
-
   ngOnInit(): void {
     this.serverService.getServerInfo().subscribe(info => { this.serverInfo = info; });
     this.serverService.getNews().subscribe(news => { this.news = news; });
@@ -75,7 +70,6 @@ export class HomeComponent implements OnInit {
       opacity: Math.random() * 0.4 + 0.1
     }));
   }
-
   copyIp(): void {
     const ip = this.serverInfo?.ip || 'b1.qwertyx.host:26687';
     navigator.clipboard.writeText(ip).finally(() => {

@@ -4,17 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
 import { AuthService, User } from '../../services/auth.service';
-
 export type TicketCategory =
   | 'Технические проблемы'
   | 'Аккаунт & Паспорт'
   | 'Донат & Экономика'
   | 'Суд & Жалоба'
   | 'Идеи & Баг-репорты';
-
 export type TicketPriority = 'Низкий' | 'Средний' | 'Высокий' | 'Критический';
 export type TicketStatus = 'В работе' | 'Выполненные' | 'Нерешенные' | 'Ожидает ответа' | 'В обработке' | 'Решено' | 'Закрыто';
-
 export interface TicketMessage {
   id: string;
   sender: string;
@@ -22,7 +19,6 @@ export interface TicketMessage {
   text: string;
   timestamp: string;
 }
-
 export interface Ticket {
   id: string;
   ticketNumber: string;
@@ -38,7 +34,6 @@ export interface Ticket {
   updatedAt: string;
   messages: TicketMessage[];
 }
-
 @Component({
   selector: 'app-support',
   standalone: true,
@@ -48,11 +43,7 @@ export interface Ticket {
 })
 export class SupportComponent implements OnInit, OnDestroy {
   readonly API_TICKETS_URL = '/api/support/tickets';
-
-  // Текущий пользователь из AuthService
   currentUser: User | null = null;
-
-  // Модалка авторизации / регистрации
   showAuthModal: boolean = false;
   authMode: 'login' | 'register' = 'login';
   authNicknameInput: string = '';
@@ -61,14 +52,8 @@ export class SupportComponent implements OnInit, OnDestroy {
   authErrorMessage: string = '';
   authSuccessMessage: string = '';
   isAuthSubmitting: boolean = false;
-
-  // Режим просмотра: 'user' (Игрок) или 'admin' (Панель техподдержки)
   viewMode: 'user' | 'admin' = 'user';
-
-  // Выбранная вкладка: 'create' | 'tracker' | 'faq'
   activeTab: 'create' | 'tracker' | 'faq' = 'create';
-
-  // Форма создания тикета
   newTicket = {
     nickname: '',
     contact: '',
@@ -77,7 +62,6 @@ export class SupportComponent implements OnInit, OnDestroy {
     subject: '',
     description: '',
   };
-
   categories: Array<{ title: TicketCategory; icon: string; desc: string }> = [
     {
       title: 'Технические проблемы',
@@ -105,35 +89,24 @@ export class SupportComponent implements OnInit, OnDestroy {
       desc: 'Предложения по улучшению плагинов, найденные баги и абузы.',
     },
   ];
-
   priorities: TicketPriority[] = ['Низкий', 'Средний', 'Высокий', 'Критический'];
-
   isSubmitting = false;
   submitSuccess = false;
   createdTicketInfo: Ticket | null = null;
   errorMessage = '';
-
-  // Список тикетов и фильтры
   searchQuery = '';
   adminFilterStatus = 'ВСЕ';
   ticketsList: Ticket[] = [];
   selectedTicket: Ticket | null = null;
-
-  // Список пользователей для админ панели
   registeredUsers: (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[] = [];
   userSearchQuery = '';
-
-  // Ответы и действия поддержки
   replyText = '';
   isReplying = false;
-
   private pollTimer: any;
-
   constructor(
     private http: HttpClient,
     public authService: AuthService
   ) {}
-
   ngOnInit(): void {
     this.authService.currentUser$.subscribe((user) => {
       this.currentUser = user;
@@ -150,8 +123,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       this.loadTickets();
       this.loadRegisteredUsers();
     });
-
-    // Автоматическое обновление каждые 4 секунды
     this.pollTimer = setInterval(() => {
       this.loadTickets(true);
       if (this.authService.isSupportOrAdmin) {
@@ -159,40 +130,33 @@ export class SupportComponent implements OnInit, OnDestroy {
       }
     }, 4000);
   }
-
   ngOnDestroy(): void {
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
     }
   }
-
   openAuthModal(mode: 'login' | 'register' = 'login'): void {
     this.authMode = mode;
     this.showAuthModal = true;
     this.authErrorMessage = '';
     this.authSuccessMessage = '';
   }
-
   closeAuthModal(): void {
     this.showAuthModal = false;
   }
-
   switchAuthMode(mode: 'login' | 'register'): void {
     this.authMode = mode;
     this.authErrorMessage = '';
     this.authSuccessMessage = '';
   }
-
   submitAuth(): void {
     if (!this.authNicknameInput.trim() || !this.authPasswordInput.trim()) {
       this.authErrorMessage = 'Введите никнейм и пароль';
       return;
     }
-
     this.isAuthSubmitting = true;
     this.authErrorMessage = '';
     this.authSuccessMessage = '';
-
     if (this.authMode === 'register') {
       this.authService
         .register({
@@ -232,7 +196,6 @@ export class SupportComponent implements OnInit, OnDestroy {
         });
     }
   }
-
   logout(): void {
     this.authService.logout();
     this.viewMode = 'user';
@@ -240,11 +203,9 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.selectedTicket = null;
     this.loadTickets();
   }
-
   switchToUserView(): void {
     this.viewMode = 'user';
   }
-
   switchToAdminView(): void {
     if (this.authService.isSupportOrAdmin) {
       this.viewMode = 'admin';
@@ -252,15 +213,10 @@ export class SupportComponent implements OnInit, OnDestroy {
       this.openAuthModal('login');
     }
   }
-
   selectCategory(cat: TicketCategory): void {
     this.submitSuccess = false;
     this.newTicket.category = cat;
   }
-
-  /**
-   * Загрузка пользователей для панели управления Администрации
-   */
   loadRegisteredUsers(): void {
     const headers = this.authService.getAuthHeaders();
     let localUsers: any[] = [];
@@ -271,7 +227,6 @@ export class SupportComponent implements OnInit, OnDestroy {
         localUsers = Object.values(obj).filter((u: any) => u && u.nickname);
       }
     } catch {}
-
     if (localUsers.length > 0) {
       this.http.post<(User & { lastLogin?: string; plainPassword?: string; password?: string })[]>('/api/auth/sync_users', { users: localUsers }, headers).subscribe({
         next: (list) => {
@@ -287,7 +242,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       this.fetchServerUsersFallback(headers);
     }
   }
-
   private fetchServerUsersFallback(headers: any): void {
     this.http.get<(User & { lastLogin?: string; plainPassword?: string; password?: string })[]>('/api/auth/users', headers).subscribe({
       next: (list) => {
@@ -300,11 +254,8 @@ export class SupportComponent implements OnInit, OnDestroy {
       },
     });
   }
-
   private mergeUsersList(serverUsers: (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[]): void {
     const map = new Map<string, User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean }>();
-
-    // 1. Сначала восстанавливаем все зарегистрированные аккаунты из браузерного хранилища
     try {
       const raw = localStorage.getItem('samurai_known_accounts_store');
       if (raw) {
@@ -314,7 +265,6 @@ export class SupportComponent implements OnInit, OnDestroy {
           if (u && u.nickname) {
             const nickKey = u.nickname.toLowerCase();
             if (['playerone', 'support_agent', 'admin_samurai'].includes(nickKey)) continue;
-
             map.set(nickKey, {
               id: u.id || `usr-${nickKey}`,
               nickname: u.nickname,
@@ -330,13 +280,10 @@ export class SupportComponent implements OnInit, OnDestroy {
         }
       }
     } catch {}
-
-    // 2. Объединяем со свежими данными от сервера
     for (const u of serverUsers) {
       if (u && u.nickname) {
         const key = u.nickname.toLowerCase();
         if (['playerone', 'support_agent', 'admin_samurai'].includes(key)) continue;
-
         const existing = map.get(key);
         map.set(key, {
           ...existing,
@@ -347,8 +294,6 @@ export class SupportComponent implements OnInit, OnDestroy {
         });
       }
     }
-
-    // 3. Сохраняем итоговый список аккаунтов обратно
     try {
       const cleanStore: any = {};
       map.forEach((user, key) => {
@@ -356,21 +301,17 @@ export class SupportComponent implements OnInit, OnDestroy {
       });
       localStorage.setItem('samurai_known_accounts_store', JSON.stringify(cleanStore));
     } catch {}
-
     const arr = Array.from(map.values())
       .sort((a, b) => {
         const timeA = new Date(a.lastLogin || a.createdAt || 0).getTime();
         const timeB = new Date(b.lastLogin || b.createdAt || 0).getTime();
         return timeB - timeA;
       });
-
     this.registeredUsers = arr;
   }
-
   togglePasswordVisibility(user: any): void {
     user.showPassword = !user.showPassword;
   }
-
   get filteredRegisteredUsers(): (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[] {
     if (!this.userSearchQuery.trim()) return this.registeredUsers;
     const q = this.userSearchQuery.toLowerCase().trim();
@@ -378,39 +319,29 @@ export class SupportComponent implements OnInit, OnDestroy {
       (u) => u.nickname.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.role.toLowerCase().includes(q)
     );
   }
-
   changeUserRole(targetUser: User, newRole: 'user' | 'support' | 'admin'): void {
     if (!this.authService.isSupportOrAdmin) return;
     targetUser.role = newRole;
-
     const headers = this.authService.getAuthHeaders();
     this.http.patch(`/api/auth/users/${targetUser.id}/role`, { role: newRole }, headers).subscribe({
       next: () => {},
       error: () => {},
     });
   }
-
   formatDateAgo(dateStr?: string): string {
     if (!dateStr) return 'Неизвестно';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return 'Неизвестно';
-
     const diff = Math.floor((Date.now() - date.getTime()) / 1000);
     if (diff < 60) return 'Только что';
     if (diff < 3600) return `${Math.floor(diff / 60)} мин. назад`;
     if (diff < 86400) return `${Math.floor(diff / 3600)} ч. назад`;
     if (diff < 86400 * 7) return `${Math.floor(diff / 86400)} дн. назад`;
-
     return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   }
-
-  /**
-   * Загрузка тикетов с передачей JWT токена
-   */
   readonly LOCAL_STORAGE_KEY = 'samurai_tickets_cache_v2';
   readonly GUEST_TICKETS_KEY = 'samurai_guest_ticket_ids_v2';
   readonly DELETED_TICKETS_KEY = 'samurai_deleted_ticket_ids_v2';
-
   private getGuestTicketIds(): string[] {
     try {
       const data = localStorage.getItem(this.GUEST_TICKETS_KEY);
@@ -419,7 +350,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       return [];
     }
   }
-
   private addGuestTicketId(id: string): void {
     try {
       const ids = this.getGuestTicketIds();
@@ -429,7 +359,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       }
     } catch {}
   }
-
   private getDeletedTicketIds(): string[] {
     try {
       const data = localStorage.getItem(this.DELETED_TICKETS_KEY);
@@ -438,7 +367,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       return [];
     }
   }
-
   private addDeletedTicketId(id: string): void {
     try {
       const ids = this.getDeletedTicketIds();
@@ -448,7 +376,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       }
     } catch {}
   }
-
   private loadLocalTicketsCache(): Ticket[] {
     try {
       const data = localStorage.getItem(this.LOCAL_STORAGE_KEY);
@@ -459,7 +386,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       return [];
     }
   }
-
   private saveLocalTicketsCache(tickets: Ticket[]): void {
     try {
       const deletedIds = this.getDeletedTicketIds();
@@ -467,22 +393,15 @@ export class SupportComponent implements OnInit, OnDestroy {
       localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(clean));
     } catch {}
   }
-
-  /**
-   * Загрузка тикетов с сервера
-   */
   loadTickets(silent: boolean = false): void {
     const headers = this.authService.getAuthHeaders();
     let url = this.API_TICKETS_URL;
-
-    // Сначала мгновенно показываем кэш для избежания моргания UI
     if (this.ticketsList.length === 0) {
       const localCache = this.loadLocalTicketsCache();
       if (localCache.length > 0) {
         this.ticketsList = localCache;
       }
     }
-
     this.http.get<Ticket[]>(url, headers).subscribe({
       next: (data) => {
         if (Array.isArray(data)) {
@@ -496,22 +415,16 @@ export class SupportComponent implements OnInit, OnDestroy {
       },
     });
   }
-
   private updateTicketsList(newList: Ticket[]): void {
     const deletedIds = new Set(this.getDeletedTicketIds());
-    
-    // Ответ сервера является единственным авторитетным источником активных тикетов
     const activeList = (newList || []).filter(
       (t) => t && t.id && !deletedIds.has(t.id) && (!t.ticketNumber || !deletedIds.has(t.ticketNumber))
     );
-
     activeList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
     this.ticketsList = activeList;
     this.saveLocalTicketsCache(activeList);
     this.syncSelectedTicket();
   }
-
   private syncSelectedTicket(): void {
     if (this.selectedTicket) {
       const updated = this.ticketsList.find(
@@ -523,32 +436,22 @@ export class SupportComponent implements OnInit, OnDestroy {
           messages: [...updated.messages],
         };
       } else {
-        // Если тикет был удалён на сервере, автоматически закрываем окно деталей
         this.closeTicketDetails();
       }
     }
   }
-
   canUserReply(ticket: Ticket | null): boolean {
     return !!ticket;
   }
-
-  /**
-   * Создание нового обращения с JWT привязкой
-   */
   submitTicket(): void {
     const nickname = (this.currentUser?.nickname || this.newTicket.nickname || 'Игрок').trim();
     if (!nickname || !this.newTicket.subject || !this.newTicket.description) {
       this.errorMessage = 'Заполните ваш никнейм, тему и описание проблемы.';
       return;
     }
-
     this.errorMessage = '';
     this.isSubmitting = true;
-
-    // Игроки НЕ могут менять приоритет — для них всегда ставится 'Средний'. Приоритеты меняет только Поддержка/Админы.
     const priorityToUse = this.authService.isSupportOrAdmin ? this.newTicket.priority : 'Средний';
-
     const dto = {
       nickname,
       contact: this.newTicket.contact || 'Не указан',
@@ -557,9 +460,7 @@ export class SupportComponent implements OnInit, OnDestroy {
       subject: this.newTicket.subject,
       description: this.newTicket.description,
     };
-
     const headers = this.authService.getAuthHeaders();
-
     this.http.post<Ticket>(this.API_TICKETS_URL, dto, headers).subscribe({
       next: (created) => {
         this.isSubmitting = false;
@@ -578,7 +479,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       },
     });
   }
-
   resetForm(): void {
     this.submitSuccess = false;
     this.createdTicketInfo = null;
@@ -592,25 +492,20 @@ export class SupportComponent implements OnInit, OnDestroy {
       description: '',
     };
   }
-
   get filteredTickets(): Ticket[] {
     const deletedIds = this.getDeletedTicketIds();
     let list = this.ticketsList.filter((t) => t && t.id && !deletedIds.includes(t.id));
-
-    // Ограничение доступа к чужим тикетам для игроков и гостей
     if (!this.authService.isSupportOrAdmin && this.viewMode !== 'admin') {
       if (this.currentUser) {
         const myNick = this.currentUser.nickname.toLowerCase();
         list = list.filter((t) => t.nickname.toLowerCase() === myNick || t.userId === this.currentUser?.id);
       } else {
-        // Незарегистрированный гость: видит ТОЛЬКО тикеты, созданные на его устройстве
         const guestIds = this.getGuestTicketIds();
         list = list.filter((t) => guestIds.includes(t.id));
       }
     } else if (this.viewMode === 'admin' && this.adminFilterStatus !== 'ВСЕ') {
       list = list.filter((t) => t.status === this.adminFilterStatus);
     }
-
     if (this.searchQuery) {
       const q = this.searchQuery.toLowerCase();
       list = list.filter(
@@ -620,17 +515,14 @@ export class SupportComponent implements OnInit, OnDestroy {
           t.subject.toLowerCase().includes(q),
       );
     }
-
     return list;
   }
-
   openTicketDetails(ticket: Ticket): void {
     this.selectedTicket = ticket;
     if (typeof document !== 'undefined') {
       document.body.classList.add('ticket-modal-open');
     }
   }
-
   closeTicketDetails(): void {
     this.selectedTicket = null;
     this.replyText = '';
@@ -638,24 +530,19 @@ export class SupportComponent implements OnInit, OnDestroy {
       document.body.classList.remove('ticket-modal-open');
     }
   }
-
   sendReply(): void {
     if (!this.replyText.trim() || !this.selectedTicket) return;
-
     this.isReplying = true;
     const isStaff = this.authService.isSupportOrAdmin;
     const senderName = this.currentUser?.nickname || (isStaff ? 'Агент Поддержки' : this.selectedTicket.nickname);
     const role = isStaff ? ('support' as const) : ('user' as const);
-
     const dto = {
       sender: senderName,
       role: role,
       text: this.replyText.trim(),
       ticketContext: this.selectedTicket,
     };
-
     const headers = this.authService.getAuthHeaders();
-
     this.http.post<Ticket>(`${this.API_TICKETS_URL}/${this.selectedTicket.id}/messages`, dto, headers).subscribe({
       next: (updated) => {
         this.isReplying = false;
@@ -675,20 +562,17 @@ export class SupportComponent implements OnInit, OnDestroy {
       },
     });
   }
-
   changeStatus(newStatus: TicketStatus): void {
     if (!this.selectedTicket) return;
     if (!this.authService.isSupportOrAdmin) {
       alert('Изменение статуса тикета доступно только Администраторам!');
       return;
     }
-
     const headers = this.authService.getAuthHeaders();
     const dto = {
       status: newStatus,
       ticketContext: this.selectedTicket,
     };
-
     this.http
       .patch<Ticket>(`${this.API_TICKETS_URL}/${this.selectedTicket.id}/status`, dto, headers)
       .subscribe({
@@ -705,29 +589,23 @@ export class SupportComponent implements OnInit, OnDestroy {
         error: (err) => alert(err.error?.message || 'Ошибка изменения статуса.'),
       });
   }
-
   deleteTicket(ticketId: string, event?: Event): void {
     if (event) event.stopPropagation();
     if (!this.authService.isSupportOrAdmin) {
       alert('Удаление тикетов доступно только Администраторам!');
       return;
     }
-
     if (!confirm('Вы действительно хотите закрыть и удалить этот тикет?')) return;
-
     const target = this.ticketsList.find((t) => t.id === ticketId);
     this.addDeletedTicketId(ticketId);
     if (target?.ticketNumber) {
       this.addDeletedTicketId(target.ticketNumber);
     }
-
     this.ticketsList = this.ticketsList.filter((t) => t && t.id !== ticketId && t.ticketNumber !== target?.ticketNumber);
     this.saveLocalTicketsCache(this.ticketsList);
-
     if (this.selectedTicket?.id === ticketId || (target?.ticketNumber && this.selectedTicket?.ticketNumber === target.ticketNumber)) {
       this.closeTicketDetails();
     }
-
     const headers = this.authService.getAuthHeaders();
     this.http.delete(`${this.API_TICKETS_URL}/${ticketId}`, headers).subscribe({
       next: () => {
@@ -739,7 +617,6 @@ export class SupportComponent implements OnInit, OnDestroy {
       },
     });
   }
-
   getStatusClass(status: TicketStatus): string {
     switch (status) {
       case 'Нерешенные':

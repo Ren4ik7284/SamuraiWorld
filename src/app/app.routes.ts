@@ -7,7 +7,6 @@ import { SupportComponent } from './pages/support/support.component';
 import { StoreComponent } from './pages/store/store.component';
 import { PrivacyComponent } from './pages/privacy/privacy.component';
 import { TermsComponent } from './pages/terms/terms.component';
-
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'store', component: StoreComponent },
@@ -20,4 +19,3 @@ export const routes: Routes = [
   { path: 'terms', component: TermsComponent },
   { path: '**', redirectTo: '' }
 ];
-

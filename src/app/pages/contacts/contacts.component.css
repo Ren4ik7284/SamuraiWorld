@@ -4,13 +4,11 @@
   text-align: center;
   overflow: hidden;
 }
-
 .page-header__glow {
   position: absolute;
   inset: 0;
   background: radial-gradient(ellipse 60% 60% at 50% 0%, rgba(88,101,242,0.08) 0%, transparent 65%);
 }
-
 .page-header__title {
   font-family: var(--font-display);
   font-size: clamp(2.4rem, 5vw, 3.5rem);
@@ -19,15 +17,12 @@
   margin-bottom: 14px;
   position: relative;
 }
-
 .page-header__sub {
   font-size: 1.05rem;
   color: var(--clr-text-2);
   font-style: italic;
   position: relative;
 }
-
-/* Contacts grid */
 .contacts-grid {
   display: flex;
   justify-content: center;
@@ -35,7 +30,6 @@
   max-width: 880px;
   margin: 0 auto;
 }
-
 .contact-card {
   flex: 1;
   max-width: 420px;
@@ -48,7 +42,6 @@
   overflow: hidden;
   cursor: pointer;
 }
-
 .contact-card__accent-line {
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -57,13 +50,10 @@
   opacity: 0.5;
   transition: opacity var(--duration);
 }
-
 .contact-card:hover .contact-card__accent-line { opacity: 1; }
-
 .contact-card:hover {
   border-color: rgba(255,255,255,0.12);
 }
-
 .contact-card__icon {
   width: 52px; height: 52px;
   display: flex;
@@ -75,22 +65,18 @@
   margin-bottom: 18px;
   transition: background var(--duration), border-color var(--duration);
 }
-
 .contact-card__icon svg {
   width: 26px; height: 26px;
   fill: var(--clr-text-2);
   transition: fill var(--duration);
 }
-
 .contact-card:hover .contact-card__icon {
   background: rgba(255,255,255,0.07);
   border-color: rgba(255,255,255,0.14);
 }
-
 .contact-card:hover .contact-card__icon svg {
   fill: var(--c-accent, var(--clr-text-1));
 }
-
 .contact-card__meta {
   font-family: var(--font-jp);
   font-size: 0.65rem;
@@ -99,7 +85,6 @@
   opacity: 0.6;
   margin-bottom: 6px;
 }
-
 .contact-card__name {
   font-family: var(--font-display);
   font-size: 1.25rem;
@@ -107,7 +92,6 @@
   color: var(--clr-text-1);
   margin-bottom: 12px;
 }
-
 .contact-card__desc {
   font-size: 0.875rem;
   color: var(--clr-text-2);
@@ -115,7 +99,6 @@
   flex: 1;
   margin-bottom: 24px;
 }
-
 .contact-card__btn {
   display: inline-flex;
   align-items: center;
@@ -125,27 +108,21 @@
   color: var(--clr-text-3);
   transition: color var(--duration), gap var(--duration);
 }
-
 .contact-card__btn svg {
   width: 14px; height: 14px;
   flex-shrink: 0;
   transition: transform var(--duration);
 }
-
 .contact-card:hover .contact-card__btn {
   color: var(--c-accent, var(--clr-text-1));
   gap: 12px;
 }
-
 .contact-card:hover .contact-card__btn svg {
   transform: translateX(3px);
 }
-
-/* IP Banner */
 .ip-banner {
   padding: 0 0 80px;
 }
-
 .ip-banner__inner {
   display: flex;
   align-items: center;
@@ -154,9 +131,7 @@
   padding: 48px 52px;
   flex-wrap: wrap;
 }
-
 .ip-banner__inner:hover { transform: none; }
-
 .ip-banner__title {
   font-family: var(--font-display);
   font-size: clamp(1.4rem, 2.5vw, 1.9rem);
@@ -164,17 +139,14 @@
   color: var(--clr-text-1);
   margin-bottom: 8px;
 }
-
 .ip-banner__sub {
   font-size: 0.9rem;
   color: var(--clr-text-3);
 }
-
 .ip-banner__right {
   text-align: right;
   flex-shrink: 0;
 }
-
 .ip-banner__label {
   font-size: 0.7rem;
   color: var(--clr-text-3);
@@ -182,7 +154,6 @@
   letter-spacing: 0.15em;
   margin-bottom: 8px;
 }
-
 .ip-banner__value {
   font-family: 'Courier New', monospace;
   font-size: 1.4rem;
@@ -195,13 +166,10 @@
   letter-spacing: 0.03em;
   margin-bottom: 8px;
 }
-
 .ip-banner__ver {
   font-size: 0.78rem;
   color: var(--clr-text-3);
 }
-
-/* FAQ */
 .faq-list {
   display: flex;
   flex-direction: column;
@@ -209,17 +177,14 @@
   max-width: 780px;
   margin: 0 auto;
 }
-
 .faq-item {
   cursor: pointer;
   user-select: none;
   overflow: hidden;
   transition: border-color var(--duration);
 }
-
 .faq-item:hover { transform: none; box-shadow: none; }
 .faq-item--open { border-color: rgba(201,146,10,0.3); }
-
 .faq-item__header {
   display: flex;
   align-items: center;
@@ -227,37 +192,31 @@
   gap: 20px;
   padding: 22px 24px;
 }
-
 .faq-item__q {
   font-weight: 600;
   font-size: 0.95rem;
   color: var(--clr-text-1);
 }
-
 .faq-item__icon svg {
   width: 16px; height: 16px;
   stroke: var(--clr-text-3);
   transition: transform var(--duration) var(--ease-out);
   flex-shrink: 0;
 }
-
 .faq-item__icon .rotated {
   transform: rotate(180deg);
   stroke: var(--clr-gold-2);
 }
-
 .faq-item__body {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.35s var(--ease-out), padding var(--duration);
   padding: 0 24px;
 }
-
 .faq-item__body--open {
   max-height: 200px;
   padding: 0 24px 22px;
 }
-
 .faq-item__a {
   font-size: 0.9rem;
   color: var(--clr-text-2);
@@ -265,7 +224,6 @@
   border-top: 1px solid rgba(255,255,255,0.06);
   padding-top: 18px;
 }
-
 @media (max-width: 900px) {
   .page-header { padding: 60px 0 30px; text-align: center; }
   .contacts-grid { flex-direction: column; align-items: center; }
@@ -279,4 +237,3 @@
   .faq-item__header { padding: 18px 18px; }
   .faq-item__body--open { padding: 0 18px 18px; }
 }
-

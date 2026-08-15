@@ -2,13 +2,11 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
-
 interface Social {
   label: string;
   url: string;
   svg: string;
 }
-
 @Component({
   selector: 'app-footer',
   standalone: true,
@@ -18,7 +16,6 @@ interface Social {
 })
 export class FooterComponent {
   currentYear = new Date().getFullYear();
-
   socials: Social[] = [
     {
       label: 'Discord',
@@ -35,7 +32,6 @@ export class FooterComponent {
       </svg>`
     }
   ];
-
   navLinks = [
     { label: 'Главная', path: '/' },
     { label: 'О сервере', path: '/world' },
@@ -44,7 +40,6 @@ export class FooterComponent {
     { label: 'Поддержка', path: '/support' },
     { label: 'Контакты', path: '/contacts' }
   ];
-
   legalLinks = [
     { label: 'Политика конфиденциальности', path: '/privacy' },
     { label: 'Пользовательское соглашение', path: '/terms' },

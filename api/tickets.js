@@ -1,13 +1,10 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-
 const JWT_SECRET = process.env.JWT_SECRET || 'samuraiworld_super_secret_jwt_key_2026';
 const TMP_TICKETS_FILE = path.join('/tmp', 'samurai_tickets_store.json');
-
 let globalTickets = [];
 let globalDeletedTicketIds = new Set();
-
 function loadPersistedTickets() {
   try {
     if (fs.existsSync(TMP_TICKETS_FILE)) {
@@ -19,7 +16,6 @@ function loadPersistedTickets() {
         for (const dId of deletedArr) {
           if (dId) globalDeletedTicketIds.add(String(dId));
         }
-
         for (const t of ticketList) {
           if (!t || !t.id) continue;
           if (globalDeletedTicketIds.has(t.id) || (t.ticketNumber && globalDeletedTicketIds.has(t.ticketNumber))) {
@@ -38,10 +34,7 @@ function loadPersistedTickets() {
       }
     }
   } catch (e) {
-    // Ignore tmp file read errors
   }
-
-  // Pure clean state - remove dummy test accounts
   globalTickets = globalTickets.filter(
     (t) =>
       t &&
@@ -51,7 +44,6 @@ function loadPersistedTickets() {
       !['playerone', 'support_agent', 'admin_samurai'].includes(t.nickname?.toLowerCase())
   );
 }
-
 function savePersistedTickets() {
   try {
     const payload = {
@@ -62,13 +54,9 @@ function savePersistedTickets() {
     };
     fs.writeFileSync(TMP_TICKETS_FILE, JSON.stringify(payload, null, 2), 'utf8');
   } catch (e) {
-    // Ignore tmp file write errors
   }
 }
-
-// Initial load
 loadPersistedTickets();
-
 function base64urlDecode(str) {
   let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
   while (base64.length % 4) {
@@ -76,12 +64,10 @@ function base64urlDecode(str) {
   }
   return Buffer.from(base64, 'base64').toString('utf8');
 }
-
 function verifyAccessToken(authHeader) {
   if (!authHeader) return null;
   const token = authHeader.split(' ')[1];
   if (!token) return null;
-
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
@@ -91,7 +77,6 @@ function verifyAccessToken(authHeader) {
       .createHmac('sha256', JWT_SECRET)
       .update(signatureInput)
       .digest('base64url');
-
     if (signature !== expectedSignature) return null;
     const payload = JSON.parse(base64urlDecode(encodedPayload));
     const now = Math.floor(Date.now() / 1000);
@@ -101,17 +86,13 @@ function verifyAccessToken(authHeader) {
     return null;
   }
 }
-
 function extractTicketId(req, parsedBody = {}) {
-  // 0. Check explicit ticketId in parsed body
   if (parsedBody && (parsedBody.ticketId || parsedBody.id)) {
     const bId = String(parsedBody.ticketId || parsedBody.id).trim();
     if (bId && !['tickets', 'messages', 'status', 'sync'].includes(bId.toLowerCase())) {
       return bId;
     }
   }
-
-  // 1. Check req.query values (supports query.path, query['0'], query.id, etc.)
   if (req.query) {
     const queryVals = Object.values(req.query).flatMap((v) => (Array.isArray(v) ? v : [String(v)]));
     for (const val of queryVals) {
@@ -126,8 +107,6 @@ function extractTicketId(req, parsedBody = {}) {
       }
     }
   }
-
-  // 2. Decode full URL string
   const decodedUrl = decodeURIComponent(req.url || '');
   const parts = decodedUrl.split('?')[0].split('/').filter(Boolean);
   for (const p of parts) {
@@ -138,12 +117,9 @@ function extractTicketId(req, parsedBody = {}) {
       return p;
     }
   }
-
   return null;
 }
-
 import { checkRateLimit } from './security.js';
-
 export default function handler(req, res) {
   if (!checkRateLimit(req, res, req.method !== 'GET')) return;
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -153,17 +129,14 @@ export default function handler(req, res) {
     'Access-Control-Allow-Headers',
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
   );
-
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
-
   loadPersistedTickets();
   const { method, headers, url } = req;
   let query = req.query || {};
   let body = req.body || {};
-
   if (typeof body === 'string') {
     try {
       body = JSON.parse(body);
@@ -171,27 +144,20 @@ export default function handler(req, res) {
       body = {};
     }
   }
-
   const user = verifyAccessToken(headers['authorization']);
-
   const ticketIdParam = extractTicketId(req, body);
-
   const fullUrlAndQuery = (url || '') + ' ' + JSON.stringify(query);
   const isMessagesReq = fullUrlAndQuery.includes('messages');
   const isStatusReq = fullUrlAndQuery.includes('status');
   const isSyncReq = fullUrlAndQuery.includes('sync');
-
   const isStaffUser =
     user?.role === 'admin' ||
     user?.role === 'support' ||
     ['ren4ik284', 'mydaf0n62'].includes(user?.nickname?.toLowerCase()) ||
     body?.role === 'support' ||
     ['ren4ik284', 'mydaf0n62', 'support_agent', 'admin_samurai'].includes((body?.sender || '').trim().toLowerCase());
-
-  // GET Tickets list (Доступен всем для свободы общения и решения задач)
   if (method === 'GET' && !ticketIdParam) {
     let result = [...globalTickets];
-
     if (query.nickname) {
       result = result.filter((t) => t.nickname.toLowerCase() === query.nickname.toLowerCase());
     }
@@ -201,13 +167,10 @@ export default function handler(req, res) {
     if (query.status) {
       result = result.filter((t) => t.status === query.status);
     }
-
     return res.status(200).json(
       result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     );
   }
-
-  // GET Ticket by ID (Доступен всем)
   if (method === 'GET' && ticketIdParam) {
     let ticket = globalTickets.find(
       (t) => t.id === ticketIdParam || t.ticketNumber.toLowerCase() === ticketIdParam.toLowerCase()
@@ -233,11 +196,8 @@ export default function handler(req, res) {
       globalTickets.unshift(ticket);
       savePersistedTickets();
     }
-
     return res.status(200).json(ticket);
   }
-
-  // POST Sync tickets from client /api/support/tickets/sync
   if (method === 'POST' && isSyncReq) {
     const clientTickets = Array.isArray(body?.tickets) ? body.tickets : [];
     for (const ct of clientTickets) {
@@ -268,18 +228,14 @@ export default function handler(req, res) {
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     );
   }
-
-  // POST Create Ticket (Привязка к JWT аккаунту)
   if (method === 'POST' && !isMessagesReq && !isSyncReq) {
     const dto = body || {};
     const nickname = user?.nickname || dto.nickname || 'Игрок';
     if (!dto.subject || !dto.description) {
       return res.status(400).json({ message: 'Заполните тему и описание обращения' });
     }
-
     const now = new Date().toISOString();
     const ticketNumber = `TK-${Math.floor(1000 + Math.random() * 9000)}`;
-
     const newTicket = {
       id: `t-${Date.now()}`,
       ticketNumber,
@@ -312,20 +268,15 @@ export default function handler(req, res) {
         },
       ],
     };
-
     globalTickets.unshift(newTicket);
     savePersistedTickets();
     return res.status(201).json(newTicket);
   }
-
-  // POST Add message /api/support/tickets/:id/messages (Доступен всем!)
   if (method === 'POST' && isMessagesReq) {
     const id = ticketIdParam || query.id || body?.ticketId || body?.id || (body?.ticketContext ? body.ticketContext.id : null);
     let ticket = globalTickets.find(
       (t) => t.id === id || t.ticketNumber.toLowerCase() === (id || '').toLowerCase()
     );
-
-    // Self-healing fallback: restore ticket from client's ticketContext if missing due to serverless cold-start
     if (!ticket && body?.ticketContext && typeof body.ticketContext === 'object') {
       const ctx = body.ticketContext;
       if (ctx.id && ctx.nickname) {
@@ -348,13 +299,11 @@ export default function handler(req, res) {
         savePersistedTickets();
       }
     }
-
     if (!ticket) {
       const now = new Date().toISOString();
       const ticketId = (id && id !== 'messages') ? id : `t-${Date.now()}`;
       const ticketNumber = ticketId.startsWith('TK-') ? ticketId : `TK-${Math.floor(1000 + Math.random() * 9000)}`;
       const senderName = user?.nickname || body?.sender || 'Игрок';
-
       ticket = {
         id: ticketId,
         ticketNumber: ticketNumber,
@@ -373,11 +322,9 @@ export default function handler(req, res) {
       globalTickets.unshift(ticket);
       savePersistedTickets();
     }
-
     const now = new Date().toISOString();
     const senderRole = isStaffUser ? 'support' : 'user';
     const senderName = user?.nickname || body?.sender || ticket.nickname || 'Игрок';
-
     const newMsg = {
       id: `m-${Date.now()}`,
       sender: senderName,
@@ -385,26 +332,20 @@ export default function handler(req, res) {
       text: body?.text || '',
       timestamp: now,
     };
-
     ticket.messages.push(newMsg);
     ticket.updatedAt = now;
     ticket.status = senderRole === 'support' ? 'В обработке' : 'Ожидает ответа';
-
     savePersistedTickets();
     return res.status(200).json(ticket);
   }
-
-  // PATCH Update status /api/support/tickets/:id/status (Строго для Администрации)
   if (method === 'PATCH' && isStatusReq) {
     if (!isStaffUser) {
       return res.status(403).json({ message: 'Изменение статуса тикета разрешено только Администраторам!' });
     }
-
     const id = ticketIdParam || query.id || body?.ticketId || body?.id || (body?.ticketContext ? body.ticketContext.id : null);
     let ticket = globalTickets.find(
       (t) => t.id === id || t.ticketNumber.toLowerCase() === (id || '').toLowerCase()
     );
-
     if (!ticket && body?.ticketContext && typeof body.ticketContext === 'object') {
       const ctx = body.ticketContext;
       if (ctx.id && ctx.nickname) {
@@ -427,12 +368,10 @@ export default function handler(req, res) {
         savePersistedTickets();
       }
     }
-
     if (!ticket) {
       const now = new Date().toISOString();
       const ticketId = (id && id !== 'status') ? id : `t-${Date.now()}`;
       const ticketNumber = ticketId.startsWith('TK-') ? ticketId : `TK-${Math.floor(1000 + Math.random() * 9000)}`;
-
       ticket = {
         id: ticketId,
         ticketNumber: ticketNumber,
@@ -451,12 +390,10 @@ export default function handler(req, res) {
       globalTickets.unshift(ticket);
       savePersistedTickets();
     }
-
     const now = new Date().toISOString();
     const newStatus = body?.status || 'В обработке';
     ticket.status = newStatus;
     ticket.updatedAt = now;
-
     const agentName = user?.nickname || body?.sender || 'Поддержка';
     ticket.messages.push({
       id: `m-${Date.now()}`,
@@ -465,17 +402,13 @@ export default function handler(req, res) {
       text: `Статус тикета изменён на: "${newStatus}" агентом ${agentName}`,
       timestamp: now,
     });
-
     savePersistedTickets();
     return res.status(200).json(ticket);
   }
-
-  // DELETE Ticket (Строго для Администрации)
   if (method === 'DELETE') {
     if (!isStaffUser) {
       return res.status(403).json({ message: 'Удаление тикетов разрешено только Администраторам!' });
     }
-
     const id = ticketIdParam || query.id || body?.id;
     if (id) {
       const target = globalTickets.find(
@@ -486,7 +419,6 @@ export default function handler(req, res) {
         if (target.ticketNumber) globalDeletedTicketIds.add(target.ticketNumber);
       }
       globalDeletedTicketIds.add(String(id));
-
       globalTickets = globalTickets.filter(
         (t) => t.id !== id && (!t.ticketNumber || t.ticketNumber.toLowerCase() !== String(id).toLowerCase())
       );
@@ -494,6 +426,5 @@ export default function handler(req, res) {
     }
     return res.status(200).json({ success: true, id });
   }
-
   return res.status(405).json({ error: 'Method Not Allowed' });
 }

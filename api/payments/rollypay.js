@@ -3,18 +3,15 @@ import fs from 'fs';
 import path from 'path';
 import { checkRateLimit } from '../security.js';
 import { grantVipInMinecraft, grantPassInMinecraft } from './mc-executor.js';
-
 const TERMINAL_ID = process.env.ROLLYPAY_TERMINAL_ID || 'f59246c9-bd38-4402-9082-6f1350d163fc';
 const API_KEY = process.env.ROLLYPAY_API_KEY || 'bwpUuj_o2yTEqou74rTtFy1Yyl9EW54cX6quRxDN2qE';
 const SIGNING_SECRET = process.env.ROLLYPAY_SIGNING_SECRET || '3tcPyhKtcbbeT_3AjKxfnWnB-INxRD3vBqiwVK_9psk';
 const TMP_USERS_FILE = path.join('/tmp', 'samurai_users_store.json');
-
 function verifyRollypaySignature(req, rawBodyStr, secret) {
   if (!secret) return true;
   const signature = req.headers['x-signature'] || req.headers['X-Signature'];
   const timestamp = req.headers['x-timestamp'] || req.headers['X-Timestamp'];
   if (!signature || !timestamp) return true;
-
   try {
     const payload = `${timestamp}.${rawBodyStr}`;
     const expected = crypto.createHmac('sha256', secret).update(payload).digest('hex');
@@ -24,12 +21,10 @@ function verifyRollypaySignature(req, rawBodyStr, secret) {
     return false;
   }
 }
-
 function hashPassword(password) {
   const salt = 'samurai_salt_2026';
   return crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
 }
-
 function updatePlayerVipStatus(nickname) {
   try {
     let users = [];
@@ -38,7 +33,6 @@ function updatePlayerVipStatus(nickname) {
     }
     const cleanNick = (nickname || '').trim().toLowerCase();
     let user = users.find((u) => u.nickname?.toLowerCase() === cleanNick);
-
     if (user) {
       user.isVip = true;
       user.vipGrantedAt = new Date().toISOString();
@@ -65,10 +59,8 @@ function updatePlayerVipStatus(nickname) {
     return null;
   }
 }
-
 export default async function handler(req, res) {
   if (!checkRateLimit(req, res, req.method !== 'GET')) return;
-
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
@@ -76,14 +68,11 @@ export default async function handler(req, res) {
     'Access-Control-Allow-Headers',
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, X-Signature, X-Timestamp'
   );
-
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
-
   if (req.method === 'POST') {
     let payload = req.body || {};
-
     if (typeof req.body === 'string') {
       try {
         payload = JSON.parse(req.body);
@@ -92,32 +81,25 @@ export default async function handler(req, res) {
         payload = Object.fromEntries(params.entries());
       }
     }
-
     const { nickname, promoCode, paymentMethod, status, event_type, order_id, metadata, redirect, type } = payload;
-
-    // 1. Создание счета на оплату через RollyPay API
     if (nickname) {
       const cleanNick = nickname.trim();
       if (!/^[a-zA-Z0-9_]{3,16}$/.test(cleanNick)) {
         return res.status(400).json({ message: 'Укажите верный игровой никнейм Minecraft (3-16 символов)' });
       }
-
       const isPass = type === 'pass' || payload.itemType === 'pass';
       let amount = isPass ? 150 : 200;
-
       if (!isPass) {
         const cleanPromo = (promoCode || '').trim().toUpperCase();
         if (cleanPromo === 'SAMURAI' || cleanPromo === 'ROLLY') {
-          amount = 180; // 10% discount
+          amount = 180; 
         } else if (cleanPromo === 'START') {
-          amount = 170; // 15% discount
+          amount = 170; 
         }
       }
-
       const orderPrefix = isPass ? 'ROLLY-PASS' : 'ROLLY-VIP';
       const orderId = `${orderPrefix}-${cleanNick.toUpperCase()}-${Date.now()}`;
       let payUrl = '';
-
       if (API_KEY) {
         const pPayload = {
           terminal_id: TERMINAL_ID,
@@ -134,12 +116,10 @@ export default async function handler(req, res) {
             type: isPass ? 'pass' : 'vip'
           }
         };
-
         const apiUrls = [
           'https://api.rollypay.io/api/v1/payments',
           'https://rollypay.io/api/v1/payments'
         ];
-
         for (const url of apiUrls) {
           try {
             const response = await fetch(url, {
@@ -151,7 +131,6 @@ export default async function handler(req, res) {
               },
               body: JSON.stringify(pPayload)
             });
-
             if (response.ok) {
               const data = await response.json();
               payUrl = data.pay_url || data.url || '';
@@ -165,7 +144,6 @@ export default async function handler(req, res) {
           }
         }
       }
-
       if (!payUrl) {
         return res.status(200).json({
           payUrl: '',
@@ -178,7 +156,6 @@ export default async function handler(req, res) {
             : 'Не удалось получить ссылку от RollyPay API. Проверьте правильность API-ключа.'
         });
       }
-
       return res.status(200).json({
         payUrl,
         orderId,
@@ -186,20 +163,15 @@ export default async function handler(req, res) {
         terminalId: TERMINAL_ID
       });
     }
-
-    // 2. Webhook приём оплат от RollyPay
     const rawBodyStr = typeof req.body === 'string' ? req.body : JSON.stringify(payload);
     if (!verifyRollypaySignature(req, rawBodyStr, SIGNING_SECRET)) {
       console.error('[RollyPay Webhook] Invalid X-Signature header');
       return res.status(403).json({ error: 'Invalid signature' });
     }
-
     const isPaid = status === 'paid' || event_type === 'payment.paid' || status === 'success';
-
     if (isPaid) {
       let nick = metadata?.nickname || 'Player';
       const isPassOrder = metadata?.type === 'pass' || (order_id && order_id.includes('-PASS-'));
-
       if (order_id && order_id.startsWith('ROLLY-')) {
         const parts = order_id.split('-');
         if (parts.length >= 3) {
@@ -208,10 +180,7 @@ export default async function handler(req, res) {
           nick = parts[1];
         }
       }
-
       updatePlayerVipStatus(nick);
-
-      // Авто-выдача Проходки (swl add) или VIP статуса в игре
       let mcDelivery = null;
       try {
         if (isPassOrder) {
@@ -222,24 +191,19 @@ export default async function handler(req, res) {
       } catch (err) {
         console.error('[RollyPay Minecraft Grant Error]:', err);
       }
-
       const itemLabel = isPassOrder ? 'Проходка' : 'VIP статус';
       console.log(`[RollyPay Webhook Success] ${itemLabel} зачислена игроку: ${nick} (Order: ${order_id || 'N/A'})`);
-
       if (redirect) {
         res.setHeader('Location', `/store?payment=success${isPassOrder ? '&type=pass' : ''}&order=${order_id}&nickname=${encodeURIComponent(nick)}`);
         return res.status(302).end();
       }
-
       return res.status(200).json({
         status: 'OK',
         message: `${itemLabel} успешно выдан(а) игроку ${nick}`,
         minecraftDelivery: mcDelivery
       });
     }
-
     return res.status(200).json({ status: 'IGNORED', message: 'Платеж в обработке' });
   }
-
   return res.status(405).json({ error: 'Method Not Allowed' });
 }

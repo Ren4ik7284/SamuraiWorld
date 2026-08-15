@@ -7,8 +7,6 @@
       <p class="page-header__sub">Полноценное государство прямо в Minecraft</p>
     </div>
   </div>
-
-  <!-- Systems -->
   <section class="section container">
     <header class="section-header-center">
       <p class="section-eyebrow">Механики</p>
@@ -33,18 +31,13 @@
       </article>
     </div>
   </section>
-
   <hr class="hr-glow" />
-
-  <!-- Specs -->
   <section class="section container">
     <header class="section-header-center">
       <p class="section-eyebrow">О сервере</p>
       <h2 class="section-heading">Технические <span>характеристики</span></h2>
       <p class="section-sub">Мощное железо сервера для стабильного TPS 20 без лагов</p>
     </header>
-
-    <!-- BRAND HARDWARE SPEC CARDS (SVG VECTOR ONLY) -->
     <div class="hardware-cards-grid">
       <div *ngFor="let h of hardwareSpecs" class="hw-card card">
         <div class="hw-card__icon-box" [innerHTML]="h.icon | safeHtml"></div>
@@ -53,7 +46,6 @@
         <div class="hw-card__sub">{{ h.sub }}</div>
       </div>
     </div>
-
     <div class="specs-grid">
       <div *ngFor="let s of specs" class="spec-row card">
         <span class="spec-row__label">{{ s.label }}</span>
@@ -61,8 +53,6 @@
       </div>
     </div>
   </section>
-
-  <!-- How to start -->
   <section class="connect-section">
     <div class="container">
       <div class="connect-card card">

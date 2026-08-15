@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
-
 interface SystemBlock {
   icon: string;
   title: string;
@@ -10,7 +9,6 @@ interface SystemBlock {
   details: string[];
   accent: string;
 }
-
 @Component({
   selector: 'app-world',
   standalone: true,
@@ -69,7 +67,6 @@ export class WorldComponent {
       accent: '#6c3483'
     }
   ];
-
   hardwareSpecs = [
     {
       label: 'ПРОЦЕССОР',
@@ -90,7 +87,6 @@ export class WorldComponent {
       icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h.01M10 12h.01M14 12h.01M18 12h.01"/><path d="M2 10h20"/></svg>`
     }
   ];
-
   specs = [
     { label: 'Процессор', value: 'AMD Ryzen 7 5700X (3 ядра)' },
     { label: 'Память', value: '8 ГБ DDR4 RAM' },
@@ -101,7 +97,6 @@ export class WorldComponent {
     { label: 'Экономика', value: 'Рыночная + налоги' },
     { label: 'Аптайм', value: '24/7 · 365' },
   ];
-
   steps = [
     { n: '01', head: 'Подключись к серверу', sub: 'b1.qwertyx.host:26687 — Java Edition 1.21' },
     { n: '02', head: 'Получи гражданство', sub: 'Оформи паспорт у чиновника или через документооборот' },

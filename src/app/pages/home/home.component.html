@@ -1,4 +1,3 @@
-<!-- Animated background particles -->
 <div class="sakura" aria-hidden="true">
   <svg *ngFor="let p of particles; let i = index"
     class="sakura__petal"
@@ -11,31 +10,25 @@
     <circle cx="5" cy="5" r="2"/>
   </svg>
 </div>
-
-<!-- ===== HERO ===== -->
 <section class="hero">
   <div class="hero__bg">
     <img class="hero__img" src="assets/hero_banner.jpg" alt="SamuraiWorld — политический Minecraft сервер" />
     <div class="hero__overlay"></div>
     <div class="hero__noise"></div>
   </div>
-
   <div class="hero__body container">
     <div class="hero__badge anim-fade-up d1">
       <span class="hero__badge-dot" [style.background]="serverInfo?.status === 'online' ? '#22c55e' : '#ef4444'"></span>
       <span>{{ serverInfo?.status === 'online' ? 'Сервер открыт (Онлайн ' + (serverInfo?.playersOnline || 0) + '/' + (serverInfo?.maxPlayers || 1000) + ')' : 'Сервер временно закрыт (Техработы)' }}</span>
     </div>
-
     <div class="hero__title-wrap anim-fade-up d2">
       <p class="hero__title-sub">Политический выживач</p>
       <h1 class="hero__title">Samurai<br><span>World</span></h1>
     </div>
-
     <p class="hero__sub anim-fade-up d3">
       Ванильный Minecraft, где игроки строят государство с нуля.
       Выбирай президента, открывай бизнес, принимай законы — прямо в игре.
     </p>
-
     <div class="hero__actions anim-fade-up d4">
       <button class="btn btn-primary hero__btn-play" (click)="copyIp()">
         <svg *ngIf="!ipCopied" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -55,7 +48,6 @@
         Как устроен сервер
       </a>
     </div>
-
     <div class="hero__ip-wrap anim-fade-up d5">
       <button class="hero__ip-chip" (click)="copyIp()" title="Нажми, чтобы скопировать IP">
         <svg class="hero__ip-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -70,14 +62,11 @@
       </button>
     </div>
   </div>
-
   <div class="hero__scroll" aria-hidden="true">
     <div class="hero__scroll-line"></div>
     <span>Scroll</span>
   </div>
 </section>
-
-<!-- ===== STATS ===== -->
 <div class="stats">
   <div class="container">
     <div class="stats__row">
@@ -93,7 +82,6 @@
           <div class="stats__label">Java Edition · Ваниль</div>
         </div>
       </div>
-
       <div class="stats__item">
         <div class="stats__icon-box">
           <svg class="stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -105,7 +93,6 @@
           <div class="stats__label">Политическая система</div>
         </div>
       </div>
-
       <div class="stats__item">
         <div class="stats__icon-box">
           <svg class="stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -117,7 +104,6 @@
           <div class="stats__label">Сервер в разработке</div>
         </div>
       </div>
-
       <div class="stats__item">
         <div class="stats__icon-box">
           <svg class="stats__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -133,8 +119,6 @@
     </div>
   </div>
 </div>
-
-<!-- ===== FEATURES ===== -->
 <section class="section features">
   <div class="container">
     <header class="section-header-center">
@@ -142,7 +126,6 @@
       <h2 class="section-heading">Что тебя <span>ждёт</span></h2>
       <p class="section-sub">Ванильный Minecraft с полноценной политической и экономической системой</p>
     </header>
-
     <div class="features__grid">
       <article *ngFor="let f of features" class="feature-card card">
         <div class="feature-card__icon" [innerHTML]="f.svgIcon | safeHtml"></div>
@@ -153,10 +136,7 @@
     </div>
   </div>
 </section>
-
 <hr class="hr-glow" />
-
-<!-- ===== NEWS ===== -->
 <section class="section news">
   <div class="container">
     <header class="section-header-center">
@@ -164,7 +144,6 @@
       <h2 class="section-heading">Последние <span>события</span></h2>
       <p class="section-sub">Следи за жизнью сервера</p>
     </header>
-
     <div class="news__grid">
       <article *ngFor="let item of news" class="news-card card">
         <div class="news-card__header">
@@ -183,8 +162,6 @@
     </div>
   </div>
 </section>
-
-<!-- ===== CTA ===== -->
 <section class="cta">
   <div class="cta__glow"></div>
   <div class="container">

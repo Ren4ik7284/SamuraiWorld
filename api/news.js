@@ -1,16 +1,13 @@
 import { checkRateLimit } from './security.js';
-
 export default function handler(req, res) {
   if (!checkRateLimit(req, res, false)) return;
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
-
   return res.status(200).json([
     { id: '1', title: 'SamuraiWorld открыт — начинается новая эпоха!', content: 'Сервер запущен. Мир чист, ресурсы нетронуты. Именно сейчас решается, кто станет первым президентом и какие законы будут действовать.', date: '2025-08-01', tag: 'Открытие', author: 'Администрация' },
     { id: '2', title: 'Первые выборы президента уже скоро', content: 'Через неделю после старта сервера состоятся первые президентские выборы. Успей собрать поддержку, создать партию и объявить свою программу.', date: '2025-08-03', tag: 'Политика', author: 'Избирком' },

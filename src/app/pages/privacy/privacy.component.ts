@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-
 @Component({
   selector: 'app-privacy',
   standalone: true,
@@ -14,13 +13,11 @@ import { RouterModule } from '@angular/router';
           <h1 style="font-family: var(--font-display); font-size: 2.4rem; font-weight: 800; color: #f8fafc; margin-bottom: 12px;">Политика Конфиденциальности</h1>
           <p style="color: #94a3b8; font-size: 0.95rem;">Дата последнего обновления: 10 августа 2026 года</p>
         </header>
-
         <article class="card glass-card" style="background: rgba(22, 12, 16, 0.85); border: 1px solid rgba(212, 160, 23, 0.25); padding: 36px; border-radius: 16px; color: #cbd5e1; line-height: 1.7; font-size: 0.95rem;">
           <section style="margin-bottom: 28px;">
             <h2 style="font-size: 1.3rem; color: #f8fafc; margin-bottom: 12px; font-weight: 700;">1. Общие положения</h2>
             <p>Настоящая Политика конфиденциальности персональных данных (далее — Политика) действует в отношении всей информации, которую проект <strong>SamuraiWorld</strong> (далее — Сервис), доступный по адресу <code>https://my-minecraft-site.vercel.app/</code>, может получить о Пользователе во время использования интернет-сайта и сервера Minecraft.</p>
           </section>
-
           <section style="margin-bottom: 28px;">
             <h2 style="font-size: 1.3rem; color: #f8fafc; margin-bottom: 12px; font-weight: 700;">2. Собираемая информация</h2>
             <p>Мы обрабатываем следующие категории персональных данных Пользователя:</p>
@@ -31,7 +28,6 @@ import { RouterModule } from '@angular/router';
               <li>История покупок внутриигровых привилегий и товаров (без хранения реквизитов банковских карт).</li>
             </ul>
           </section>
-
           <section style="margin-bottom: 28px;">
             <h2 style="font-size: 1.3rem; color: #f8fafc; margin-bottom: 12px; font-weight: 700;">3. Цели обработки персональных данных</h2>
             <p>Персональные данные Пользователя обрабатываются в следующих целях:</p>
@@ -42,13 +38,11 @@ import { RouterModule } from '@angular/router';
               <li>Обеспечение безопасности игрового процесса и защита от мошенничества.</li>
             </ul>
           </section>
-
           <section style="margin-bottom: 28px;">
             <h2 style="font-size: 1.3rem; color: #f8fafc; margin-bottom: 12px; font-weight: 700;">4. Безопасность и защита данных</h2>
             <p>Сервис принимает необходимые организационные и технические меры для защиты персональных данных Пользователя от неправомерного или случайного доступа, уничтожения, изменения, блокирования, копирования, распространения, а также от иных неправомерных действий третьих лиц.</p>
-            <p style="margin-top: 8px;">Все платежные операции проводятся через защищенные соединения авторизованными платежными агрегаторами (через шлюз RollyPay). Реквизиты банковских карт и данные платёжных средств не хранятся на серверах SamuraiWorld.</p>
+            <p style="margin-top: 8px;">Все платежные операции проводятся через защищенные соединения авторизованными платежными агрегаторами (через ЮMoney). Реквизиты банковских карт и данные платёжных средств не хранятся на серверах SamuraiWorld.</p>
           </section>
-
           <section style="margin-bottom: 28px;">
             <h2 style="font-size: 1.3rem; color: #f8fafc; margin-bottom: 12px; font-weight: 700;">5. Контакты службы поддержки</h2>
             <p>По всем вопросам, связанным с обработкой персональных данных и работой Сервиса, вы можете связаться со службой поддержки:</p>

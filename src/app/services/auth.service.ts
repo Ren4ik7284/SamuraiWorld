@@ -2,9 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-
 export type UserRole = 'user' | 'support' | 'admin';
-
 export interface User {
   id: string;
   nickname: string;
@@ -13,38 +11,31 @@ export interface User {
   avatarUrl?: string;
   createdAt: string;
 }
-
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
   tokenType: string;
   expiresIn: number;
 }
-
 export interface AuthResponse {
   user: User;
   tokens: AuthTokens;
 }
-
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly apiUrl = '/api/auth';
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
-
   private accessTokenKey = 'samurai_access_token';
   private refreshTokenKey = 'samurai_refresh_token';
   private userKey = 'samurai_user_profile';
   private accountsKey = 'samurai_known_accounts_store';
-
   constructor(private http: HttpClient) {
     this.loadInitialSession();
   }
-
   private loadInitialSession(): void {
     const savedUserStr = localStorage.getItem(this.userKey);
     const accessToken = localStorage.getItem(this.accessTokenKey);
-
     if (savedUserStr && accessToken) {
       try {
         const savedUser: User = JSON.parse(savedUserStr);
@@ -53,43 +44,31 @@ export class AuthService {
           localStorage.setItem(this.userKey, JSON.stringify(savedUser));
         }
         this.currentUserSubject.next(savedUser);
-        
-        // Подтверждаем сессию на сервере в фоновом режиме
         this.fetchProfile().subscribe({
           error: () => {
             this.refreshToken().subscribe({
               error: () => {
-                // При проблемах сети сохраняем локальную сессию
               },
             });
           },
         });
       } catch (e) {
-        // Ошибка парсинга
       }
     }
   }
-
   public get currentUserValue(): User | null {
     return this.currentUserSubject.value;
   }
-
   public get accessToken(): string | null {
     return localStorage.getItem(this.accessTokenKey);
   }
-
   public get isAuthenticated(): boolean {
     return !!this.currentUserValue && !!this.accessToken;
   }
-
   public get isSupportOrAdmin(): boolean {
     const user = this.currentUserValue;
     return !!user && (user.role === 'admin' || user.role === 'support' || ['ren4ik284', 'mydaf0n62'].includes(user.nickname?.toLowerCase()));
   }
-
-  /**
-   * Получение HTTP заголовка авторизации Bearer
-   */
   public getAuthHeaders(): { headers: HttpHeaders } {
     const token = this.accessToken;
     if (token) {
@@ -101,7 +80,6 @@ export class AuthService {
     }
     return { headers: new HttpHeaders() };
   }
-
   private getKnownAccounts(): Record<string, any> {
     try {
       const raw = localStorage.getItem(this.accountsKey);
@@ -110,7 +88,6 @@ export class AuthService {
       return {};
     }
   }
-
   private saveKnownAccount(nickname: string, user: User, password?: string): void {
     try {
       const accounts = this.getKnownAccounts();
@@ -121,31 +98,20 @@ export class AuthService {
       };
       localStorage.setItem(this.accountsKey, JSON.stringify(accounts));
     } catch {
-      // Игнорируем ошибки кэша
     }
   }
-
-  /**
-   * Регистрация нового аккаунта
-   */
   register(dto: { nickname: string; email?: string; password: string }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, dto).pipe(
       tap((res) => this.handleAuthSuccess(res, dto.password)),
       catchError((err) => throwError(() => err))
     );
   }
-
-  /**
-   * Вход в систему (Авторизация)
-   */
   login(dto: { nickname: string; password: string }): Observable<AuthResponse> {
     const accounts = this.getKnownAccounts();
     const clientUser = accounts[dto.nickname.trim().toLowerCase()];
-
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { ...dto, clientUser }).pipe(
       tap((res) => this.handleAuthSuccess(res, dto.password)),
       catchError((err) => {
-        // Локальное возобновление сессии при холодном старте Vercel
         if (clientUser && clientUser.password === dto.password) {
           const fallbackRes: AuthResponse = {
             user: {
@@ -170,16 +136,11 @@ export class AuthService {
       })
     );
   }
-
-  /**
-   * Обновление Access токена по Refresh токену
-   */
   refreshToken(): Observable<AuthTokens> {
     const refreshTokenStr = localStorage.getItem(this.refreshTokenKey);
     if (!refreshTokenStr) {
       return throwError(() => new Error('Refresh token absent'));
     }
-
     return this.http.post<AuthTokens>(`${this.apiUrl}/refresh`, { refreshToken: refreshTokenStr }).pipe(
       tap((tokens) => {
         localStorage.setItem(this.accessTokenKey, tokens.accessToken);
@@ -192,10 +153,6 @@ export class AuthService {
       })
     );
   }
-
-  /**
-   * Получение профиля текущего пользователя
-   */
   fetchProfile(): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/me`, this.getAuthHeaders()).pipe(
       tap((user) => {
@@ -204,34 +161,23 @@ export class AuthService {
       })
     );
   }
-
-  /**
-   * Смена аватарки пользователя на любую ссылку или пресет
-   */
   updateAvatar(newAvatarUrl: string): Observable<User> {
     const user = this.currentUserValue;
     if (!user) return throwError(() => new Error('Пользователь не авторизован'));
-
     const updatedUser = { ...user, avatarUrl: newAvatarUrl };
     localStorage.setItem(this.userKey, JSON.stringify(updatedUser));
     this.saveKnownAccount(updatedUser.nickname, updatedUser);
     this.currentUserSubject.next(updatedUser);
-
     return this.http.patch<User>(`${this.apiUrl}/avatar`, { avatarUrl: newAvatarUrl, nickname: user.nickname }, this.getAuthHeaders()).pipe(
       catchError(() => of(updatedUser))
     );
   }
-
-  /**
-   * Выход из аккаунта
-   */
   logout(): void {
     localStorage.removeItem(this.accessTokenKey);
     localStorage.removeItem(this.refreshTokenKey);
     localStorage.removeItem(this.userKey);
     this.currentUserSubject.next(null);
   }
-
   private handleAuthSuccess(res: AuthResponse, password?: string): void {
     if (['ren4ik284', 'mydaf0n62'].includes(res.user?.nickname?.toLowerCase())) {
       res.user.role = 'admin';
@@ -244,7 +190,6 @@ export class AuthService {
     }
     localStorage.setItem(this.userKey, JSON.stringify(res.user));
     localStorage.setItem('samurai_user_nickname', res.user.nickname);
-
     this.saveKnownAccount(res.user.nickname, res.user, password);
     this.currentUserSubject.next(res.user);
   }
