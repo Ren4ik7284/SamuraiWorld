@@ -65,18 +65,14 @@ export class ServerService {
   private defaultServerInfo: ServerInfo = {
     name: 'SamuraiWorld',
     ip: 'b1.qwertyx.host:26687',
-    version: '1.21',
+    version: '1.21.4',
     mode: 'Ванильное выживание',
     description: 'Ванильный Minecraft с политической системой — выбирай президента, принимай законы, строй экономику',
-    status: 'online',
+    status: 'offline',
     politicalSystem: 'Демократическая Республика',
-    playersOnline: 14,
-    maxPlayers: 60,
-    onlinePlayers: [
-      { name: 'Shogun_Kenji', id: '1', skinUrl: 'https://crafatar.com/avatars/Shogun_Kenji?overlay=true' },
-      { name: 'President_Alex', id: '2', skinUrl: 'https://crafatar.com/avatars/President_Alex?overlay=true' },
-      { name: 'Miner_Joe', id: '3', skinUrl: 'https://crafatar.com/avatars/Miner_Joe?overlay=true' }
-    ]
+    playersOnline: 0,
+    maxPlayers: 1000,
+    onlinePlayers: []
   };
   constructor(private http: HttpClient) {}
   getServerInfo(): Observable<ServerInfo> {
@@ -95,7 +91,7 @@ export class ServerService {
               status: isOnline ? 'online' : 'offline',
               politicalSystem: 'Демократическая Республика',
               playersOnline: data.players?.online || 0,
-              maxPlayers: data.players?.max || 60,
+              maxPlayers: data.players?.max || 1000,
               onlinePlayers: Array.isArray(data.players?.list) ? data.players.list.map((p: any, idx: number) => ({
                 name: p.name_clean || p.name || 'Игрок',
                 id: String(idx + 1),

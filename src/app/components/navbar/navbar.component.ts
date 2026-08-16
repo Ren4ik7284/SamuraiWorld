@@ -71,9 +71,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         {
           label: 'Магазин & VIP',
           path: '/store',
-          icon: 'diamond',
-          badge: 'HOT',
-          badgeType: 'hot'
+          icon: 'diamond'
         }
       ]
     },
