@@ -444,6 +444,22 @@ export default async function handler(req, res) {
     }
     return res.status(404).json({ message: 'Пользователь не найден' });
   }
+  // DELETE /api/auth/users/:id — Удаление пользователя администратором
+  if (method === 'DELETE' && (rawPath.includes('/users') || qPath.includes('users'))) {
+    const parts = (qPath || rawPath).split('/');
+    const targetId = parts[parts.length - 1];
+    const userIndex = users.findIndex((u) => u.id === targetId || u.nickname?.toLowerCase() === targetId.toLowerCase());
+    if (userIndex !== -1) {
+      const deletedUser = users[userIndex];
+      if (['ren4ik284', 'mydaf0n62'].includes(deletedUser.nickname?.toLowerCase())) {
+        return res.status(403).json({ message: 'Нельзя удалить главного администратора' });
+      }
+      users.splice(userIndex, 1);
+      savePersistedUsers();
+      return res.status(200).json({ success: true, message: `Пользователь ${deletedUser.nickname} успешно удален` });
+    }
+    return res.status(404).json({ message: 'Пользователь не найден' });
+  }
   // POST / PATCH /api/auth/avatar — Изменение аватарки пользователя
   if ((method === 'POST' || method === 'PATCH') && isAvatar) {
     const authHeader = headers['authorization'];

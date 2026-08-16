@@ -69,6 +69,10 @@ export class AuthService {
     const user = this.currentUserValue;
     return !!user && (user.role === 'admin' || user.role === 'support' || ['ren4ik284', 'mydaf0n62'].includes(user.nickname?.toLowerCase()));
   }
+  public get isAdmin(): boolean {
+    const user = this.currentUserValue;
+    return !!user && (user.role === 'admin' || ['ren4ik284', 'mydaf0n62'].includes(user.nickname?.toLowerCase()));
+  }
   public getAuthHeaders(): { headers: HttpHeaders } {
     const token = this.accessToken;
     if (token) {

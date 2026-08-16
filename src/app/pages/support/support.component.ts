@@ -328,6 +328,38 @@ export class SupportComponent implements OnInit, OnDestroy {
       error: () => {},
     });
   }
+  deleteUser(targetUser: any): void {
+    if (!this.authService.isAdmin && !this.authService.isSupportOrAdmin) {
+      alert('Только администраторы могут удалять пользователей');
+      return;
+    }
+    const cleanNick = (targetUser.nickname || '').toLowerCase();
+    if (['ren4ik284', 'mydaf0n62'].includes(cleanNick)) {
+      alert('Нельзя удалить главного администратора!');
+      return;
+    }
+    if (!confirm(`Вы уверены, что хотите удалить пользователя "${targetUser.nickname}" из базы данных сайта?`)) {
+      return;
+    }
+    this.registeredUsers = this.registeredUsers.filter(u => u.id !== targetUser.id && u.nickname.toLowerCase() !== cleanNick);
+    try {
+      const raw = localStorage.getItem('samurai_known_accounts_store');
+      if (raw) {
+        const obj = JSON.parse(raw);
+        delete obj[cleanNick];
+        localStorage.setItem('samurai_known_accounts_store', JSON.stringify(obj));
+      }
+    } catch {}
+    const headers = this.authService.getAuthHeaders();
+    this.http.delete(`/api/auth/users/${targetUser.id || cleanNick}`, headers).subscribe({
+      next: () => {
+        this.loadRegisteredUsers();
+      },
+      error: () => {
+        this.loadRegisteredUsers();
+      }
+    });
+  }
   formatDateAgo(dateStr?: string): string {
     if (!dateStr) return 'Неизвестно';
     const date = new Date(dateStr);

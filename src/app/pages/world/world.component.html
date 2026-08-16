@@ -1,43 +1,118 @@
 <div class="page">
-  <div class="page-header">
-    <div class="page-header__glow"></div>
+  <!-- Hero Section -->
+  <div class="world-hero">
+    <div class="world-hero__glow"></div>
     <div class="container">
-      <p class="section-eyebrow" style="justify-content:center;margin-bottom:20px">Система</p>
-      <h1 class="page-header__title">Как устроен сервер</h1>
-      <p class="page-header__sub">Полноценное государство прямо в Minecraft</p>
+      <div class="world-hero__badge">
+        <span class="world-hero__dot"></span>
+        <span>Официальная вселенная SamuraiWorld</span>
+      </div>
+
+      <h1 class="world-hero__title">
+        Государство, где каждый игрок <br />
+        <span class="world-hero__gradient">пишет историю</span>
+      </h1>
+
+      <p class="world-hero__desc">
+        Полноценный ванильный мир Minecraft 1.21.4 с реальной политической системой, судами, выборами, рыночной экономикой и паспортами.
+      </p>
+
+      <!-- Quick Server Connect Bar -->
+      <div class="world-connect-bar">
+        <div class="world-connect-ip-box" (click)="copyIp()" title="Нажмите, чтобы скопировать IP">
+          <div class="world-connect-label">АДРЕС СЕРВЕРА (JAVA 1.21.4)</div>
+          <div class="world-connect-val">
+            <code>b1.qwertyx.host:26687</code>
+            <span class="world-copy-badge" [class.world-copy-badge--active]="ipCopied">
+              {{ ipCopied ? 'Скопировано!' : 'Скопировать IP' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="world-stat-pill">
+          <span class="world-stat-pill__label">Слоты</span>
+          <span class="world-stat-pill__val">До 1000</span>
+        </div>
+
+        <div class="world-stat-pill">
+          <span class="world-stat-pill__label">Стабильность</span>
+          <span class="world-stat-pill__val" style="color: #22c55e;">20.0 TPS</span>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!-- Features Category Filter & Interactive Cards -->
   <section class="section container">
-    <header class="section-header-center">
-      <p class="section-eyebrow">Механики</p>
-      <h2 class="section-heading">Ветви <span>власти</span></h2>
-      <p class="section-sub">Три ветви власти, экономика и документооборот — всё как в реальном государстве</p>
-    </header>
+    <div class="section-header-center">
+      <p class="section-eyebrow">Игровой процесс</p>
+      <h2 class="section-heading">Государственные <span>механики</span></h2>
+      <p class="section-sub">Узнай, как устроены институты власти, законы и торговля в нашем мире</p>
+
+      <!-- Category Filter Tabs -->
+      <div class="filter-tabs">
+        <button 
+          class="filter-tab" 
+          [class.filter-tab--active]="activeCategory === 'all'"
+          (click)="setCategory('all')"
+        >
+          Все механики
+        </button>
+        <button 
+          class="filter-tab" 
+          [class.filter-tab--active]="activeCategory === 'politics'"
+          (click)="setCategory('politics')"
+        >
+          Власть и Выборы
+        </button>
+        <button 
+          class="filter-tab" 
+          [class.filter-tab--active]="activeCategory === 'economy'"
+          (click)="setCategory('economy')"
+        >
+          Экономика и Бизнес
+        </button>
+        <button 
+          class="filter-tab" 
+          [class.filter-tab--active]="activeCategory === 'law'"
+          (click)="setCategory('law')"
+        >
+          Суд и Документы
+        </button>
+      </div>
+    </div>
+
     <div class="zones-grid">
-      <article *ngFor="let s of systems" class="zone-card card" [style.--z-accent]="s.accent">
+      <article *ngFor="let s of filteredSystems" class="zone-card card" [style.--z-accent]="s.accent">
         <div class="zone-card__line"></div>
-        <div class="zone-card__icon" [innerHTML]="s.icon | safeHtml"></div>
-        <div class="zone-card__jp">{{ s.tag }}</div>
+        <div class="zone-card__top">
+          <div class="zone-card__icon" [innerHTML]="s.icon | safeHtml"></div>
+          <span class="zone-card__tag">{{ s.tag }}</span>
+        </div>
         <h3 class="zone-card__title">{{ s.title }}</h3>
         <p class="zone-card__desc">{{ s.desc }}</p>
         <ul class="zone-card__details">
           <li *ngFor="let d of s.details">
-            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M2 6L5 9L10 3" stroke-linecap="round" stroke-linejoin="round"/>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            {{ d }}
+            <span>{{ d }}</span>
           </li>
         </ul>
       </article>
     </div>
   </section>
+
   <hr class="hr-glow" />
+
+  <!-- Hardware & Server Specs -->
   <section class="section container">
-    <header class="section-header-center">
-      <p class="section-eyebrow">О сервере</p>
-      <h2 class="section-heading">Технические <span>характеристики</span></h2>
-      <p class="section-sub">Мощное железо сервера для стабильного TPS 20 без лагов</p>
-    </header>
+    <div class="section-header-center">
+      <p class="section-eyebrow">Инфраструктура</p>
+      <h2 class="section-heading">Техническое <span>оснащение</span></h2>
+      <p class="section-sub">Сервер размещен на высокопроизводительной выделенной ноде с защитой от атак</p>
+    </div>
+
     <div class="hardware-cards-grid">
       <div *ngFor="let h of hardwareSpecs" class="hw-card card">
         <div class="hw-card__icon-box" [innerHTML]="h.icon | safeHtml"></div>
@@ -46,6 +121,7 @@
         <div class="hw-card__sub">{{ h.sub }}</div>
       </div>
     </div>
+
     <div class="specs-grid">
       <div *ngFor="let s of specs" class="spec-row card">
         <span class="spec-row__label">{{ s.label }}</span>
@@ -53,21 +129,34 @@
       </div>
     </div>
   </section>
-  <section class="connect-section">
-    <div class="container">
-      <div class="connect-card card">
-        <div class="connect-card__left">
-          <p class="section-eyebrow">Старт</p>
-          <h2 class="section-heading" style="margin-bottom:12px">Как <span>начать</span></h2>
-          <p style="font-size:.9rem;color:var(--clr-text-3)">Первые шаги на сервере</p>
+
+  <!-- Step by step start guide -->
+  <section class="connect-section container">
+    <div class="connect-card card">
+      <div class="connect-card__left">
+        <p class="section-eyebrow">Быстрый старт</p>
+        <h2 class="section-heading" style="margin-bottom:12px">Как начать <span>играть</span></h2>
+        <p style="font-size:.9rem; color: #94a3b8; line-height: 1.6;">
+          Всего 4 простых шага отделяют тебя от участия в выборах и построения собственной империи на SamuraiWorld.
+        </p>
+
+        <div class="connect-cta-box" style="margin-top: 24px;">
+          <button class="btn btn--gold" (click)="copyIp()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px;">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            <span>{{ ipCopied ? 'IP Скопирован!' : 'Скопировать IP сервера' }}</span>
+          </button>
         </div>
-        <div class="connect-card__steps">
-          <div *ngFor="let step of steps" class="connect-step">
-            <div class="connect-step__num">{{ step.n }}</div>
-            <div class="connect-step__body">
-              <div class="connect-step__head">{{ step.head }}</div>
-              <div class="connect-step__sub" [class.connect-step__sub--ip]="step.n === '01'">{{ step.sub }}</div>
-            </div>
+      </div>
+
+      <div class="connect-card__steps">
+        <div *ngFor="let step of steps" class="connect-step">
+          <div class="connect-step__num">{{ step.n }}</div>
+          <div class="connect-step__body">
+            <div class="connect-step__head">{{ step.head }}</div>
+            <div class="connect-step__sub" [class.connect-step__sub--ip]="step.n === '01'">{{ step.sub }}</div>
           </div>
         </div>
       </div>

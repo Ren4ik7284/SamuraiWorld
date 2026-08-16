@@ -342,7 +342,7 @@
                 </div>
               </div>
             </div>
-            <div style="flex-shrink: 0;">
+            <div style="flex-shrink: 0; display: flex; align-items: center; gap: 6px;">
               <select 
                 class="form-control" 
                 style="padding: 3px 6px; font-size: 0.72rem; height: 26px; border-radius: 6px; background: rgba(0,0,0,0.6); color: #ddd; border: 1px solid rgba(255,255,255,0.15); font-weight: 600;"
@@ -353,6 +353,18 @@
                 <option value="support">Поддержка</option>
                 <option value="admin">Админ</option>
               </select>
+
+              <button 
+                type="button" 
+                (click)="deleteUser(u)"
+                title="Удалить пользователя из базы"
+                style="background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(220, 38, 38, 0.35); color: #f87171; width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 13px; height: 13px;">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
