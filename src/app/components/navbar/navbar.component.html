@@ -1,162 +1,229 @@
-<header class="navbar" [class.navbar--scrolled]="isScrolled">
-  <div class="navbar__inner container">
-    <a class="navbar__logo" routerLink="/" (click)="closeMobileMenu()">
-      <img class="navbar__logo-img" src="assets/server_logo.jpg" alt="SamuraiWorld logo" />
-      <div class="navbar__logo-text">
-        <span class="navbar__logo-name">SamuraiWorld</span>
-        <span class="navbar__logo-jp">侍世界</span>
-      </div>
-    </a>
-    <nav class="navbar__nav" aria-label="Основная навигация">
-      <ul class="navbar__list">
-        <li *ngFor="let link of navLinks">
-          <a
-            class="navbar__link"
-            [routerLink]="link.path"
-            routerLinkActive="navbar__link--active"
-            [routerLinkActiveOptions]="{exact: link.path === '/'}"
-          >
-            <span class="navbar__link-ru">{{ link.label }}</span>
-          </a>
-        </li>
-      </ul>
-    </nav>
-    <div class="navbar__actions">
-      <div class="navbar__user-chip" *ngIf="currentUser; else unauthButtons">
-        <img [src]="currentUser.avatarUrl || DEFAULT_AVATAR" class="navbar__avatar" (click)="openAvatarModal()" style="cursor: pointer;" title="Нажмите, чтобы изменить аватарку" alt="avatar" />
-        <div class="navbar__user-details" (click)="openAvatarModal()" style="cursor: pointer;" title="Нажмите, чтобы изменить аватарку">
-          <span class="navbar__user-name">{{ currentUser.nickname }}</span>
-          <span class="navbar__user-role" [class.navbar__user-role--admin]="currentUser.role === 'admin'" [class.navbar__user-role--support]="currentUser.role === 'support'">
-            {{ currentUser.role === 'admin' ? 'Админ' : currentUser.role === 'support' ? 'Поддержка' : 'Игрок' }}
-          </span>
-        </div>
-        <button class="navbar__logout-btn" (click)="logout()" title="Выйти из аккаунта">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        </button>
-      </div>
-      <ng-template #unauthButtons>
-        <div class="navbar__auth-group">
-          <button class="navbar__auth-btn" (click)="openAuthModal('login')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            <span>Вход</span>
-          </button>
-          <button class="navbar__auth-btn navbar__auth-btn--reg" (click)="openAuthModal('register')">
-            Регистрация
-          </button>
-        </div>
-      </ng-template>
-      <a class="btn btn-primary navbar__cta" routerLink="/contacts">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M10 2L12.5 7.5L18 8.27L14 12.14L14.9 17.73L10 15L5.1 17.73L6 12.14L2 8.27L7.5 7.5L10 2Z"/>
-        </svg>
-        Вступить
-      </a>
-    </div>
+<!-- Mobile Topbar (< 1024px) -->
+<div class="mobile-topbar">
+  <a class="mobile-topbar__brand" routerLink="/" (click)="closeMobileMenu()">
+    <img class="mobile-topbar__logo" src="assets/server_logo.jpg" alt="SamuraiWorld" />
+    <span class="mobile-topbar__name">SamuraiWorld</span>
+  </a>
+
+  <div class="mobile-topbar__right">
+    <button class="mobile-topbar__ip-chip" (click)="copyIp()" title="Скопировать IP">
+      <span class="online-indicator-dot" [class.online-indicator-dot--offline]="!isOnline"></span>
+      <span class="mobile-topbar__ip-text">{{ ipCopied ? 'Скопировано!' : (playersOnline + ' / ' + maxPlayers) }}</span>
+    </button>
+
     <button
-      class="navbar__burger"
-      [class.navbar__burger--open]="isMobileMenuOpen"
+      class="mobile-topbar__burger"
+      [class.mobile-topbar__burger--open]="isMobileMenuOpen"
       (click)="toggleMobileMenu()"
-      aria-label="Открыть меню"
-      [attr.aria-expanded]="isMobileMenuOpen"
+      aria-label="Переключить меню"
     >
       <span></span>
       <span></span>
       <span></span>
     </button>
   </div>
-  <div class="navbar__drawer" [class.navbar__drawer--open]="isMobileMenuOpen" role="dialog" aria-label="Мобильное меню">
-    <div class="navbar__drawer-header">
-      <div class="navbar__logo">
-        <img class="navbar__logo-img" src="assets/server_logo.jpg" alt="SamuraiWorld logo" />
-        <div class="navbar__logo-text">
-          <span class="navbar__logo-name">SamuraiWorld</span>
-          <span class="navbar__logo-jp">侍世界</span>
-        </div>
+</div>
+
+<!-- Main Sidebar (Desktop fixed left & Mobile Drawer) -->
+<aside class="sidebar" [class.sidebar--open]="isMobileMenuOpen" role="navigation" aria-label="Боковое меню">
+  
+  <!-- Sidebar Header: Logo & Branding -->
+  <div class="sidebar__header">
+    <a class="sidebar__logo" routerLink="/" (click)="closeMobileMenu()">
+      <img class="sidebar__logo-img" src="assets/server_logo.jpg" alt="SamuraiWorld logo" />
+      <div class="sidebar__brand-text">
+        <div class="sidebar__brand-title">SamuraiWorld</div>
+        <div class="sidebar__brand-sub">Политический сервер</div>
       </div>
-      <button class="navbar__drawer-close" (click)="closeMobileMenu()" aria-label="Закрыть меню">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
+    </a>
+  </div>
+
+  <!-- Server Status Widget & Fast Copy IP -->
+  <div class="sidebar__server-card">
+    <div class="server-card__status-row">
+      <div class="server-card__status">
+        <span class="online-indicator-dot" [class.online-indicator-dot--offline]="!isOnline"></span>
+        <span class="server-card__status-title">{{ isOnline ? 'Онлайн' : 'Офлайн' }}</span>
+      </div>
+      <div class="server-card__counter">
+        <strong>{{ playersOnline }}</strong> / {{ maxPlayers }}
+      </div>
     </div>
-    <nav class="navbar__drawer-nav">
-      <div class="navbar__drawer-user" *ngIf="currentUser; else drawerUnauth">
-        <div class="navbar__drawer-user-header">
-          <div class="navbar__drawer-avatar-wrap" (click)="openAvatarModal(); closeMobileMenu()" title="Нажмите для смены аватарки">
-            <img [src]="currentUser.avatarUrl || DEFAULT_AVATAR" class="navbar__drawer-avatar" alt="avatar" />
-            <span class="navbar__drawer-avatar-badge">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            </span>
-          </div>
-          <div class="navbar__drawer-user-info">
-            <span class="navbar__drawer-user-name">{{ currentUser.nickname }}</span>
-            <div class="navbar__drawer-role-badge" [class.navbar__drawer-role-badge--admin]="currentUser.role === 'admin'" [class.navbar__drawer-role-badge--support]="currentUser.role === 'support'">
-              {{ currentUser.role === 'admin' ? 'Администратор' : currentUser.role === 'support' ? 'Поддержка' : 'Игрок сервера' }}
-            </div>
-          </div>
-        </div>
-        <div class="navbar__drawer-user-actions">
-          <button class="navbar__drawer-btn navbar__drawer-btn--avatar" (click)="openAvatarModal(); closeMobileMenu()" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span>Сменить фото</span>
-          </button>
-          <button class="navbar__drawer-btn navbar__drawer-btn--logout" (click)="logout()" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            <span>Выйти</span>
-          </button>
-        </div>
+
+    <button class="server-card__ip-btn" (click)="copyIp()" title="Нажмите, чтобы скопировать адрес сервера">
+      <div class="server-card__ip-left">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="server-card__ip-icon">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+          <path d="M2 12h20"/>
+        </svg>
+        <span class="server-card__ip-text">{{ serverIp }}</span>
       </div>
-      <ng-template #drawerUnauth>
-        <div class="navbar__drawer-auth-buttons">
-          <button class="btn btn-outline" style="width:100%" (click)="openAuthModal('login')">Вход в аккаунт</button>
-          <button class="btn btn-primary" style="width:100%" (click)="openAuthModal('register')">Регистрация</button>
+      <div class="server-card__copy-badge" [class.server-card__copy-badge--copied]="ipCopied">
+        <svg *ngIf="!ipCopied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="copy-svg">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>
+        <svg *ngIf="ipCopied" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="copy-svg">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>{{ ipCopied ? 'Скопировано' : 'IP' }}</span>
+      </div>
+    </button>
+  </div>
+
+  <div class="sidebar__divider"></div>
+
+  <!-- Scrollable Navigation Area with Category Groups -->
+  <div class="sidebar__scrollable-area">
+    <nav class="sidebar__nav" aria-label="Категории навигации">
+      <div *ngFor="let group of navGroups" class="sidebar__nav-group">
+        <div class="sidebar__group-header">
+          <span class="sidebar__group-title">{{ group.title }}</span>
         </div>
-      </ng-template>
-      <ul class="navbar__drawer-list" style="margin-top:16px;">
-        <li *ngFor="let link of navLinks; let i = index">
-          <a
-            class="navbar__drawer-link"
-            [routerLink]="link.path"
-            routerLinkActive="navbar__drawer-link--active"
-            [routerLinkActiveOptions]="{exact: link.path === '/'}"
-            (click)="closeMobileMenu()"
-          >
-            <span class="navbar__drawer-ru">{{ link.label }}</span>
-          </a>
-        </li>
-      </ul>
-      <div class="navbar__drawer-footer">
-        <a class="btn btn-primary" style="width:100%;justify-content:center" routerLink="/contacts" (click)="closeMobileMenu()">
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M10 2L12.5 7.5L18 8.27L14 12.14L14.9 17.73L10 15L5.1 17.73L6 12.14L2 8.27L7.5 7.5L10 2Z"/>
-          </svg>
-          Вступить на сервер
-        </a>
+
+        <ul class="sidebar__group-list">
+          <li *ngFor="let link of group.links" class="sidebar__item">
+            <a
+              class="sidebar__link"
+              [routerLink]="link.path"
+              routerLinkActive="sidebar__link--active"
+              [routerLinkActiveOptions]="{exact: link.path === '/'}"
+              (click)="closeMobileMenu()"
+            >
+              <div class="sidebar__link-icon-box">
+                <!-- Home Icon -->
+                <svg *ngIf="link.icon === 'home'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                  <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                <!-- Crown / World Icon -->
+                <svg *ngIf="link.icon === 'crown'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z"/>
+                </svg>
+                <!-- Scroll / Rules Icon -->
+                <svg *ngIf="link.icon === 'scroll'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2z"/>
+                  <line x1="8" y1="8" x2="16" y2="8"/>
+                  <line x1="8" y1="12" x2="16" y2="12"/>
+                  <line x1="8" y1="16" x2="12" y2="16"/>
+                </svg>
+                <!-- Diamond / Store Icon -->
+                <svg *ngIf="link.icon === 'diamond'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="6 3 18 3 22 9 12 22 2 9 6 3"/>
+                </svg>
+                <!-- Shield / Support Icon -->
+                <svg *ngIf="link.icon === 'shield'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <!-- Chat / Contacts Icon -->
+                <svg *ngIf="link.icon === 'chat'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </div>
+
+              <span class="sidebar__link-label">{{ link.label }}</span>
+
+              <span *ngIf="link.badge" class="sidebar__link-badge" [class.sidebar__link-badge--hot]="link.badgeType === 'hot'">
+                {{ link.badge }}
+              </span>
+            </a>
+          </li>
+        </ul>
       </div>
     </nav>
   </div>
-  <div
-    class="navbar__overlay"
-    [class.navbar__overlay--visible]="isMobileMenuOpen"
-    (click)="closeMobileMenu()"
-    aria-hidden="true"
-  ></div>
-</header>
-<div class="navbar__spacer"></div>
+
+  <!-- Sidebar Footer: User Card & Call to Action -->
+  <div class="sidebar__footer">
+    <!-- Authenticated User Profile Card -->
+    <div class="sidebar__user-card" *ngIf="currentUser; else guestAuthBlock">
+      <div class="sidebar__user-header">
+        <div class="sidebar__avatar-wrap" (click)="openAvatarModal()" title="Нажмите для смены аватара">
+          <img [src]="currentUser.avatarUrl || DEFAULT_AVATAR" class="sidebar__avatar-img" alt="avatar" />
+          <div class="sidebar__avatar-badge-btn" title="Сменить фото">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="sidebar__user-info" (click)="openAvatarModal()">
+          <div class="sidebar__user-name" [title]="currentUser.nickname">{{ currentUser.nickname }}</div>
+          <div class="sidebar__role-tag" [class.sidebar__role-tag--admin]="currentUser.role === 'admin'" [class.sidebar__role-tag--support]="currentUser.role === 'support'">
+            {{ currentUser.role === 'admin' ? 'Администратор' : currentUser.role === 'support' ? 'Поддержка' : 'Игрок' }}
+          </div>
+        </div>
+
+        <button class="sidebar__logout-btn" (click)="logout()" title="Выйти из аккаунта">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Guest Login/Register Buttons -->
+    <ng-template #guestAuthBlock>
+      <div class="sidebar__auth-actions">
+        <button class="sidebar__auth-btn sidebar__auth-btn--login" (click)="openAuthModal('login')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          <span>Вход</span>
+        </button>
+        <button class="sidebar__auth-btn sidebar__auth-btn--reg" (click)="openAuthModal('register')">
+          <span>Регистрация</span>
+        </button>
+      </div>
+    </ng-template>
+
+    <!-- Play / Join CTA button in Sidebar -->
+    <a class="sidebar__cta-btn" routerLink="/contacts" (click)="closeMobileMenu()">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10 2L12.5 7.5L18 8.27L14 12.14L14.9 17.73L10 15L5.1 17.73L6 12.14L2 8.27L7.5 7.5L10 2Z"/>
+      </svg>
+      <span>Начать играть</span>
+    </a>
+  </div>
+</aside>
+
+<!-- Backdrop Overlay for Mobile Drawer -->
+<div
+  class="sidebar__overlay"
+  [class.sidebar__overlay--visible]="isMobileMenuOpen"
+  (click)="closeMobileMenu()"
+  aria-hidden="true"
+></div>
+
+<!-- Auth Modal (Login / Register) -->
 <div class="auth-modal-overlay" *ngIf="showAuthModal" (click)="closeAuthModal()">
   <div class="auth-modal-card" (click)="$event.stopPropagation()">
     <div class="auth-modal-header">
-      <h3>{{ authMode === 'login' ? 'Авторизация' : 'Регистрация аккаунта' }}</h3>
-      <button class="auth-modal-close" (click)="closeAuthModal()">&times;</button>
+      <div class="auth-modal-title-wrap">
+        <h3>{{ authMode === 'login' ? 'Вход в аккаунт' : 'Регистрация игрока' }}</h3>
+      </div>
+      <button class="auth-modal-close" (click)="closeAuthModal()" title="Закрыть">&times;</button>
     </div>
+
     <div class="auth-modal-tabs">
-      <button class="auth-modal-tab" [class.active]="authMode === 'login'" (click)="setAuthMode('login')">Вход</button>
-      <button class="auth-modal-tab" [class.active]="authMode === 'register'" (click)="setAuthMode('register')">Регистрация</button>
+      <button class="auth-modal-tab" [class.active]="authMode === 'login'" (click)="setAuthMode('login')">
+        Вход
+      </button>
+      <button class="auth-modal-tab" [class.active]="authMode === 'register'" (click)="setAuthMode('register')">
+        Регистрация
+      </button>
     </div>
+
     <div class="auth-alert error" *ngIf="authErrorMsg">
       {{ authErrorMsg }}
     </div>
+
     <form (ngSubmit)="submitAuth()" class="auth-form">
       <div class="auth-field">
         <label>Никнейм на сервере *</label>
@@ -169,6 +236,7 @@
           required
         />
       </div>
+
       <div class="auth-field" *ngIf="authMode === 'register'">
         <label>Email (необязательно)</label>
         <input 
@@ -179,85 +247,96 @@
           name="authEmail"
         />
       </div>
+
       <div class="auth-field">
         <label>Пароль *</label>
         <input 
           type="password" 
           class="auth-input" 
-          placeholder="Ваш пароль..." 
+          placeholder="Введите ваш пароль..." 
           [(ngModel)]="authPasswordInput" 
           name="authPassword"
           required
         />
       </div>
+
       <div class="auth-modal-actions">
         <button type="button" class="btn-cancel" (click)="closeAuthModal()">Отмена</button>
         <button type="submit" class="btn-submit" [disabled]="isAuthSubmitting">
-          {{ isAuthSubmitting ? 'Обработка...' : (authMode === 'login' ? 'Войти' : 'Создать аккаунт') }}
+          {{ isAuthSubmitting ? 'Обработка...' : (authMode === 'login' ? 'Войти' : 'Зарегистрироваться') }}
         </button>
       </div>
     </form>
   </div>
 </div>
+
+<!-- Avatar Upload Modal -->
 <div class="auth-modal-overlay" *ngIf="showAvatarModal" (click)="closeAvatarModal()">
-  <div class="auth-modal-card" (click)="$event.stopPropagation()" style="max-width: 440px; padding: 28px 24px;">
+  <div class="auth-modal-card avatar-modal-card" (click)="$event.stopPropagation()">
     <div class="auth-modal-header">
-      <h3 style="font-size: 1.25rem; font-weight: 800; color: #f8fafc;">Смена аватарки</h3>
+      <div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: #f8fafc;">Смена аватарки</h3>
+      </div>
       <button class="auth-modal-close" (click)="closeAvatarModal()">&times;</button>
     </div>
-    <div class="auth-alert success" *ngIf="avatarSuccessMsg" style="background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #4ade80; padding: 10px; border-radius: 8px; font-size: 0.85rem; margin-bottom: 14px;">
+
+    <div class="auth-alert success" *ngIf="avatarSuccessMsg">
       {{ avatarSuccessMsg }}
     </div>
+
     <div class="auth-alert error" *ngIf="avatarErrorMsg">
       {{ avatarErrorMsg }}
     </div>
-    <div style="text-align: center; margin: 20px 0;">
-      <div style="position: relative; display: inline-block;">
+
+    <div class="avatar-preview-box">
+      <div class="avatar-preview-ring">
         <img 
           [src]="customAvatarUrlInput || DEFAULT_AVATAR" 
-          style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid #c0392b; object-fit: cover; background: #0f172a; box-shadow: 0 0 25px rgba(192, 57, 43, 0.4);" 
+          class="avatar-preview-img"
           alt="Preview Avatar"
         />
       </div>
-      <div style="font-size: 0.82rem; color: #94a3b8; margin-top: 8px; font-weight: 500;">Ваша новая аватарка</div>
+      <div class="avatar-preview-hint">Текущий аватар вашего профиля</div>
     </div>
-    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px;">
-      <label 
-        for="mobileAvatarFileInput"
-        style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; background: linear-gradient(135deg, #c0392b 0%, #8b1a14 100%); color: #ffffff; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; text-align: center; box-shadow: 0 4px 14px rgba(192, 57, 43, 0.4); transition: all 0.2s;"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>Выбрать фото из галереи</span>
+
+    <div class="avatar-modal-actions">
+      <label for="sidebarAvatarFileInput" class="btn-avatar-upload">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <span>Выбрать фото / скин</span>
         <input 
-          id="mobileAvatarFileInput" 
+          id="sidebarAvatarFileInput" 
           type="file" 
           accept="image/*" 
           (change)="onFileSelected($event)" 
           style="position: absolute; opacity: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0);" 
         />
       </label>
-      <button 
-        type="button" 
-        (click)="resetToDefaultAvatar()"
-        style="width: 100%; padding: 10px; background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #94a3b8; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;"
-      >
-        Сбросить на серый силуэт
+
+      <button type="button" class="btn-avatar-reset" (click)="resetToDefaultAvatar()">
+        Сбросить на базовый силуэт
       </button>
     </div>
-    <div class="auth-field">
-      <label style="font-size: 0.78rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Или прямая ссылка на фото</label>
+
+    <div class="auth-field" style="margin-top: 14px;">
+      <label>Или прямая ссылка на изображение</label>
       <input 
         type="url" 
         class="auth-input" 
-        placeholder="https://site.com/image.jpg" 
+        placeholder="https://site.com/avatar.png" 
         [(ngModel)]="customAvatarUrlInput" 
         name="customAvatarUrl"
-        style="font-size: 0.85rem;"
       />
     </div>
-    <div class="auth-modal-actions" style="margin-top: 22px;">
+
+    <div class="auth-modal-actions" style="margin-top: 20px;">
       <button type="button" class="btn-cancel" (click)="closeAvatarModal()">Отмена</button>
-      <button type="button" class="btn-submit" (click)="saveAvatar()" style="background: #22c55e;">Сохранить</button>
+      <button type="button" class="btn-submit" (click)="saveAvatar()" style="background: #22c55e; color: #fff;">
+        Сохранить
+      </button>
     </div>
   </div>
 </div>
