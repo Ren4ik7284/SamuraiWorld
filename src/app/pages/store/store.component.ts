@@ -23,8 +23,8 @@ export interface VipFeature {
 export class StoreComponent implements OnInit, OnDestroy {
   currentUser: User | null = null;
   private userSub!: Subscription;
-  vipPrice = 10;
-  passPrice = 10;
+  vipPrice = 50;
+  passPrice = 50;
   showBuyModal = false;
   modalType: 'vip' | 'pass' = 'vip';
   nicknameInput = '';

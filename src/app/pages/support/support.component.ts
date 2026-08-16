@@ -128,7 +128,7 @@ export class SupportComponent implements OnInit, OnDestroy {
       if (this.authService.isSupportOrAdmin) {
         this.loadRegisteredUsers();
       }
-    }, 4000);
+    }, 60000);
   }
   ngOnDestroy(): void {
     if (this.pollTimer) {

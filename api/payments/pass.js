@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     if (!/^[a-zA-Z0-9_]{3,16}$/.test(cleanNick)) {
       return res.status(400).json({ message: 'Укажите верный игровой никнейм Minecraft (3-16 символов)' });
     }
-    const amount = 10;
+    const amount = 50;
     const orderId = `YM-PASS-${cleanNick.toUpperCase()}-${Date.now()}`;
     const params = new URLSearchParams({
       receiver: YOOMONEY_WALLET,

@@ -88,13 +88,13 @@ export default async function handler(req, res) {
         return res.status(400).json({ message: 'Укажите верный игровой никнейм Minecraft (3-16 символов)' });
       }
       const isPass = type === 'pass' || payload.itemType === 'pass';
-      let amount = isPass ? 150 : 200;
+      let amount = 50;
       if (!isPass) {
         const cleanPromo = (promoCode || '').trim().toUpperCase();
         if (cleanPromo === 'SAMURAI' || cleanPromo === 'ROLLY') {
-          amount = 180; 
+          amount = 45; 
         } else if (cleanPromo === 'START') {
-          amount = 170; 
+          amount = 40; 
         }
       }
       const orderPrefix = isPass ? 'ROLLY-PASS' : 'ROLLY-VIP';
