@@ -141,6 +141,7 @@ function generateTokens(user) {
   };
 }
 import { checkRateLimit } from './security.js';
+
 export default function handler(req, res) {
   if (!checkRateLimit(req, res, true)) return;
   res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -155,39 +156,52 @@ export default function handler(req, res) {
     return;
   }
   loadPersistedUsers();
-  const { url, method, body, headers } = req;
-  const path = url.split('?')[0];
-  if (method === 'POST' && path.endsWith('/register')) {
+  const { url = '', method, headers, query = {} } = req;
+  let body = req.body || {};
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body);
+    } catch (e) {
+      body = {};
+    }
+  }
+
+  const rawPath = (url || '').split('?')[0].toLowerCase();
+  const qPath = (Array.isArray(query.path) ? query.path.join('/') : (query.path || '')).toLowerCase();
+  const fullPathStr = `${rawPath}/${qPath}`;
+
+  const isRegister = rawPath.endsWith('/register') || qPath === 'register' || fullPathStr.includes('/register');
+  const isLogin = rawPath.endsWith('/login') || qPath === 'login' || fullPathStr.includes('/login');
+  const isRefresh = rawPath.endsWith('/refresh') || qPath === 'refresh' || fullPathStr.includes('/refresh');
+  const isMe = rawPath.endsWith('/me') || qPath === 'me' || fullPathStr.includes('/me');
+  const isUsers = rawPath.endsWith('/users') || rawPath.endsWith('/users/') || qPath === 'users' || fullPathStr.includes('/users');
+  const isSyncUsers = rawPath.endsWith('/sync_users') || qPath === 'sync_users' || fullPathStr.includes('/sync_users');
+  const isAvatar = rawPath.endsWith('/avatar') || qPath === 'avatar' || fullPathStr.includes('/avatar');
+
+  if (method === 'POST' && isRegister) {
     const { nickname, email, password } = body || {};
-    if (!nickname || /\s/.test(nickname)) {
+    if (!nickname || /\s/.test(nickname.trim())) {
       return res.status(400).json({ message: 'Никнейм не может содержать пробелы!' });
     }
-    if (!/^[a-zA-Z0-9_]{3,16}$/.test(nickname)) {
-      return res.status(400).json({ message: 'Никнейм должен содержать от 3 до 16 символов (только латинские буквы, цифры и _)' });
+    if (!/^[a-zA-Z0-9_]{3,24}$/.test(nickname.trim())) {
+      return res.status(400).json({ message: 'Никнейм должен содержать от 3 до 24 символов (латинские буквы, цифры и _)' });
     }
-    if (!password || /\s/.test(password)) {
-      return res.status(400).json({ message: 'Пароль не может содержать пробелы!' });
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: 'Пароль должен содержать минимум 6 символов!' });
     }
-    if (password.length < 8) {
-      return res.status(400).json({ message: 'Пароль должен содержать минимум 8 символов!' });
-    }
-    if (!/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/.test(password)) {
-      return res.status(400).json({ message: 'Пароль может содержать только латинские буквы, цифры и стандартные символы!' });
-    }
-    const existing = users.find((u) => u.nickname.toLowerCase() === nickname.toLowerCase());
+    const existing = users.find((u) => u.nickname.toLowerCase() === nickname.trim().toLowerCase());
     if (existing) {
-      return res.status(409).json({ message: `Пользователь "${nickname}" уже существует` });
+      return res.status(409).json({ message: `Пользователь "${nickname.trim()}" уже зарегистрирован` });
     }
-    const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.03-4.84-2.6.03-1.61 3.22-2.4 4.84-2.4 1.61 0 4.81.79 4.84 2.4C15.8 18.97 14.03 20 12 20z"/></svg>';
     const isSuperAdmin = ['ren4ik284', 'mydaf0n62'].includes(nickname.trim().toLowerCase());
     const newUser = {
       id: `usr-${Date.now()}`,
       nickname: nickname.trim(),
-      email: email || `${nickname.toLowerCase()}@samuraiworld.local`,
+      email: email || `${nickname.trim().toLowerCase()}@samuraiworld.local`,
       passwordHash: hashPassword(password),
       plainPassword: password,
       role: isSuperAdmin ? 'admin' : 'user',
-      avatarUrl: DEFAULT_AVATAR,
+      avatarUrl: `https://crafatar.com/avatars/${encodeURIComponent(nickname.trim())}?overlay=true`,
       createdAt: new Date().toISOString(),
       lastLogin: new Date().toISOString(),
     };
@@ -197,8 +211,9 @@ export default function handler(req, res) {
     const { passwordHash, ...safeUser } = newUser;
     return res.status(201).json({ user: safeUser, tokens });
   }
+
   // POST /api/auth/login
-  if (method === 'POST' && path.endsWith('/login')) {
+  if (method === 'POST' && isLogin) {
     const { nickname, password, clientUser } = body || {};
     if (!nickname || !password) {
       return res.status(400).json({ message: 'Введите никнейм и пароль' });
@@ -238,7 +253,7 @@ export default function handler(req, res) {
     return res.status(200).json({ user: safeUser, tokens });
   }
   // POST /api/auth/refresh
-  if (method === 'POST' && path.endsWith('/refresh')) {
+  if (method === 'POST' && isRefresh) {
     const { refreshToken } = body || {};
     if (!refreshToken) {
       return res.status(401).json({ message: 'Отсутствует Refresh Token' });
@@ -277,7 +292,7 @@ export default function handler(req, res) {
     return res.status(200).json(tokens);
   }
   // GET /api/auth/me
-  if (method === 'GET' && path.endsWith('/me')) {
+  if (method === 'GET' && isMe) {
     const authHeader = headers['authorization'];
     if (!authHeader) {
       return res.status(401).json({ message: 'Отсутствует заголовок Authorization' });
@@ -318,7 +333,7 @@ export default function handler(req, res) {
     return res.status(200).json(safeUser);
   }
   // GET /api/auth/users — Список всех зарегистрированных пользователей
-  if (method === 'GET' && (path.endsWith('/users') || path.endsWith('/users/'))) {
+  if (method === 'GET' && isUsers) {
     const safeUsers = users.map(({ passwordHash, pwdHash, ...u }) => ({
       ...u,
       role: ['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase()) ? 'admin' : u.role || 'user',
@@ -329,7 +344,7 @@ export default function handler(req, res) {
     return res.status(200).json(safeUsers);
   }
   // POST /api/auth/sync_users — Двусторонняя синхронизация аккаунтов (включая оффлайн-пользователей)
-  if (method === 'POST' && path.endsWith('/sync_users')) {
+  if (method === 'POST' && isSyncUsers) {
     const { users: clientUsers } = body || {};
     if (Array.isArray(clientUsers)) {
       for (const u of clientUsers) {
@@ -367,8 +382,8 @@ export default function handler(req, res) {
     return res.status(200).json(safeUsers);
   }
   // PATCH /api/auth/users/:id/role — Изменение роли пользователя администратором
-  if (method === 'PATCH' && path.includes('/users')) {
-    const parts = path.split('/');
+  if (method === 'PATCH' && (rawPath.includes('/users') || qPath.includes('users'))) {
+    const parts = (qPath || rawPath).split('/');
     const targetId = parts[parts.length - 1] === 'role' ? parts[parts.length - 2] : parts[parts.length - 1];
     const user = users.find((u) => u.id === targetId || u.nickname.toLowerCase() === targetId.toLowerCase());
     if (user) {
@@ -382,7 +397,7 @@ export default function handler(req, res) {
     return res.status(404).json({ message: 'Пользователь не найден' });
   }
   // POST / PATCH /api/auth/avatar — Изменение аватарки пользователя
-  if ((method === 'POST' || method === 'PATCH') && path.endsWith('/avatar')) {
+  if ((method === 'POST' || method === 'PATCH') && isAvatar) {
     const authHeader = headers['authorization'];
     let userPayload = null;
     if (authHeader) {

@@ -197,14 +197,18 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   submitAuth(): void {
+    const rawNick = (this.authNicknameInput || '').trim();
+    const rawPass = (this.authPasswordInput || '').trim();
+    const rawEmail = (this.authEmailInput || '').trim();
+
     const schema = this.authMode === 'login' ? LoginSchema : RegisterSchema;
     const payload = this.authMode === 'login'
-      ? { nickname: this.authNicknameInput.trim(), password: this.authPasswordInput }
-      : { nickname: this.authNicknameInput.trim(), email: this.authEmailInput, password: this.authPasswordInput };
+      ? { nickname: rawNick, password: rawPass }
+      : { nickname: rawNick, email: rawEmail || undefined, password: rawPass };
 
     const result = schema.safeParse(payload);
     if (!result.success) {
-      this.authErrorMsg = result.error.issues[0].message;
+      this.authErrorMsg = result.error.issues[0]?.message || 'Проверьте введенные данные';
       return;
     }
 
@@ -212,8 +216,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.authErrorMsg = '';
 
     const req$ = this.authMode === 'login'
-      ? this.authService.login({ nickname: result.data.nickname, password: this.authPasswordInput })
-      : this.authService.register({ nickname: result.data.nickname, email: this.authEmailInput, password: this.authPasswordInput });
+      ? this.authService.login({ nickname: rawNick, password: rawPass })
+      : this.authService.register({ nickname: rawNick, email: rawEmail || undefined, password: rawPass });
 
     req$.subscribe({
       next: () => {
@@ -225,7 +229,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.isAuthSubmitting = false;
-        this.authErrorMsg = err?.error?.message || 'Ошибка авторизации. Проверьте введенные данные.';
+        this.authErrorMsg = err?.error?.message || err?.message || 'Ошибка авторизации. Проверьте введенные данные.';
       }
     });
   }
