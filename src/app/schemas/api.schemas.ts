@@ -1,19 +1,18 @@
 import { z } from 'zod';
 export const NicknameSchema = z
   .string()
-  .min(3, 'Никнейм должен быть не менее 3 символов')
-  .max(24, 'Никнейм не более 24 символов')
-  .regex(/^[a-zA-Z0-9_]+$/, 'Только латинские буквы, цифры и символ _');
+  .min(3, 'Минимум 3 символа')
+  .max(16, 'Максимум 16 символов')
+  .regex(/^[a-zA-Z0-9_]+$/, 'Только латинские буквы, цифры и _');
 export const PasswordSchema = z
   .string()
-  .min(6, 'Пароль должен содержать не менее 6 символов')
+  .min(8, 'Минимум 8 символов')
   .regex(/^\S+$/, 'Пароль не должен содержать пробелы');
 export const EmailSchema = z
   .string()
   .email('Некорректный email')
   .optional()
-  .or(z.literal(''))
-  .or(z.undefined());
+  .or(z.literal(''));
 export const LoginSchema = z.object({
   nickname: NicknameSchema,
   password: PasswordSchema,
