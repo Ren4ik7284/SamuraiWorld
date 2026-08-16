@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 export interface ServerInfo {
   name: string;
   ip: string;
@@ -65,23 +65,43 @@ export class ServerService {
   private defaultServerInfo: ServerInfo = {
     name: 'SamuraiWorld',
     ip: 'b1.qwertyx.host:26687',
-    version: '1.21',
+    version: '1.21.4',
     mode: 'Ванильное выживание',
     description: 'Ванильный Minecraft с политической системой — выбирай президента, принимай законы, строй экономику',
-    status: 'online',
+    status: 'offline',
     politicalSystem: 'Демократическая Республика',
-    playersOnline: 14,
-    maxPlayers: 60,
-    onlinePlayers: [
-      { name: 'Shogun_Kenji', id: '1', skinUrl: 'https://crafatar.com/avatars/Shogun_Kenji?overlay=true' },
-      { name: 'President_Alex', id: '2', skinUrl: 'https://crafatar.com/avatars/President_Alex?overlay=true' },
-      { name: 'Miner_Joe', id: '3', skinUrl: 'https://crafatar.com/avatars/Miner_Joe?overlay=true' }
-    ]
+    playersOnline: 0,
+    maxPlayers: 1000,
+    onlinePlayers: []
   };
   constructor(private http: HttpClient) {}
   getServerInfo(): Observable<ServerInfo> {
-    return this.http.get<ServerInfo>(`${this.apiUrl}/info`).pipe(
-      catchError(() => of(this.defaultServerInfo))
+    return this.http.get<any>(`${this.apiUrl}/info`).pipe(
+      catchError(() => {
+        return this.http.get<any>('https://api.mcstatus.io/v2/status/java/b1.qwertyx.host:26687').pipe(
+          map(data => {
+            if (!data) return this.defaultServerInfo;
+            const isOnline = Boolean(data.online);
+            return {
+              name: 'SamuraiWorld',
+              ip: 'b1.qwertyx.host:26687',
+              version: data.version?.name_clean ? data.version.name_clean.replace('Vanilla by MrDrag0nXYT ', '') : '1.21.4',
+              mode: 'Ванильное выживание',
+              description: data.motd?.clean ? data.motd.clean.trim() : 'Ванильный Minecraft с политической системой',
+              status: isOnline ? 'online' : 'offline',
+              politicalSystem: 'Демократическая Республика',
+              playersOnline: data.players?.online || 0,
+              maxPlayers: data.players?.max || 1000,
+              onlinePlayers: Array.isArray(data.players?.list) ? data.players.list.map((p: any, idx: number) => ({
+                name: p.name_clean || p.name || 'Игрок',
+                id: String(idx + 1),
+                skinUrl: `https://crafatar.com/avatars/${encodeURIComponent(p.name_clean || p.name)}?overlay=true`
+              })) : []
+            } as ServerInfo;
+          }),
+          catchError(() => of(this.defaultServerInfo))
+        );
+      })
     );
   }
   getRules(): Observable<Rule[]> {

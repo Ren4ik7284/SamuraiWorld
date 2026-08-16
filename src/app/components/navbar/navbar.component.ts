@@ -2,7 +2,8 @@ import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { Subscription, timer } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { AuthService, User } from '../../services/auth.service';
 import { ServerService, ServerInfo } from '../../services/server.service';
 import { LoginSchema, RegisterSchema } from '../../schemas/api.schemas';
@@ -103,8 +104,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.currentUser = user;
     });
 
-    this.serverSub = this.serverService.getServerInfo().subscribe(info => {
-      this.serverInfo = info;
+    this.serverSub = timer(0, 20000).pipe(
+      switchMap(() => this.serverService.getServerInfo())
+    ).subscribe({
+      next: (info) => {
+        this.serverInfo = info;
+      },
+      error: () => {}
     });
   }
 

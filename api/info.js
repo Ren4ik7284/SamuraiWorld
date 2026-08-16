@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   }
   let isOnline = false;
   let onlinePlayersCount = 0;
-  let maxPlayersCount = 60;
+  let maxPlayersCount = 1000;
   let motdText = 'Ванильный Minecraft с политической системой';
   let serverVersion = '1.21.4';
   let onlinePlayerList = [];
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       isOnline = Boolean(data.online);
       if (isOnline && data.players) {
         onlinePlayersCount = data.players.online || 0;
-        maxPlayersCount = data.players.max || 60;
+        maxPlayersCount = data.players.max || 1000;
         if (Array.isArray(data.players.list)) {
           onlinePlayerList = data.players.list.map((p, idx) => ({
             name: p.name_clean || p.name || 'Игрок',
