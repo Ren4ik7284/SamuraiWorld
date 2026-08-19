@@ -218,7 +218,7 @@
             />
           </div>
         </div>
-        <div class="tickets-grid" *ngIf="filteredTickets.length > 0; else noTicketsUser">
+        <div class="tickets-grid" *ngIf="!isLoadingTickets && filteredTickets.length > 0; else noTicketsUserOrLoading">
           <div 
             *ngFor="let ticket of filteredTickets" 
             class="ticket-card card"
@@ -245,8 +245,11 @@
             </div>
           </div>
         </div>
-        <ng-template #noTicketsUser>
-          <div class="empty-state card">
+        <ng-template #noTicketsUserOrLoading>
+          <div *ngIf="isLoadingTickets" class="tickets-grid">
+            <div class="ticket-card card" *ngFor="let s of [1,2]" style="animation: pulse-shimmer 1.5s infinite; opacity: 0.6; height: 120px;"></div>
+          </div>
+          <div *ngIf="!isLoadingTickets" class="empty-state card">
             <div class="empty-state__icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px;height:48px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             </div>
@@ -305,7 +308,11 @@
             />
           </div>
         </div>
-        <div class="users-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; max-height: 320px; overflow-y: auto; padding-right: 6px;">
+        <div *ngIf="isLoadingUsers" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 24px; color: var(--gold-primary); font-size: 0.88rem;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; animation: spin 1s linear infinite;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
+          <span>Загрузка списка пользователей...</span>
+        </div>
+        <div class="users-grid" *ngIf="!isLoadingUsers" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; max-height: 320px; overflow-y: auto; padding-right: 6px;">
           <div 
             *ngFor="let u of filteredRegisteredUsers" 
             class="user-card-mini" 
@@ -357,12 +364,16 @@
               <button 
                 type="button" 
                 (click)="deleteUser(u)"
+                [disabled]="deletingUserId === (u.id || u.nickname.toLowerCase())"
                 title="Удалить пользователя из базы"
                 style="background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(220, 38, 38, 0.35); color: #f87171; width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;"
               >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 13px; height: 13px;">
+                <svg *ngIf="deletingUserId !== (u.id || u.nickname.toLowerCase())" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 13px; height: 13px;">
                   <polyline points="3 6 5 6 21 6"></polyline>
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                <svg *ngIf="deletingUserId === (u.id || u.nickname.toLowerCase())" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 13px; height: 13px; animation: spin 1s linear infinite;">
+                  <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path>
                 </svg>
               </button>
             </div>
@@ -417,7 +428,7 @@
             />
           </div>
         </div>
-        <div class="admin-tickets-list" *ngIf="filteredTickets.length > 0; else noTicketsAdmin">
+        <div class="admin-tickets-list" *ngIf="!isLoadingTickets && filteredTickets.length > 0; else noTicketsAdminOrLoading">
           <div 
             *ngFor="let ticket of filteredTickets" 
             class="admin-ticket-row card"
@@ -448,8 +459,11 @@
             </div>
           </div>
         </div>
-        <ng-template #noTicketsAdmin>
-          <div class="empty-state card">
+        <ng-template #noTicketsAdminOrLoading>
+          <div *ngIf="isLoadingTickets" class="admin-tickets-list">
+            <div class="admin-ticket-row card" *ngFor="let s of [1,2,3]" style="animation: pulse-shimmer 1.5s infinite; opacity: 0.6; height: 90px;"></div>
+          </div>
+          <div *ngIf="!isLoadingTickets" class="empty-state card">
             <div class="empty-state__icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px;height:48px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>

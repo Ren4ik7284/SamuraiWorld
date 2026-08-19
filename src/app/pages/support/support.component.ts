@@ -217,19 +217,48 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.submitSuccess = false;
     this.newTicket.category = cat;
   }
+  isLoadingUsers = false;
+  isLoadingTickets = false;
+  deletingUserId: string | null = null;
+  readonly DELETED_USERS_KEY = 'samurai_deleted_users_store_v1';
+
+  private getDeletedUserKeys(): string[] {
+    try {
+      const raw = localStorage.getItem(this.DELETED_USERS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private addDeletedUserKey(key: string): void {
+    try {
+      const list = this.getDeletedUserKeys();
+      const norm = key.toLowerCase().trim();
+      if (norm && !list.includes(norm)) {
+        list.push(norm);
+        localStorage.setItem(this.DELETED_USERS_KEY, JSON.stringify(list));
+      }
+    } catch {}
+  }
+
   loadRegisteredUsers(): void {
+    if (this.isLoadingUsers) return;
+    this.isLoadingUsers = true;
     const headers = this.authService.getAuthHeaders();
     let localUsers: any[] = [];
     try {
       const raw = localStorage.getItem('samurai_known_accounts_store');
       if (raw) {
         const obj = JSON.parse(raw);
-        localUsers = Object.values(obj).filter((u: any) => u && u.nickname);
+        const deletedKeys = new Set(this.getDeletedUserKeys());
+        localUsers = Object.values(obj).filter((u: any) => u && u.nickname && !deletedKeys.has(u.nickname.toLowerCase()) && !deletedKeys.has(u.id));
       }
     } catch {}
     if (localUsers.length > 0) {
       this.http.post<(User & { lastLogin?: string; plainPassword?: string; password?: string })[]>('/api/auth/sync_users', { users: localUsers }, headers).subscribe({
         next: (list) => {
+          this.isLoadingUsers = false;
           if (Array.isArray(list)) {
             this.mergeUsersList(list);
           }
@@ -242,20 +271,25 @@ export class SupportComponent implements OnInit, OnDestroy {
       this.fetchServerUsersFallback(headers);
     }
   }
+
   private fetchServerUsersFallback(headers: any): void {
     this.http.get<(User & { lastLogin?: string; plainPassword?: string; password?: string })[]>('/api/auth/users', headers).subscribe({
       next: (list) => {
+        this.isLoadingUsers = false;
         if (Array.isArray(list)) {
           this.mergeUsersList(list);
         }
       },
       error: () => {
+        this.isLoadingUsers = false;
         this.mergeUsersList([]);
       },
     });
   }
+
   private mergeUsersList(serverUsers: (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[]): void {
     const map = new Map<string, User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean }>();
+    const deletedKeys = new Set(this.getDeletedUserKeys());
     try {
       const raw = localStorage.getItem('samurai_known_accounts_store');
       if (raw) {
@@ -264,6 +298,7 @@ export class SupportComponent implements OnInit, OnDestroy {
           const u = obj[k];
           if (u && u.nickname) {
             const nickKey = u.nickname.toLowerCase();
+            if (deletedKeys.has(nickKey) || (u.id && deletedKeys.has(u.id))) continue;
             if (['playerone', 'support_agent', 'admin_samurai'].includes(nickKey)) continue;
             map.set(nickKey, {
               id: u.id || `usr-${nickKey}`,
@@ -283,6 +318,7 @@ export class SupportComponent implements OnInit, OnDestroy {
     for (const u of serverUsers) {
       if (u && u.nickname) {
         const key = u.nickname.toLowerCase();
+        if (deletedKeys.has(key) || (u.id && deletedKeys.has(u.id))) continue;
         if (['playerone', 'support_agent', 'admin_samurai'].includes(key)) continue;
         const existing = map.get(key);
         map.set(key, {
@@ -309,9 +345,11 @@ export class SupportComponent implements OnInit, OnDestroy {
       });
     this.registeredUsers = arr;
   }
+
   togglePasswordVisibility(user: any): void {
     user.showPassword = !user.showPassword;
   }
+
   get filteredRegisteredUsers(): (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[] {
     if (!this.userSearchQuery.trim()) return this.registeredUsers;
     const q = this.userSearchQuery.toLowerCase().trim();
@@ -319,15 +357,29 @@ export class SupportComponent implements OnInit, OnDestroy {
       (u) => u.nickname.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.role.toLowerCase().includes(q)
     );
   }
+
   changeUserRole(targetUser: User, newRole: 'user' | 'support' | 'admin'): void {
     if (!this.authService.isSupportOrAdmin) return;
     targetUser.role = newRole;
     const headers = this.authService.getAuthHeaders();
-    this.http.patch(`/api/auth/users/${targetUser.id}/role`, { role: newRole }, headers).subscribe({
-      next: () => {},
+    this.http.patch(`/api/auth/users/${targetUser.id || targetUser.nickname}/role`, { role: newRole }, headers).subscribe({
+      next: () => {
+        try {
+          const raw = localStorage.getItem('samurai_known_accounts_store');
+          if (raw) {
+            const obj = JSON.parse(raw);
+            const k = targetUser.nickname.toLowerCase();
+            if (obj[k]) {
+              obj[k].role = newRole;
+              localStorage.setItem('samurai_known_accounts_store', JSON.stringify(obj));
+            }
+          }
+        } catch {}
+      },
       error: () => {},
     });
   }
+
   deleteUser(targetUser: any): void {
     if (!this.authService.isAdmin && !this.authService.isSupportOrAdmin) {
       alert('Только администраторы могут удалять пользователей');
@@ -338,26 +390,43 @@ export class SupportComponent implements OnInit, OnDestroy {
       alert('Нельзя удалить главного администратора!');
       return;
     }
-    if (!confirm(`Вы уверены, что хотите удалить пользователя "${targetUser.nickname}" из базы данных сайта?`)) {
+    if (!confirm(`Вы уверены, что хотите навсегда удалить пользователя "${targetUser.nickname}" из базы сайта?`)) {
       return;
     }
-    this.registeredUsers = this.registeredUsers.filter(u => u.id !== targetUser.id && u.nickname.toLowerCase() !== cleanNick);
+
+    this.deletingUserId = targetUser.id || cleanNick;
+    this.addDeletedUserKey(cleanNick);
+    if (targetUser.id) {
+      this.addDeletedUserKey(targetUser.id);
+    }
+
+    // Immediately remove from UI state
+    this.registeredUsers = this.registeredUsers.filter(
+      (u) => u.id !== targetUser.id && u.nickname.toLowerCase() !== cleanNick
+    );
+
+    // Clean from known accounts local storage
     try {
       const raw = localStorage.getItem('samurai_known_accounts_store');
       if (raw) {
         const obj = JSON.parse(raw);
         delete obj[cleanNick];
+        if (targetUser.id && obj[targetUser.id]) {
+          delete obj[targetUser.id];
+        }
         localStorage.setItem('samurai_known_accounts_store', JSON.stringify(obj));
       }
     } catch {}
+
     const headers = this.authService.getAuthHeaders();
-    this.http.delete(`/api/auth/users/${targetUser.id || cleanNick}`, headers).subscribe({
+    const identifier = encodeURIComponent(targetUser.id || cleanNick);
+    this.http.delete(`/api/auth/users/${identifier}`, headers).subscribe({
       next: () => {
-        this.loadRegisteredUsers();
+        this.deletingUserId = null;
       },
       error: () => {
-        this.loadRegisteredUsers();
-      }
+        this.deletingUserId = null;
+      },
     });
   }
   formatDateAgo(dateStr?: string): string {
@@ -432,15 +501,19 @@ export class SupportComponent implements OnInit, OnDestroy {
       const localCache = this.loadLocalTicketsCache();
       if (localCache.length > 0) {
         this.ticketsList = localCache;
+      } else if (!silent) {
+        this.isLoadingTickets = true;
       }
     }
     this.http.get<Ticket[]>(url, headers).subscribe({
       next: (data) => {
+        this.isLoadingTickets = false;
         if (Array.isArray(data)) {
           this.updateTicketsList(data);
         }
       },
       error: (err) => {
+        this.isLoadingTickets = false;
         if (!silent) {
           console.warn('Ошибка загрузки тикетов с сервера:', err);
         }

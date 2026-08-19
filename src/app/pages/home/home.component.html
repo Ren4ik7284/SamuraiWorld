@@ -18,8 +18,9 @@
   </div>
   <div class="hero__body container">
     <div class="hero__badge anim-fade-up d1">
-      <span class="hero__badge-dot" [style.background]="serverInfo?.status === 'online' ? '#22c55e' : '#ef4444'"></span>
-      <span>{{ serverInfo?.status === 'online' ? 'Сервер открыт (Онлайн ' + (serverInfo?.playersOnline || 0) + '/' + (serverInfo?.maxPlayers || 1000) + ')' : 'Сервер временно закрыт (Техработы)' }}</span>
+      <span class="hero__badge-dot" [style.background]="isLoadingServerInfo ? '#f59e0b' : (serverInfo?.status === 'online' ? '#22c55e' : '#ef4444')"></span>
+      <span *ngIf="isLoadingServerInfo">Проверка статуса сервера...</span>
+      <span *ngIf="!isLoadingServerInfo">{{ serverInfo?.status === 'online' ? 'Сервер открыт (Онлайн ' + (serverInfo?.playersOnline || 0) + '/' + (serverInfo?.maxPlayers || 1000) + ')' : 'Сервер временно закрыт (Техработы)' }}</span>
     </div>
     <div class="hero__title-wrap anim-fade-up d2">
       <p class="hero__title-sub">Политический выживач</p>
@@ -144,7 +145,7 @@
       <h2 class="section-heading">Последние <span>события</span></h2>
       <p class="section-sub">Следи за жизнью сервера</p>
     </header>
-    <div class="news__grid">
+    <div class="news__grid" *ngIf="!isLoadingNews; else newsSkeleton">
       <article *ngFor="let item of news" class="news-card card">
         <div class="news-card__header">
           <span class="news-card__tag">{{ item.tag }}</span>
@@ -160,6 +161,16 @@
         <p class="news-card__body">{{ item.content }}</p>
       </article>
     </div>
+    <ng-template #newsSkeleton>
+      <div class="news__grid">
+        <article class="news-card card skeleton-card" *ngFor="let s of [1,2,3]">
+          <div class="skeleton-shimmer" style="height: 20px; width: 40%; border-radius: 4px; margin-bottom: 16px;"></div>
+          <div class="skeleton-shimmer" style="height: 24px; width: 85%; border-radius: 4px; margin-bottom: 12px;"></div>
+          <div class="skeleton-shimmer" style="height: 14px; width: 100%; border-radius: 4px; margin-bottom: 8px;"></div>
+          <div class="skeleton-shimmer" style="height: 14px; width: 70%; border-radius: 4px;"></div>
+        </article>
+      </div>
+    </ng-template>
   </div>
 </section>
 <section class="cta">

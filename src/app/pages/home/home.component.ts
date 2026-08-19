@@ -19,6 +19,8 @@ interface Feature {
 export class HomeComponent implements OnInit {
   serverInfo: ServerInfo | null = null;
   news: NewsItem[] = [];
+  isLoadingServerInfo = true;
+  isLoadingNews = true;
   ipCopied = false;
   particles: { x: number; size: number; speed: number; opacity: number }[] = [];
   features: Feature[] = [
@@ -61,8 +63,24 @@ export class HomeComponent implements OnInit {
   ];
   constructor(private serverService: ServerService) {}
   ngOnInit(): void {
-    this.serverService.getServerInfo().subscribe(info => { this.serverInfo = info; });
-    this.serverService.getNews().subscribe(news => { this.news = news; });
+    this.serverService.getServerInfo().subscribe({
+      next: (info) => {
+        this.serverInfo = info;
+        this.isLoadingServerInfo = false;
+      },
+      error: () => {
+        this.isLoadingServerInfo = false;
+      }
+    });
+    this.serverService.getNews().subscribe({
+      next: (news) => {
+        this.news = news;
+        this.isLoadingNews = false;
+      },
+      error: () => {
+        this.isLoadingNews = false;
+      }
+    });
     this.particles = Array.from({ length: 18 }, () => ({
       x: Math.random() * 100,
       size: Math.random() * 10 + 6,
