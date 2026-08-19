@@ -38,11 +38,33 @@ export class AuthService {
     this.loadInitialSession();
   }
   private loadInitialSession(): void {
+    // Sanitize any existing localStorage data from legacy plain passwords
+    try {
+      const rawAccounts = localStorage.getItem(this.accountsKey);
+      if (rawAccounts) {
+        const parsed = JSON.parse(rawAccounts);
+        const cleanAccounts: Record<string, any> = {};
+        for (const k of Object.keys(parsed)) {
+          const u = parsed[k];
+          if (u && u.nickname) {
+            const { plainPassword, password, passwordHash, ...cleanUser } = u;
+            cleanAccounts[k] = cleanUser;
+          }
+        }
+        localStorage.setItem(this.accountsKey, JSON.stringify(cleanAccounts));
+      }
+    } catch {}
+
     const savedUserStr = localStorage.getItem(this.userKey);
     const accessToken = localStorage.getItem(this.accessTokenKey);
     if (savedUserStr && accessToken) {
       try {
         const savedUser: User = JSON.parse(savedUserStr);
+        // Strip any residual password fields from current user profile
+        delete (savedUser as any).plainPassword;
+        delete (savedUser as any).password;
+        delete (savedUser as any).passwordHash;
+
         if (['ren4ik284', 'mydaf0n62'].includes(savedUser.nickname?.toLowerCase())) {
           savedUser.role = 'admin';
         }
@@ -54,13 +76,11 @@ export class AuthService {
         this.fetchProfile().subscribe({
           error: () => {
             this.refreshToken().subscribe({
-              error: () => {
-              },
+              error: () => {},
             });
           },
         });
-      } catch (e) {
-      }
+      } catch (e) {}
     }
   }
   public get currentUserValue(): User | null {
@@ -99,23 +119,22 @@ export class AuthService {
       return {};
     }
   }
-  private saveKnownAccount(nickname: string, user: User, password?: string): void {
+  private saveKnownAccount(nickname: string, user: User): void {
     try {
       const accounts = this.getKnownAccounts();
       const key = nickname.trim().toLowerCase();
+      // Ensure zero password/plainPassword data is saved on the client
+      const { plainPassword, password, passwordHash, ...safeUser } = user as any;
       accounts[key] = {
-        ...user,
-        avatarUrl: user.avatarUrl || accounts[key]?.avatarUrl || DEFAULT_AVATAR,
-        plainPassword: password || (user as any).plainPassword || accounts[key]?.plainPassword || accounts[key]?.password,
-        password: password || (user as any).password || accounts[key]?.password || accounts[key]?.plainPassword,
+        ...safeUser,
+        avatarUrl: safeUser.avatarUrl || accounts[key]?.avatarUrl || DEFAULT_AVATAR,
       };
       localStorage.setItem(this.accountsKey, JSON.stringify(accounts));
-    } catch {
-    }
+    } catch {}
   }
   register(dto: { nickname: string; email?: string; password: string }): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, dto).pipe(
-      tap((res) => this.handleAuthSuccess(res, dto.password)),
+      tap((res) => this.handleAuthSuccess(res)),
       catchError((err) => {
         if (err?.status === 409 || (err?.error?.message && err?.status === 400)) {
           return throwError(() => err);
@@ -138,7 +157,7 @@ export class AuthService {
             expiresIn: 30 * 86400,
           },
         };
-        this.handleAuthSuccess(fallbackRes, dto.password);
+        this.handleAuthSuccess(fallbackRes);
         return of(fallbackRes);
       })
     );
@@ -147,30 +166,7 @@ export class AuthService {
     const accounts = this.getKnownAccounts();
     const clientUser = accounts[dto.nickname.trim().toLowerCase()];
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { ...dto, clientUser }).pipe(
-      tap((res) => this.handleAuthSuccess(res, dto.password)),
-      catchError((err) => {
-        if (clientUser && clientUser.password === dto.password) {
-          const fallbackRes: AuthResponse = {
-            user: {
-              id: clientUser.id,
-              nickname: clientUser.nickname,
-              email: clientUser.email,
-              role: clientUser.role,
-              avatarUrl: clientUser.avatarUrl,
-              createdAt: clientUser.createdAt,
-            },
-            tokens: {
-              accessToken: localStorage.getItem(this.accessTokenKey) || 'fallback_token',
-              refreshToken: localStorage.getItem(this.refreshTokenKey) || 'fallback_refresh',
-              tokenType: 'Bearer',
-              expiresIn: 30 * 86400,
-            },
-          };
-          this.handleAuthSuccess(fallbackRes, dto.password);
-          return of(fallbackRes);
-        }
-        return throwError(() => err);
-      })
+      tap((res) => this.handleAuthSuccess(res))
     );
   }
   refreshToken(): Observable<AuthTokens> {
@@ -215,7 +211,7 @@ export class AuthService {
     localStorage.removeItem(this.userKey);
     this.currentUserSubject.next(null);
   }
-  private handleAuthSuccess(res: AuthResponse, password?: string): void {
+  private handleAuthSuccess(res: AuthResponse): void {
     if (['ren4ik284', 'mydaf0n62'].includes(res.user?.nickname?.toLowerCase())) {
       res.user.role = 'admin';
     }
@@ -227,7 +223,7 @@ export class AuthService {
     }
     localStorage.setItem(this.userKey, JSON.stringify(res.user));
     localStorage.setItem('samurai_user_nickname', res.user.nickname);
-    this.saveKnownAccount(res.user.nickname, res.user, password);
+    this.saveKnownAccount(res.user.nickname, res.user);
     this.currentUserSubject.next(res.user);
   }
 }

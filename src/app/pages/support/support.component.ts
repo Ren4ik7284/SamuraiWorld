@@ -98,7 +98,7 @@ export class SupportComponent implements OnInit, OnDestroy {
   adminFilterStatus = 'ВСЕ';
   ticketsList: Ticket[] = [];
   selectedTicket: Ticket | null = null;
-  registeredUsers: (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[] = [];
+  registeredUsers: (User & { lastLogin?: string })[] = [];
   userSearchQuery = '';
   replyText = '';
   isReplying = false;
@@ -256,7 +256,7 @@ export class SupportComponent implements OnInit, OnDestroy {
       }
     } catch {}
     if (localUsers.length > 0) {
-      this.http.post<(User & { lastLogin?: string; plainPassword?: string; password?: string })[]>('/api/auth/sync_users', { users: localUsers }, headers).subscribe({
+      this.http.post<(User & { lastLogin?: string })[]>('/api/auth/sync_users', { users: localUsers }, headers).subscribe({
         next: (list) => {
           this.isLoadingUsers = false;
           if (Array.isArray(list)) {
@@ -273,7 +273,7 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   private fetchServerUsersFallback(headers: any): void {
-    this.http.get<(User & { lastLogin?: string; plainPassword?: string; password?: string })[]>('/api/auth/users', headers).subscribe({
+    this.http.get<(User & { lastLogin?: string })[]>('/api/auth/users', headers).subscribe({
       next: (list) => {
         this.isLoadingUsers = false;
         if (Array.isArray(list)) {
@@ -296,8 +296,8 @@ export class SupportComponent implements OnInit, OnDestroy {
     }
   }
 
-  private mergeUsersList(serverUsers: (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[]): void {
-    const map = new Map<string, User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean }>();
+  private mergeUsersList(serverUsers: (User & { lastLogin?: string })[]): void {
+    const map = new Map<string, User & { lastLogin?: string }>();
     const deletedKeys = new Set(this.getDeletedUserKeys());
     try {
       const raw = localStorage.getItem('samurai_known_accounts_store');
@@ -318,8 +318,6 @@ export class SupportComponent implements OnInit, OnDestroy {
               avatarUrl: avatar,
               createdAt: u.createdAt || new Date().toISOString(),
               lastLogin: u.lastLogin || u.createdAt || new Date().toISOString(),
-              plainPassword: u.password || u.plainPassword || 'Не указан',
-              showPassword: false,
             });
           }
         }
@@ -339,8 +337,6 @@ export class SupportComponent implements OnInit, OnDestroy {
           ...u,
           avatarUrl: avatar,
           role: key === 'ren4ik284' ? 'admin' : u.role || existing?.role || 'user',
-          plainPassword: u.password || u.plainPassword || existing?.password || existing?.plainPassword || 'Не указан',
-          showPassword: existing?.showPassword || false,
         });
       }
     }
@@ -360,11 +356,7 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.registeredUsers = arr;
   }
 
-  togglePasswordVisibility(user: any): void {
-    user.showPassword = !user.showPassword;
-  }
-
-  get filteredRegisteredUsers(): (User & { lastLogin?: string; plainPassword?: string; password?: string; showPassword?: boolean })[] {
+  get filteredRegisteredUsers(): (User & { lastLogin?: string })[] {
     if (!this.userSearchQuery.trim()) return this.registeredUsers;
     const q = this.userSearchQuery.toLowerCase().trim();
     return this.registeredUsers.filter(
