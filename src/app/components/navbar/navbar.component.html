@@ -140,7 +140,7 @@
     <div class="sidebar__user-card" *ngIf="currentUser; else guestAuthBlock">
       <div class="sidebar__user-header">
         <div class="sidebar__avatar-wrap" (click)="openAvatarModal()" title="Нажмите для смены аватара">
-          <img [src]="currentUser.avatarUrl || DEFAULT_AVATAR" class="sidebar__avatar-img" alt="avatar" />
+          <img [src]="currentUser.avatarUrl || DEFAULT_AVATAR" class="sidebar__avatar-img" alt="avatar" (error)="onAvatarError($event)" />
           <div class="sidebar__avatar-badge-btn" title="Сменить фото">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M12 20h9"/>
@@ -294,6 +294,7 @@
           [src]="customAvatarUrlInput || DEFAULT_AVATAR" 
           class="avatar-preview-img"
           alt="Preview Avatar"
+          (error)="onAvatarError($event)"
         />
       </div>
       <div class="avatar-preview-hint">Текущий аватар вашего профиля</div>

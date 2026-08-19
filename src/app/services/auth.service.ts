@@ -21,6 +21,8 @@ export interface AuthResponse {
   user: User;
   tokens: AuthTokens;
 }
+export const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.03-4.84-2.6.03-1.61 3.22-2.4 4.84-2.4 1.61 0 4.81.79 4.84 2.4C15.8 18.97 14.03 20 12 20z"/></svg>';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly apiUrl = '/api/auth';
@@ -30,6 +32,8 @@ export class AuthService {
   private refreshTokenKey = 'samurai_refresh_token';
   private userKey = 'samurai_user_profile';
   private accountsKey = 'samurai_known_accounts_store';
+  public readonly DEFAULT_AVATAR = DEFAULT_AVATAR;
+
   constructor(private http: HttpClient) {
     this.loadInitialSession();
   }
@@ -41,8 +45,11 @@ export class AuthService {
         const savedUser: User = JSON.parse(savedUserStr);
         if (['ren4ik284', 'mydaf0n62'].includes(savedUser.nickname?.toLowerCase())) {
           savedUser.role = 'admin';
-          localStorage.setItem(this.userKey, JSON.stringify(savedUser));
         }
+        if (!savedUser.avatarUrl || savedUser.avatarUrl.includes('crafatar.com')) {
+          savedUser.avatarUrl = DEFAULT_AVATAR;
+        }
+        localStorage.setItem(this.userKey, JSON.stringify(savedUser));
         this.currentUserSubject.next(savedUser);
         this.fetchProfile().subscribe({
           error: () => {
@@ -98,6 +105,7 @@ export class AuthService {
       const key = nickname.trim().toLowerCase();
       accounts[key] = {
         ...user,
+        avatarUrl: user.avatarUrl || accounts[key]?.avatarUrl || DEFAULT_AVATAR,
         plainPassword: password || (user as any).plainPassword || accounts[key]?.plainPassword || accounts[key]?.password,
         password: password || (user as any).password || accounts[key]?.password || accounts[key]?.plainPassword,
       };
@@ -120,7 +128,7 @@ export class AuthService {
             nickname: cleanNick,
             email: dto.email || `${cleanNick.toLowerCase()}@samuraiworld.local`,
             role: isSuperAdmin ? 'admin' : 'user',
-            avatarUrl: `https://crafatar.com/avatars/${encodeURIComponent(cleanNick)}?overlay=true`,
+            avatarUrl: DEFAULT_AVATAR,
             createdAt: new Date().toISOString(),
           },
           tokens: {

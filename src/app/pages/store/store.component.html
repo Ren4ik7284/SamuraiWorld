@@ -164,7 +164,7 @@
       <div class="checkout-form-group">
         <label class="checkout-label">Ваш Никнейм на сервере *</label>
         <div class="nick-input-wrap">
-          <img [src]="getUserAvatar()" class="nick-avatar" alt="user avatar" />
+          <img [src]="getUserAvatar()" class="nick-avatar" alt="user avatar" (error)="onAvatarError($event)" />
           <input 
             type="text" 
             class="checkout-input" 
