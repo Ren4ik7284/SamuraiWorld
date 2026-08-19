@@ -1,7 +1,10 @@
 <!-- Mobile Topbar (< 1024px) -->
 <div class="mobile-topbar">
   <a class="mobile-topbar__brand" routerLink="/" (click)="closeMobileMenu()">
-    <img class="mobile-topbar__logo" src="assets/server_logo.jpg" alt="SamuraiWorld" />
+    <picture>
+      <source srcset="assets/server_logo.webp" type="image/webp" />
+      <img class="mobile-topbar__logo" src="assets/server_logo.jpg" alt="SamuraiWorld" />
+    </picture>
     <span class="mobile-topbar__name">SamuraiWorld</span>
   </a>
 
@@ -30,7 +33,10 @@
   <!-- Sidebar Header: Logo & Branding -->
   <div class="sidebar__header">
     <a class="sidebar__logo" routerLink="/" (click)="closeMobileMenu()">
-      <img class="sidebar__logo-img" src="assets/server_logo.jpg" alt="SamuraiWorld logo" />
+      <picture>
+        <source srcset="assets/server_logo.webp" type="image/webp" />
+        <img class="sidebar__logo-img" src="assets/server_logo.jpg" alt="SamuraiWorld logo" />
+      </picture>
       <div class="sidebar__brand-text">
         <div class="sidebar__brand-title">SamuraiWorld</div>
         <div class="sidebar__brand-sub">Политический сервер</div>
@@ -233,6 +239,8 @@
           placeholder="Например: PlayerOne" 
           [(ngModel)]="authNicknameInput" 
           name="authNickname"
+          minlength="3"
+          maxlength="16"
           required
         />
       </div>
@@ -245,6 +253,7 @@
           placeholder="email@example.com" 
           [(ngModel)]="authEmailInput" 
           name="authEmail"
+          maxlength="100"
         />
       </div>
 
@@ -253,9 +262,11 @@
         <input 
           type="password" 
           class="auth-input" 
-          placeholder="Введите ваш пароль..." 
+          placeholder="Введите ваш пароль (от 6 до 64 символов)..." 
           [(ngModel)]="authPasswordInput" 
           name="authPassword"
+          minlength="6"
+          maxlength="64"
           required
         />
       </div>

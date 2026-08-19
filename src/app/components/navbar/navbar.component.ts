@@ -294,7 +294,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         canvas.height = maxDim;
         if (ctx) {
           ctx.drawImage(img, 0, 0, maxDim, maxDim);
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          const compressedDataUrl = canvas.toDataURL('image/webp', 0.82);
           this.customAvatarUrlInput = compressedDataUrl;
           this.avatarErrorMsg = '';
         }
