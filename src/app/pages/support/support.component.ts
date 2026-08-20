@@ -158,24 +158,50 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.authErrorMessage = '';
     this.authSuccessMessage = '';
     if (this.authMode === 'register') {
-      this.authService
-        .register({
+      // Если admin/support уже залогинен — регистрируем пользователя напрямую без смены сессии
+      if (this.authService.isSupportOrAdmin && this.currentUser) {
+        const headers = this.authService.getAuthHeaders();
+        this.http.post('/api/auth/register', {
           nickname: this.authNicknameInput.trim(),
           password: this.authPasswordInput.trim(),
           email: this.authEmailInput.trim() || undefined,
-        })
-        .subscribe({
+        }, headers).subscribe({
           next: () => {
             this.isAuthSubmitting = false;
-            this.authSuccessMessage = 'Успешная регистрация и вход!';
-            setTimeout(() => this.closeAuthModal(), 800);
+            this.authSuccessMessage = `Пользователь "${this.authNicknameInput.trim()}" успешно добавлен!`;
+            this.authNicknameInput = '';
+            this.authPasswordInput = '';
+            this.authEmailInput = '';
+            // Обновляем список пользователей
+            this.isLoadingUsers = false;
+            this.loadRegisteredUsers();
+            setTimeout(() => this.closeAuthModal(), 1200);
           },
           error: (err) => {
             this.isAuthSubmitting = false;
-            this.authErrorMessage =
-              err.error?.message || 'Ошибка при регистрации. Возможно никнейм уже занят.';
+            this.authErrorMessage = err.error?.message || 'Ошибка при добавлении пользователя.';
           },
         });
+      } else {
+        this.authService
+          .register({
+            nickname: this.authNicknameInput.trim(),
+            password: this.authPasswordInput.trim(),
+            email: this.authEmailInput.trim() || undefined,
+          })
+          .subscribe({
+            next: () => {
+              this.isAuthSubmitting = false;
+              this.authSuccessMessage = 'Успешная регистрация и вход!';
+              setTimeout(() => this.closeAuthModal(), 800);
+            },
+            error: (err) => {
+              this.isAuthSubmitting = false;
+              this.authErrorMessage =
+                err.error?.message || 'Ошибка при регистрации. Проверьте данные.';
+            },
+          });
+      }
     } else {
       this.authService
         .login({
@@ -264,6 +290,7 @@ export class SupportComponent implements OnInit, OnDestroy {
           }
         },
         error: () => {
+          this.isLoadingUsers = false;
           this.fetchServerUsersFallback(headers);
         },
       });
@@ -299,6 +326,9 @@ export class SupportComponent implements OnInit, OnDestroy {
   private mergeUsersList(serverUsers: (User & { lastLogin?: string })[]): void {
     const map = new Map<string, User & { lastLogin?: string }>();
     const deletedKeys = new Set(this.getDeletedUserKeys());
+    // Seed-пользователи бэкенда которые не нужно показывать в панели
+    const seedNicknames = new Set(['playerone', 'support_agent', 'admin_samurai']);
+    const masterAdmins = new Set(['ren4ik284', 'mydaf0n62']);
     try {
       const raw = localStorage.getItem('samurai_known_accounts_store');
       if (raw) {
@@ -308,13 +338,12 @@ export class SupportComponent implements OnInit, OnDestroy {
           if (u && u.nickname) {
             const nickKey = u.nickname.toLowerCase();
             if (deletedKeys.has(nickKey) || (u.id && deletedKeys.has(u.id))) continue;
-            if (['playerone', 'support_agent', 'admin_samurai'].includes(nickKey)) continue;
             const avatar = (u.avatarUrl && !u.avatarUrl.includes('crafatar.com')) ? u.avatarUrl : this.DEFAULT_AVATAR;
             map.set(nickKey, {
               id: u.id || `usr-${nickKey}`,
               nickname: u.nickname,
               email: u.email || `${nickKey}@samuraiworld.ru`,
-              role: nickKey === 'ren4ik284' ? 'admin' : u.role || 'user',
+              role: masterAdmins.has(nickKey) ? 'admin' : u.role || 'user',
               avatarUrl: avatar,
               createdAt: u.createdAt || new Date().toISOString(),
               lastLogin: u.lastLogin || u.createdAt || new Date().toISOString(),
@@ -327,16 +356,18 @@ export class SupportComponent implements OnInit, OnDestroy {
       if (u && u.nickname) {
         const key = u.nickname.toLowerCase();
         if (deletedKeys.has(key) || (u.id && deletedKeys.has(u.id))) continue;
-        if (['playerone', 'support_agent', 'admin_samurai'].includes(key)) continue;
+        // Пропускаем только seed-пользователей по умолчанию, если у них нет реального email
+        if (seedNicknames.has(key) && (!u.email || u.email.endsWith('@samuraiworld.ru') || u.email.endsWith('@samuraiworld.local'))) continue;
         const existing = map.get(key);
-        const avatar = (u.avatarUrl && !u.avatarUrl.includes('crafatar.com')) 
-          ? u.avatarUrl 
-          : (existing?.avatarUrl || this.DEFAULT_AVATAR);
+        // Приоритет аватара: локальный (уже обновлённый пользователем) > серверный
+        const localAvatar = existing?.avatarUrl;
+        const serverAvatar = (u.avatarUrl && !u.avatarUrl.includes('crafatar.com')) ? u.avatarUrl : undefined;
+        const finalAvatar = (localAvatar && localAvatar !== this.DEFAULT_AVATAR) ? localAvatar : (serverAvatar || this.DEFAULT_AVATAR);
         map.set(key, {
           ...existing,
           ...u,
-          avatarUrl: avatar,
-          role: key === 'ren4ik284' ? 'admin' : u.role || existing?.role || 'user',
+          avatarUrl: finalAvatar,
+          role: masterAdmins.has(key) ? 'admin' : u.role || existing?.role || 'user',
         });
       }
     }

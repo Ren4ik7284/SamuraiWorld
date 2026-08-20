@@ -136,29 +136,8 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, dto).pipe(
       tap((res) => this.handleAuthSuccess(res)),
       catchError((err) => {
-        if (err?.status === 409 || (err?.error?.message && err?.status === 400)) {
-          return throwError(() => err);
-        }
-        const cleanNick = dto.nickname.trim();
-        const isSuperAdmin = ['ren4ik284', 'mydaf0n62'].includes(cleanNick.toLowerCase());
-        const fallbackRes: AuthResponse = {
-          user: {
-            id: `usr-${Date.now()}`,
-            nickname: cleanNick,
-            email: dto.email || `${cleanNick.toLowerCase()}@samuraiworld.local`,
-            role: isSuperAdmin ? 'admin' : 'user',
-            avatarUrl: DEFAULT_AVATAR,
-            createdAt: new Date().toISOString(),
-          },
-          tokens: {
-            accessToken: localStorage.getItem(this.accessTokenKey) || `local_token_${Date.now()}`,
-            refreshToken: localStorage.getItem(this.refreshTokenKey) || `local_refresh_${Date.now()}`,
-            tokenType: 'Bearer',
-            expiresIn: 30 * 86400,
-          },
-        };
-        this.handleAuthSuccess(fallbackRes);
-        return of(fallbackRes);
+        // Пробрасываем все ошибки пользователю (409 - дублирующий ник/email, 400 - невалидные данные, сетевые ошибки)
+        return throwError(() => err);
       })
     );
   }
