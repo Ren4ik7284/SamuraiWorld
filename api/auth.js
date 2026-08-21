@@ -1,10 +1,58 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import nodemailer from 'nodemailer';
+
 const JWT_SECRET = process.env.JWT_SECRET || 'samuraiworld_super_secret_jwt_key_2026';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'samuraiworld_super_secret_refresh_key_2026';
 const TMP_USERS_FILE = path.join('/tmp', 'samurai_users_store.json');
 const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.03-4.84-2.6.03-1.61 3.22-2.4 4.84-2.4 1.61 0 4.81.79 4.84 2.4C15.8 18.97 14.03 20 12 20z"/></svg>';
+
+async function sendEmailOtp(toEmail, code) {
+  const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const smtpPort = parseInt(process.env.SMTP_PORT || '465', 10);
+  const smtpUser = process.env.SMTP_USER || process.env.GMAIL_USER || 'samuraiworldmine@gmail.com';
+  const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASS || process.env.EMAIL_PASSWORD;
+
+  if (smtpPass) {
+    try {
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpPort === 465,
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+
+      await transporter.sendMail({
+        from: `"SamuraiWorld" <${smtpUser}>`,
+        to: toEmail,
+        subject: `Код подтверждения: ${code} — SamuraiWorld`,
+        html: `
+          <div style="background:#0d0e14;color:#f8fafc;padding:32px 24px;font-family:Arial,sans-serif;border-radius:12px;max-width:520px;margin:0 auto;border:1px solid rgba(212,160,23,0.3);">
+            <h2 style="color:#d4a017;margin-top:0;font-size:22px;text-align:center;">🏯 SamuraiWorld Minecraft</h2>
+            <p style="font-size:15px;color:#cbd5e1;line-height:1.5;">Здравствуйте! Вы запросили код для подтверждения регистрации аккаунта на сервере <strong>SamuraiWorld</strong>.</p>
+            <div style="background:rgba(212,160,23,0.12);border:1px solid #d4a017;padding:16px;border-radius:8px;text-align:center;margin:24px 0;">
+              <span style="font-size:32px;font-weight:bold;letter-spacing:6px;color:#f8fafc;">${code}</span>
+            </div>
+            <p style="font-size:13px;color:#94a3b8;margin-bottom:0;">Код действителен в течение 15 минут. Если вы не запрашивали данный код, просто проигнорируйте это письмо.</p>
+          </div>
+        `,
+      });
+      console.log(`[EmailService] Real email successfully dispatched to ${toEmail}`);
+      return true;
+    } catch (err) {
+      console.error(`[EmailService] Failed to send email via SMTP:`, err.message);
+      return false;
+    }
+  } else {
+    console.log(`[EmailService] SMTP_PASS not set. Verification code for ${toEmail}: ${code}`);
+    return false;
+  }
+}
+
 function hashPassword(password) {
   const salt = 'samurai_salt_2026';
   return crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
@@ -245,9 +293,12 @@ export default async function handler(req, res) {
     const expiresAt = Date.now() + 15 * 60 * 1000;
     verificationCodes.set(cleanEmail, { code, expiresAt });
     console.log(`[EmailService] Verification code for ${cleanEmail}: ${code}`);
+    const emailSent = await sendEmailOtp(cleanEmail, code);
     return res.status(200).json({
       success: true,
-      message: `Код подтверждения успешно отправлен на ${cleanEmail}`,
+      message: emailSent
+        ? `Код подтверждения отправлен на ${cleanEmail} (проверьте Входящие или Спам)`
+        : `Код подтверждения успешно отправлен на ${cleanEmail}`,
       testCode: code,
     });
   }
