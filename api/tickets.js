@@ -227,8 +227,17 @@ export default async function handler(req, res) {
     ['ren4ik284', 'mydaf0n62', 'support_agent', 'admin_samurai'].includes((body?.sender || '').trim().toLowerCase());
   if (method === 'GET' && !ticketIdParam) {
     let result = [...globalTickets];
-    if (query.nickname) {
-      result = result.filter((t) => t.nickname.toLowerCase() === query.nickname.toLowerCase());
+    if (!isStaffUser) {
+      if (user && user.sub) {
+        const userNick = (user.nickname || '').toLowerCase();
+        result = result.filter(
+          (t) => (t.userId && t.userId === user.sub) || (t.nickname && t.nickname.toLowerCase() === userNick)
+        );
+      } else if (query.nickname) {
+        result = result.filter((t) => t.nickname && t.nickname.toLowerCase() === String(query.nickname).toLowerCase());
+      } else {
+        result = [];
+      }
     }
     if (query.category) {
       result = result.filter((t) => t.category === query.category);
@@ -242,28 +251,17 @@ export default async function handler(req, res) {
   }
   if (method === 'GET' && ticketIdParam) {
     let ticket = globalTickets.find(
-      (t) => t.id === ticketIdParam || t.ticketNumber.toLowerCase() === ticketIdParam.toLowerCase()
+      (t) => t.id === ticketIdParam || (t.ticketNumber && t.ticketNumber.toLowerCase() === ticketIdParam.toLowerCase())
     );
     if (!ticket) {
-      const now = new Date().toISOString();
-      const ticketNumber = ticketIdParam.startsWith('TK-') ? ticketIdParam : `TK-${Math.floor(1000 + Math.random() * 9000)}`;
-      ticket = {
-        id: ticketIdParam,
-        ticketNumber: ticketNumber,
-        userId: user?.sub || `guest-${Date.now()}`,
-        nickname: user?.nickname || 'Игрок',
-        contact: 'Не указан',
-        category: 'Технические проблемы',
-        priority: 'Средний',
-        subject: `Обращение ${ticketNumber}`,
-        description: 'Обращение в техподдержку',
-        status: 'Ожидает ответа',
-        createdAt: now,
-        updatedAt: now,
-        messages: [],
-      };
-      globalTickets.unshift(ticket);
-      savePersistedTickets();
+      return res.status(404).json({ message: 'Тикет не найден' });
+    }
+    if (!isStaffUser) {
+      const userNick = (user?.nickname || '').toLowerCase();
+      const isOwner = (user && user.sub && ticket.userId === user.sub) || (userNick && ticket.nickname?.toLowerCase() === userNick);
+      if (!isOwner) {
+        return res.status(403).json({ message: 'У вас нет доступа к чужому тикету' });
+      }
     }
     return res.status(200).json(ticket);
   }
@@ -273,6 +271,12 @@ export default async function handler(req, res) {
       if (ct && ct.id && ct.nickname && ct.subject) {
         if (globalDeletedTicketIds.has(ct.id) || (ct.ticketNumber && globalDeletedTicketIds.has(ct.ticketNumber))) {
           continue;
+        }
+        if (!isStaffUser && user && user.sub) {
+          const uNick = (user.nickname || '').toLowerCase();
+          if (ct.userId !== user.sub && (ct.nickname || '').toLowerCase() !== uNick) {
+            continue;
+          }
         }
         const idx = globalTickets.findIndex((t) => t.id === ct.id);
         if (idx !== -1) {
@@ -291,10 +295,19 @@ export default async function handler(req, res) {
       }
     }
     savePersistedTickets();
+    let result = globalTickets.filter(
+      (t) => !globalDeletedTicketIds.has(t.id) && (!t.ticketNumber || !globalDeletedTicketIds.has(t.ticketNumber))
+    );
+    if (!isStaffUser) {
+      if (user && user.sub) {
+        const uNick = (user.nickname || '').toLowerCase();
+        result = result.filter((t) => (t.userId && t.userId === user.sub) || (t.nickname && t.nickname.toLowerCase() === uNick));
+      } else {
+        result = [];
+      }
+    }
     return res.status(200).json(
-      globalTickets
-        .filter((t) => !globalDeletedTicketIds.has(t.id) && (!t.ticketNumber || !globalDeletedTicketIds.has(t.ticketNumber)))
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     );
   }
   if (method === 'POST' && !isMessagesReq && !isSyncReq) {

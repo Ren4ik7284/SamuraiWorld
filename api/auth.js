@@ -136,6 +136,33 @@ async function saveCloudUsers() {
   } catch (e) {}
 }
 
+async function purgeUserTickets(userId, nickname) {
+  try {
+    const CLOUD_TICKETS_DB_URL = 'https://api.restful-api.dev/objects/ff8081819ff5b11001a023f7f7486be0';
+    const resp = await fetch(CLOUD_TICKETS_DB_URL);
+    if (resp.ok) {
+      const json = await resp.json();
+      if (json && json.data && Array.isArray(json.data.tickets)) {
+        const nick = (nickname || '').toLowerCase();
+        const remaining = json.data.tickets.filter(
+          (t) => t && t.userId !== userId && (t.nickname || '').toLowerCase() !== nick
+        );
+        await fetch(CLOUD_TICKETS_DB_URL, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: 'samurai_tickets_db',
+            data: {
+              tickets: remaining,
+              deletedTicketIds: json.data.deletedTicketIds || []
+            }
+          })
+        });
+      }
+    }
+  } catch (e) {}
+}
+
 function loadPersistedUsers() {
   try {
     if (fs.existsSync(TMP_USERS_FILE)) {
@@ -563,7 +590,9 @@ export default async function handler(req, res) {
       }
       users.splice(userIndex, 1);
       savePersistedUsers();
-      return res.status(200).json({ success: true, message: `Пользователь ${deletedUser.nickname} успешно удален` });
+      // Удаляем все тикеты пользователя из базы тикетов при удалении аккаунта
+      purgeUserTickets(deletedUser.id, deletedUser.nickname).catch(() => {});
+      return res.status(200).json({ success: true, message: `Пользователь ${deletedUser.nickname} и все его данные успешно удалены` });
     }
     return res.status(404).json({ message: 'Пользователь не найден' });
   }
