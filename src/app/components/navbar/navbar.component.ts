@@ -51,6 +51,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   /** Этап регистрации: 'form' → 'code' → done */
   emailStep: 'form' | 'code' = 'form';
   verificationCodeInput = '';
+  generatedCodeDisplay = '';
   isSendingCode = false;
 
   navGroups: NavGroup[] = [
@@ -253,11 +254,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.isSendingCode = false;
         this.emailStep = 'code';
-        this.authSuccessMsg = res.message || `Код отправлен на ${rawEmail}`;
-        // В dev режиме показываем код прямо в UI
-        if (res.testCode) {
-          this.authSuccessMsg += ` (тест-код: ${res.testCode})`;
-        }
+        this.generatedCodeDisplay = res.testCode || '';
+        this.verificationCodeInput = res.testCode || '';
+        this.authSuccessMsg = '';
       },
       error: (err) => {
         this.isSendingCode = false;

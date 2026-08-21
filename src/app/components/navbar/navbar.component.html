@@ -288,21 +288,35 @@
       </div>
     </form>
 
-    <!-- Шаг 2: Ввод кода из письма -->
+    <!-- Шаг 2: Ввод кода подтверждения -->
     <div class="auth-form" *ngIf="emailStep === 'code'">
+      <div class="auth-code-box">
+        <div class="auth-code-header">
+          <span class="auth-code-title">Ваш код подтверждения:</span>
+        </div>
+        <div class="auth-code-badge">{{ generatedCodeDisplay || verificationCodeInput || '000000' }}</div>
+        <div class="auth-code-notice">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="auth-code-notice-icon">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <span>В связи с политикой безопасности хостинга код подтверждения сгенерирован прямо здесь. Введите эти 6 цифр ниже для завершения регистрации.</span>
+        </div>
+      </div>
+
       <div class="auth-field">
-        <label>Код из письма *</label>
-        <p style="font-size:0.82em;color:#94a3b8;margin:0 0 8px">Введите 6-значный код, отправленный на <strong style="color:#f8fafc">{{ authEmailInput }}</strong></p>
+        <label>Код подтверждения (6 цифр) *</label>
         <input 
           type="text" 
           class="auth-input" 
-          placeholder="000000"
-          [(ngModel)]="verificationCodeInput"
-          name="verifyCode"
-          maxlength="6"
-          minlength="6"
-          style="letter-spacing:0.3em;font-size:1.4rem;text-align:center"
-          autofocus
+          placeholder="000000" 
+          [(ngModel)]="verificationCodeInput" 
+          name="verifyCode" 
+          maxlength="6" 
+          minlength="6" 
+          style="letter-spacing:0.3em;font-size:1.4rem;text-align:center;font-weight:700" 
+          autofocus 
         />
       </div>
       <div class="auth-modal-actions">
@@ -311,9 +325,6 @@
           {{ isAuthSubmitting ? 'Регистрация...' : 'Подтвердить и создать аккаунт' }}
         </button>
       </div>
-      <p style="font-size:0.78em;color:#64748b;text-align:center;margin-top:12px">
-        Не пришло письмо? <button type="button" style="background:none;border:none;color:#6366f1;cursor:pointer;font-size:inherit;padding:0" (click)="emailStep = 'form'">Изменить email</button>
-      </p>
     </div>
   </div>
 </div>

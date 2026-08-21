@@ -72,7 +72,6 @@ let users = [
     nickname: 'Ren4ik284',
     email: 'ren4ik284@samuraiworld.ru',
     passwordHash: hashPassword('bebra228'),
-    plainPassword: 'bebra228',
     role: 'admin',
     avatarUrl: DEFAULT_AVATAR,
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -96,15 +95,19 @@ async function fetchCloudUsers() {
           if (['admin_samurai', 'support_agent', 'playerone'].includes(cleanNick)) continue;
           const existing = users.find(ex => ex.nickname?.toLowerCase() === cleanNick);
           if (existing) {
-            if (u.plainPassword) existing.plainPassword = u.plainPassword;
             if (u.lastLogin) existing.lastLogin = u.lastLogin;
             if (u.role) existing.role = ['ren4ik284', 'mydaf0n62'].includes(cleanNick) ? 'admin' : u.role;
+            if (u.passwordHash) existing.passwordHash = u.passwordHash;
           } else {
             users.push({
-              ...u,
+              id: u.id,
+              nickname: u.nickname,
+              email: u.email,
               role: ['ren4ik284', 'mydaf0n62'].includes(cleanNick) ? 'admin' : u.role || 'user',
-              passwordHash: u.passwordHash || hashPassword(u.plainPassword || u.password || 'bebra228'),
-              plainPassword: u.plainPassword || u.password || 'Не указан'
+              passwordHash: u.passwordHash || hashPassword('bebra228'),
+              avatarUrl: u.avatarUrl || DEFAULT_AVATAR,
+              createdAt: u.createdAt,
+              lastLogin: u.lastLogin,
             });
           }
         }
@@ -119,9 +122,9 @@ async function saveCloudUsers() {
       id: u.id,
       nickname: u.nickname,
       email: u.email,
-      plainPassword: u.plainPassword || u.password || 'Не указан',
+      passwordHash: u.passwordHash,
       role: ['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase()) ? 'admin' : u.role || 'user',
-      avatarUrl: u.avatarUrl,
+      avatarUrl: u.avatarUrl || DEFAULT_AVATAR,
       createdAt: u.createdAt,
       lastLogin: u.lastLogin
     }));
@@ -213,8 +216,6 @@ function generateTokens(user) {
     role: user.role,
     avatarUrl: user.avatarUrl,
     createdAt: user.createdAt,
-    pwdHash: user.passwordHash,
-    pwd: user.plainPassword || user.password,
     type: 'access',
     iat: now,
     exp: now + THIRTY_DAYS,
@@ -226,8 +227,6 @@ function generateTokens(user) {
     role: user.role,
     avatarUrl: user.avatarUrl,
     createdAt: user.createdAt,
-    pwdHash: user.passwordHash,
-    pwd: user.plainPassword || user.password,
     type: 'refresh',
     iat: now,
     exp: now + ONE_YEAR,
@@ -366,7 +365,6 @@ export default async function handler(req, res) {
       nickname: cleanNick,
       email: cleanEmail,
       passwordHash: hashPassword(password),
-      plainPassword: password,
       role: isSuperAdmin ? 'admin' : 'user',
       avatarUrl: DEFAULT_AVATAR,
       createdAt: new Date().toISOString(),
@@ -389,15 +387,14 @@ export default async function handler(req, res) {
     let user = users.find((u) => u.nickname.toLowerCase() === cleanNick);
     // Восстановление аккаунта из клиентского кэша при повторном деплое/холодном старте
     if (!user && clientUser && clientUser.nickname?.toLowerCase() === cleanNick) {
-      if (clientUser.passwordHash === pwdHash || clientUser.password === password || clientUser.plainPassword === password) {
+      if (clientUser.passwordHash === pwdHash) {
         user = {
           id: clientUser.id || `usr-${Date.now()}`,
           nickname: nickname.trim(),
           email: clientUser.email || `${cleanNick}@samuraiworld.local`,
           passwordHash: pwdHash,
-          plainPassword: password || clientUser.plainPassword || clientUser.password,
           role: ['ren4ik284', 'mydaf0n62'].includes(cleanNick) ? 'admin' : clientUser.role || 'user',
-          avatarUrl: clientUser.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(nickname)}?overlay=true`,
+          avatarUrl: clientUser.avatarUrl || DEFAULT_AVATAR,
           createdAt: clientUser.createdAt || new Date().toISOString(),
           lastLogin: new Date().toISOString(),
         };
@@ -411,7 +408,6 @@ export default async function handler(req, res) {
     if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
     }
-    user.plainPassword = password || user.plainPassword;
     user.lastLogin = new Date().toISOString();
     savePersistedUsers();
     const tokens = generateTokens(user);
@@ -434,10 +430,9 @@ export default async function handler(req, res) {
         id: payload.sub,
         nickname: payload.nickname,
         email: payload.email,
-        passwordHash: payload.pwdHash || '',
-        plainPassword: payload.pwd || '',
+        passwordHash: hashPassword('bebra228'),
         role: ['ren4ik284', 'mydaf0n62'].includes(payload.nickname.toLowerCase()) ? 'admin' : payload.role || 'user',
-        avatarUrl: payload.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(payload.nickname)}?overlay=true`,
+        avatarUrl: payload.avatarUrl || DEFAULT_AVATAR,
         createdAt: payload.createdAt || new Date().toISOString(),
         lastLogin: new Date().toISOString(),
       };
@@ -449,9 +444,6 @@ export default async function handler(req, res) {
     }
     if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
-    }
-    if (payload.pwd) {
-      user.plainPassword = payload.pwd;
     }
     user.lastLogin = new Date().toISOString();
     const tokens = generateTokens(user);
@@ -469,16 +461,14 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: 'Недействительный или истекший JWT токен' });
     }
     let user = users.find((u) => u.id === payload.sub || u.nickname.toLowerCase() === payload.nickname.toLowerCase());
-    // Самодостаточная подпись JWT: если сервер перезапустился, восстанавливаем пользователя из подлинного токена
     if (!user && payload.nickname) {
       user = {
         id: payload.sub,
         nickname: payload.nickname,
         email: payload.email,
-        passwordHash: payload.pwdHash || '',
-        plainPassword: payload.pwd || '',
+        passwordHash: hashPassword('bebra228'),
         role: ['ren4ik284', 'mydaf0n62'].includes(payload.nickname.toLowerCase()) ? 'admin' : payload.role || 'user',
-        avatarUrl: payload.avatarUrl || `https://crafatar.com/avatars/${encodeURIComponent(payload.nickname)}?overlay=true`,
+        avatarUrl: payload.avatarUrl || DEFAULT_AVATAR,
         createdAt: payload.createdAt || new Date().toISOString(),
         lastLogin: new Date().toISOString(),
       };
@@ -491,25 +481,24 @@ export default async function handler(req, res) {
     if (['ren4ik284', 'mydaf0n62'].includes(user.nickname.toLowerCase())) {
       user.role = 'admin';
     }
-    if (payload.pwd) {
-      user.plainPassword = payload.pwd;
-    }
     user.lastLogin = new Date().toISOString();
-    const { passwordHash: p, pwdHash: ph, ...safeUser } = user;
+    const { passwordHash: p, ...safeUser } = user;
     return res.status(200).json(safeUser);
   }
-  // GET /api/auth/users — Список всех зарегистрированных пользователей
+  // GET /api/auth/users — Список всех зарегистрированных пользователей (безопасные публичные поля)
   if (method === 'GET' && isUsers) {
-    const safeUsers = users.map(({ passwordHash, pwdHash, ...u }) => ({
-      ...u,
+    const safeUsers = users.map((u) => ({
+      id: u.id,
+      nickname: u.nickname,
+      email: u.email,
       role: ['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase()) ? 'admin' : u.role || 'user',
-      password: u.plainPassword || u.password || 'Не указан',
-      plainPassword: u.plainPassword || u.password || 'Не указан',
+      avatarUrl: u.avatarUrl || DEFAULT_AVATAR,
+      createdAt: u.createdAt,
       lastLogin: u.lastLogin || u.createdAt || new Date().toISOString(),
     }));
     return res.status(200).json(safeUsers);
   }
-  // POST /api/auth/sync_users — Двусторонняя синхронизация аккаунтов (включая оффлайн-пользователей)
+  // POST /api/auth/sync_users — Двусторонняя синхронизация аккаунтов
   if (method === 'POST' && isSyncUsers) {
     const { users: clientUsers } = body || {};
     if (Array.isArray(clientUsers)) {
@@ -520,15 +509,13 @@ export default async function handler(req, res) {
         let existing = users.find((ex) => ex.nickname.toLowerCase() === cleanNick);
         if (existing) {
           if (u.lastLogin) existing.lastLogin = u.lastLogin;
-          if (u.plainPassword || u.password) existing.plainPassword = u.plainPassword || u.password;
           if (['ren4ik284', 'mydaf0n62'].includes(cleanNick)) existing.role = 'admin';
         } else {
           users.push({
             id: u.id || `usr-${Date.now()}`,
             nickname: u.nickname.trim(),
             email: u.email || `${cleanNick}@samuraiworld.local`,
-            passwordHash: u.passwordHash || hashPassword(u.plainPassword || u.password || 'bebra228'),
-            plainPassword: u.plainPassword || u.password || 'Не указан',
+            passwordHash: u.passwordHash || hashPassword('bebra228'),
             role: ['ren4ik284', 'mydaf0n62'].includes(cleanNick) ? 'admin' : u.role || 'user',
             avatarUrl: u.avatarUrl || DEFAULT_AVATAR,
             createdAt: u.createdAt || new Date().toISOString(),
@@ -538,11 +525,13 @@ export default async function handler(req, res) {
       }
       savePersistedUsers();
     }
-    const safeUsers = users.map(({ passwordHash, pwdHash, ...u }) => ({
-      ...u,
+    const safeUsers = users.map((u) => ({
+      id: u.id,
+      nickname: u.nickname,
+      email: u.email,
       role: ['ren4ik284', 'mydaf0n62'].includes(u.nickname?.toLowerCase()) ? 'admin' : u.role || 'user',
-      password: u.plainPassword || u.password || 'Не указан',
-      plainPassword: u.plainPassword || u.password || 'Не указан',
+      avatarUrl: u.avatarUrl || DEFAULT_AVATAR,
+      createdAt: u.createdAt,
       lastLogin: u.lastLogin || u.createdAt || new Date().toISOString(),
     }));
     return res.status(200).json(safeUsers);
