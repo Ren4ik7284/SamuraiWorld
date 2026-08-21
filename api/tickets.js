@@ -5,6 +5,72 @@ const JWT_SECRET = process.env.JWT_SECRET || 'samuraiworld_super_secret_jwt_key_
 const TMP_TICKETS_FILE = path.join('/tmp', 'samurai_tickets_store.json');
 let globalTickets = [];
 let globalDeletedTicketIds = new Set();
+const CLOUD_TICKETS_DB_URL = 'https://api.restful-api.dev/objects/ff8081819ff5b11001a023f7f7486be0';
+
+async function fetchCloudTickets() {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2000);
+    const resp = await fetch(CLOUD_TICKETS_DB_URL, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (resp.ok) {
+      const json = await resp.json();
+      if (json && json.data && Array.isArray(json.data.tickets)) {
+        if (Array.isArray(json.data.deletedTicketIds)) {
+          for (const dId of json.data.deletedTicketIds) {
+            if (dId) globalDeletedTicketIds.add(String(dId));
+          }
+        }
+        for (const t of json.data.tickets) {
+          if (!t || !t.id) continue;
+          if (globalDeletedTicketIds.has(t.id) || (t.ticketNumber && globalDeletedTicketIds.has(t.ticketNumber))) {
+            continue;
+          }
+          if (['playerone', 'support_agent', 'admin_samurai'].includes(t.nickname?.toLowerCase())) {
+            continue;
+          }
+          const idx = globalTickets.findIndex((existing) => existing.id === t.id);
+          if (idx !== -1) {
+            // merge messages
+            const existingMsgs = globalTickets[idx].messages || [];
+            const cloudMsgs = t.messages || [];
+            const msgMap = new Map();
+            for (const m of existingMsgs) if (m && m.id) msgMap.set(m.id, m);
+            for (const m of cloudMsgs) if (m && m.id) msgMap.set(m.id, m);
+            globalTickets[idx] = {
+              ...t,
+              ...globalTickets[idx],
+              status: t.updatedAt && new Date(t.updatedAt) > new Date(globalTickets[idx].updatedAt || 0) ? t.status : globalTickets[idx].status,
+              messages: Array.from(msgMap.values()).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+            };
+          } else {
+            globalTickets.push(t);
+          }
+        }
+      }
+    }
+  } catch (e) {}
+}
+
+async function saveCloudTickets() {
+  try {
+    const safeTickets = globalTickets.filter(
+      (t) => t && t.id && !globalDeletedTicketIds.has(t.id) && !globalDeletedTicketIds.has(t.ticketNumber)
+    );
+    await fetch(CLOUD_TICKETS_DB_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'samurai_tickets_db',
+        data: {
+          tickets: safeTickets,
+          deletedTicketIds: Array.from(globalDeletedTicketIds)
+        }
+      })
+    });
+  } catch (e) {}
+}
+
 function loadPersistedTickets() {
   try {
     if (fs.existsSync(TMP_TICKETS_FILE)) {
@@ -55,8 +121,10 @@ function savePersistedTickets() {
     fs.writeFileSync(TMP_TICKETS_FILE, JSON.stringify(payload, null, 2), 'utf8');
   } catch (e) {
   }
+  saveCloudTickets().catch(() => {});
 }
 loadPersistedTickets();
+fetchCloudTickets().catch(() => {});
 function base64urlDecode(str) {
   let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
   while (base64.length % 4) {
@@ -120,7 +188,7 @@ function extractTicketId(req, parsedBody = {}) {
   return null;
 }
 import { checkRateLimit } from './security.js';
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (!checkRateLimit(req, res, req.method !== 'GET')) return;
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -134,6 +202,7 @@ export default function handler(req, res) {
     return;
   }
   loadPersistedTickets();
+  await fetchCloudTickets();
   const { method, headers, url } = req;
   let query = req.query || {};
   let body = req.body || {};

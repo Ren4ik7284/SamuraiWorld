@@ -105,6 +105,7 @@ export class SupportComponent implements OnInit, OnDestroy {
   replyText = '';
   isReplying = false;
   private wsSubs: Subscription[] = [];
+  private livePollTimer: any = null;
 
   constructor(
     private http: HttpClient,
@@ -113,7 +114,7 @@ export class SupportComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Подключаем WebSocket для real-time
+    // Подключаем WebSocket для real-time (если поддерживается сервером)
     this.wsService.connect();
 
     // Реагируем на изменения пользователя
@@ -132,6 +133,14 @@ export class SupportComponent implements OnInit, OnDestroy {
       this.loadTickets();
       this.loadRegisteredUsers();
     });
+
+    // 🔴 Real-time Live Poller: опрашивает сервер каждые 2.5 секунды для мгновенной доставки тикетов и ответов
+    this.livePollTimer = setInterval(() => {
+      this.loadTickets(true);
+      if (this.authService.isSupportOrAdmin) {
+        this.loadRegisteredUsers();
+      }
+    }, 2500);
 
     // 🔴 WebSocket: новый тикет — добавляем в список плавно
     this.wsSubs.push(
@@ -192,6 +201,9 @@ export class SupportComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.livePollTimer) {
+      clearInterval(this.livePollTimer);
+    }
     this.wsSubs.forEach(s => s.unsubscribe());
     this.wsService.disconnect();
   }

@@ -16,6 +16,8 @@ function base64urlDecode(str) {
   return Buffer.from(str, 'base64url').toString('utf8');
 }
 
+const verificationCodes = new Map();
+
 let users = [
   {
     id: 'usr-ren4ik284-admin',
@@ -219,6 +221,8 @@ export default async function handler(req, res) {
   const qPath = (Array.isArray(query.path) ? query.path.join('/') : (query.path || '')).toLowerCase();
   const fullPath = `${rawPath}/${qPath}`;
 
+  const isSendCode = rawPath.endsWith('/send_code') || rawPath.endsWith('/send-code') || qPath.includes('send_code') || qPath.includes('send-code') || fullPath.includes('send_code') || fullPath.includes('send-code');
+  const isVerifyEmail = rawPath.endsWith('/verify_email') || rawPath.endsWith('/verify-email') || qPath.includes('verify_email') || qPath.includes('verify-email') || fullPath.includes('verify_email') || fullPath.includes('verify-email');
   const isRegister = rawPath.endsWith('/register') || qPath === 'register' || fullPath.includes('register');
   const isLogin = rawPath.endsWith('/login') || qPath === 'login' || fullPath.includes('login');
   const isRefresh = rawPath.endsWith('/refresh') || qPath === 'refresh' || fullPath.includes('refresh');
@@ -227,37 +231,100 @@ export default async function handler(req, res) {
   const isSyncUsers = rawPath.endsWith('/sync_users') || qPath === 'sync_users' || fullPath.includes('sync_users');
   const isAvatar = rawPath.endsWith('/avatar') || qPath === 'avatar' || fullPath.includes('avatar');
 
+  // POST /api/auth/send_code
+  if (method === 'POST' && isSendCode) {
+    const cleanEmail = (body?.email || '').trim().toLowerCase();
+    if (!cleanEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(cleanEmail)) {
+      return res.status(400).json({ message: 'Укажите корректный адрес электронной почты' });
+    }
+    const existing = users.find((u) => u.email && u.email.toLowerCase() === cleanEmail);
+    if (existing) {
+      return res.status(409).json({ message: `Пользователь с адресом почты "${cleanEmail}" уже зарегистрирован` });
+    }
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 15 * 60 * 1000;
+    verificationCodes.set(cleanEmail, { code, expiresAt });
+    console.log(`[EmailService] Verification code for ${cleanEmail}: ${code}`);
+    return res.status(200).json({
+      success: true,
+      message: `Код подтверждения успешно отправлен на ${cleanEmail}`,
+      testCode: code,
+    });
+  }
+
+  // POST /api/auth/verify_email
+  if (method === 'POST' && isVerifyEmail) {
+    const cleanEmail = (body?.email || '').trim().toLowerCase();
+    const code = (body?.code || '').trim();
+    const entry = verificationCodes.get(cleanEmail);
+    if (!entry) {
+      return res.status(400).json({ message: 'Код подтверждения не найден или истек. Запросите новый код.' });
+    }
+    if (Date.now() > entry.expiresAt) {
+      verificationCodes.delete(cleanEmail);
+      return res.status(400).json({ message: 'Срок действия кода подтверждения истек.' });
+    }
+    if (entry.code !== code) {
+      return res.status(400).json({ message: 'Неверный код подтверждения.' });
+    }
+    verificationCodes.delete(cleanEmail);
+    return res.status(200).json({ success: true, message: 'Email успешно подтвержден' });
+  }
+
+  // POST /api/auth/register
   if (method === 'POST' && isRegister) {
-    const { nickname, email, password } = body || {};
-    if (!nickname || /\s/.test(nickname.trim())) {
+    const { nickname, email, password, verificationCode } = body || {};
+    const cleanNick = (nickname || '').trim();
+    if (!cleanNick || /\s/.test(cleanNick)) {
       return res.status(400).json({ message: 'Никнейм не может содержать пробелы!' });
     }
-    if (!/^[a-zA-Z0-9_]{3,24}$/.test(nickname.trim())) {
+    if (!/^[a-zA-Z0-9_]{3,24}$/.test(cleanNick)) {
       return res.status(400).json({ message: 'Никнейм должен содержать от 3 до 24 символов (только латинские буквы, цифры и _)' });
     }
     if (!password || password.length < 6) {
       return res.status(400).json({ message: 'Пароль должен содержать минимум 6 символов!' });
     }
-    const existing = users.find((u) => u.nickname.toLowerCase() === nickname.trim().toLowerCase());
-    if (existing) {
-      return res.status(409).json({ message: `Пользователь "${nickname.trim()}" уже зарегистрирован` });
+    const cleanEmail = (email || '').trim().toLowerCase();
+    if (!cleanEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(cleanEmail)) {
+      return res.status(400).json({ message: 'Укажите корректный адрес электронной почты!' });
     }
-    const isSuperAdmin = ['ren4ik284', 'mydaf0n62'].includes(nickname.trim().toLowerCase());
+    if (verificationCode) {
+      const entry = verificationCodes.get(cleanEmail);
+      if (entry) {
+        if (Date.now() > entry.expiresAt) {
+          verificationCodes.delete(cleanEmail);
+          return res.status(400).json({ message: 'Срок действия кода подтверждения истек. Запросите новый код.' });
+        }
+        if (entry.code !== String(verificationCode).trim()) {
+          return res.status(400).json({ message: 'Неверный код подтверждения из письма!' });
+        }
+        verificationCodes.delete(cleanEmail);
+      }
+    }
+    const existingNick = users.find((u) => u.nickname.toLowerCase() === cleanNick.toLowerCase());
+    if (existingNick) {
+      return res.status(409).json({ message: `Пользователь с ником "${cleanNick}" уже зарегистрирован` });
+    }
+    const existingEmail = users.find((u) => u.email && u.email.toLowerCase() === cleanEmail);
+    if (existingEmail) {
+      return res.status(409).json({ message: `Пользователь с адресом почты "${cleanEmail}" уже зарегистрирован` });
+    }
+    const isSuperAdmin = ['ren4ik284', 'mydaf0n62'].includes(cleanNick.toLowerCase());
     const newUser = {
       id: `usr-${Date.now()}`,
-      nickname: nickname.trim(),
-      email: email || `${nickname.trim().toLowerCase()}@samuraiworld.local`,
+      nickname: cleanNick,
+      email: cleanEmail,
       passwordHash: hashPassword(password),
       plainPassword: password,
       role: isSuperAdmin ? 'admin' : 'user',
-      avatarUrl: `https://crafatar.com/avatars/${encodeURIComponent(nickname.trim())}?overlay=true`,
+      avatarUrl: DEFAULT_AVATAR,
       createdAt: new Date().toISOString(),
       lastLogin: new Date().toISOString(),
     };
     users.push(newUser);
     savePersistedUsers();
     const tokens = generateTokens(newUser);
-    const { passwordHash, ...safeUser } = newUser;
+    const { passwordHash: _ph, ...safeUser } = newUser;
     return res.status(201).json({ user: safeUser, tokens });
   }
   // POST /api/auth/login
