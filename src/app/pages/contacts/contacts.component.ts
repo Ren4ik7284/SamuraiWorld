@@ -37,7 +37,7 @@ export class ContactsComponent {
       jpName: '',
       icon: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9.78 18.65l.28-4.2 7.68-6.92c.34-.3-.07-.46-.52-.17L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3L19.79 4.5c.73-.28 1.4.18 1.15 1.3l-2.7 12.7c-.19.92-.75 1.14-1.5.72l-4.14-3.05-2 1.93c-.23.23-.42.42-.84.42z"/></svg>`,
       desc: 'Канал с новостями, обновлениями и важными анонсами сервера.',
-      link: 'https://t.me/',
+      link: 'https://t.me/samuraiworldmine',
       btnLabel: 'Подписаться',
       accentColor: '#2AABEE'
     }

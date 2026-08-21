@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Subscription, timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { AuthService, User } from '../../services/auth.service';
@@ -24,7 +25,7 @@ export interface NavLinkItem {
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive, HttpClientModule],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
@@ -42,8 +43,15 @@ export class NavbarComponent implements OnInit, OnDestroy {
   authPasswordInput = '';
   authEmailInput = '';
   authErrorMsg = '';
+  authSuccessMsg = '';
   isAuthSubmitting = false;
   ipCopied = false;
+
+  // ── Email verification flow ──────────────────────────────────────────────
+  /** Этап регистрации: 'form' → 'code' → done */
+  emailStep: 'form' | 'code' = 'form';
+  verificationCodeInput = '';
+  isSendingCode = false;
 
   navGroups: NavGroup[] = [
     {
@@ -96,7 +104,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     public authService: AuthService,
-    private serverService: ServerService
+    private serverService: ServerService,
+    private http: HttpClient,
   ) {}
 
   ngOnInit(): void {
@@ -176,6 +185,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   openAuthModal(mode: 'login' | 'register' = 'login'): void {
     this.authMode = mode;
     this.authErrorMsg = '';
+    this.authSuccessMsg = '';
+    this.emailStep = 'form';
+    this.verificationCodeInput = '';
     this.showAuthModal = true;
     this.closeMobileMenu();
   }
@@ -183,11 +195,17 @@ export class NavbarComponent implements OnInit, OnDestroy {
   closeAuthModal(): void {
     this.showAuthModal = false;
     this.authErrorMsg = '';
+    this.authSuccessMsg = '';
+    this.emailStep = 'form';
+    this.verificationCodeInput = '';
   }
 
   setAuthMode(mode: 'login' | 'register'): void {
     this.authMode = mode;
     this.authErrorMsg = '';
+    this.authSuccessMsg = '';
+    this.emailStep = 'form';
+    this.verificationCodeInput = '';
   }
 
   fillDemoAccount(type: 'player' | 'admin'): void {
@@ -202,32 +220,111 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Шаг 1 регистрации: отправить 6-значный код на email.
+   * Переводим форму в состояние ввода кода.
+   */
+  sendVerificationCode(): void {
+    const rawEmail = (this.authEmailInput || '').trim();
+    const rawNick = (this.authNicknameInput || '').trim();
+    const rawPass = (this.authPasswordInput || '').trim();
+
+    if (!rawNick || !/^[a-zA-Z0-9_]{3,16}$/.test(rawNick)) {
+      this.authErrorMsg = 'Введите корректный никнейм (3–16 символов, латиница/цифры/_)';
+      return;
+    }
+    if (!rawPass || rawPass.length < 6) {
+      this.authErrorMsg = 'Пароль должен содержать минимум 6 символов';
+      return;
+    }
+    if (!rawEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(rawEmail)) {
+      this.authErrorMsg = 'Укажите корректный email адрес';
+      return;
+    }
+
+    this.isSendingCode = true;
+    this.authErrorMsg = '';
+    this.authSuccessMsg = '';
+
+    this.http.post<{ success: boolean; message: string; testCode?: string }>(
+      '/api/auth/send_code',
+      { email: rawEmail }
+    ).subscribe({
+      next: (res) => {
+        this.isSendingCode = false;
+        this.emailStep = 'code';
+        this.authSuccessMsg = res.message || `Код отправлен на ${rawEmail}`;
+        // В dev режиме показываем код прямо в UI
+        if (res.testCode) {
+          this.authSuccessMsg += ` (тест-код: ${res.testCode})`;
+        }
+      },
+      error: (err) => {
+        this.isSendingCode = false;
+        this.authErrorMsg = err?.error?.message || 'Ошибка при отправке кода. Проверьте email.';
+      }
+    });
+  }
+
+  /**
+   * Шаг 2 регистрации / вход: финальный submit с кодом верификации.
+   */
   submitAuth(): void {
     const rawNick = (this.authNicknameInput || '').trim();
     const rawPass = (this.authPasswordInput || '').trim();
     const rawEmail = (this.authEmailInput || '').trim();
 
-    const schema = this.authMode === 'login' ? LoginSchema : RegisterSchema;
-    const payload = this.authMode === 'login'
-      ? { nickname: rawNick, password: rawPass }
-      : { nickname: rawNick, email: rawEmail || undefined, password: rawPass };
+    // Режим входа — без верификации
+    if (this.authMode === 'login') {
+      const schema = LoginSchema;
+      const result = schema.safeParse({ nickname: rawNick, password: rawPass });
+      if (!result.success) {
+        this.authErrorMsg = result.error.issues[0]?.message || 'Проверьте введенные данные';
+        return;
+      }
+      this.isAuthSubmitting = true;
+      this.authErrorMsg = '';
+      this.authService.login({ nickname: rawNick, password: rawPass }).subscribe({
+        next: () => {
+          this.isAuthSubmitting = false;
+          this.closeAuthModal();
+          this.authNicknameInput = '';
+          this.authPasswordInput = '';
+          this.authEmailInput = '';
+        },
+        error: (err) => {
+          this.isAuthSubmitting = false;
+          this.authErrorMsg = err?.error?.message || err?.message || 'Неверный никнейм или пароль.';
+        }
+      });
+      return;
+    }
 
-    const result = schema.safeParse(payload);
-    if (!result.success) {
-      this.authErrorMsg = result.error.issues[0]?.message || 'Проверьте введенные данные';
+    // Режим регистрации — нужен код подтверждения
+    if (this.emailStep === 'form') {
+      // Ещё не отправили код — отправляем
+      this.sendVerificationCode();
+      return;
+    }
+
+    // Шаг 2: отправляем регистрацию с кодом
+    const code = (this.verificationCodeInput || '').trim();
+    if (!code || code.length !== 6) {
+      this.authErrorMsg = 'Введите 6-значный код из письма';
       return;
     }
 
     this.isAuthSubmitting = true;
     this.authErrorMsg = '';
 
-    const req$ = this.authMode === 'login'
-      ? this.authService.login({ nickname: rawNick, password: rawPass })
-      : this.authService.register({ nickname: rawNick, email: rawEmail || undefined, password: rawPass });
-
-    req$.subscribe({
-      next: () => {
+    this.http.post<any>(
+      '/api/auth/register',
+      { nickname: rawNick, email: rawEmail, password: rawPass, verificationCode: code }
+    ).subscribe({
+      next: (res) => {
         this.isAuthSubmitting = false;
+        // Вызываем handleAuthSuccess напрямую через authService
+        (this.authService as any)['handleAuthSuccess'](res);
         this.closeAuthModal();
         this.authNicknameInput = '';
         this.authPasswordInput = '';
@@ -235,7 +332,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.isAuthSubmitting = false;
-        this.authErrorMsg = err?.error?.message || err?.message || 'Ошибка авторизации. Проверьте введенные данные.';
+        this.authErrorMsg = err?.error?.message || 'Ошибка регистрации. Проверьте код.';
       }
     });
   }

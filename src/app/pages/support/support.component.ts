@@ -2,8 +2,10 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { Subscription } from 'rxjs';
 import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
 import { AuthService, User } from '../../services/auth.service';
+import { WebSocketService } from '../../services/websocket.service';
 export type TicketCategory =
   | 'Технические проблемы'
   | 'Аккаунт & Паспорт'
@@ -102,12 +104,19 @@ export class SupportComponent implements OnInit, OnDestroy {
   userSearchQuery = '';
   replyText = '';
   isReplying = false;
-  private pollTimer: any;
+  private wsSubs: Subscription[] = [];
+
   constructor(
     private http: HttpClient,
-    public authService: AuthService
+    public authService: AuthService,
+    private wsService: WebSocketService,
   ) {}
+
   ngOnInit(): void {
+    // Подключаем WebSocket для real-time
+    this.wsService.connect();
+
+    // Реагируем на изменения пользователя
     this.authService.currentUser$.subscribe((user) => {
       this.currentUser = user;
       if (user) {
@@ -123,17 +132,68 @@ export class SupportComponent implements OnInit, OnDestroy {
       this.loadTickets();
       this.loadRegisteredUsers();
     });
-    this.pollTimer = setInterval(() => {
-      this.loadTickets(true);
-      if (this.authService.isSupportOrAdmin) {
-        this.loadRegisteredUsers();
-      }
-    }, 60000);
+
+    // 🔴 WebSocket: новый тикет — добавляем в список плавно
+    this.wsSubs.push(
+      this.wsService.ticketCreated$.subscribe((ticket) => {
+        const deletedIds = this.getDeletedTicketIds();
+        if (!deletedIds.includes(ticket.id) && !this.ticketsList.find(t => t.id === ticket.id)) {
+          // Обычный юзер видит только свои тикеты
+          if (this.authService.isSupportOrAdmin || ticket.nickname === this.currentUser?.nickname || ticket.userId === this.currentUser?.id) {
+            this.ticketsList.unshift(ticket);
+            this.saveLocalTicketsCache(this.ticketsList);
+          }
+        }
+      })
+    );
+
+    // 🔴 WebSocket: тикет обновлён (новый ответ / смена статуса)
+    this.wsSubs.push(
+      this.wsService.ticketUpdated$.subscribe((updated) => {
+        const idx = this.ticketsList.findIndex(t => t.id === updated.id);
+        if (idx !== -1) {
+          // Плавно обновляем только нужный тикет — без перезагрузки страницы
+          this.ticketsList[idx] = updated;
+          this.ticketsList = [...this.ticketsList];
+          this.saveLocalTicketsCache(this.ticketsList);
+          // Если этот тикет открыт — обновляем его в модале
+          if (this.selectedTicket?.id === updated.id) {
+            this.selectedTicket = { ...updated, messages: [...updated.messages] };
+          }
+        } else if (this.authService.isSupportOrAdmin) {
+          // Тикет которого не было в списке — добавляем
+          this.ticketsList.unshift(updated);
+          this.ticketsList = [...this.ticketsList];
+          this.saveLocalTicketsCache(this.ticketsList);
+        }
+      })
+    );
+
+    // 🔴 WebSocket: тикет удалён
+    this.wsSubs.push(
+      this.wsService.ticketDeleted$.subscribe(({ id }) => {
+        this.addDeletedTicketId(id);
+        this.ticketsList = this.ticketsList.filter(t => t.id !== id);
+        this.saveLocalTicketsCache(this.ticketsList);
+        if (this.selectedTicket?.id === id) {
+          this.closeTicketDetails();
+        }
+      })
+    );
+
+    // 🔴 WebSocket: изменения пользователей
+    this.wsSubs.push(
+      this.wsService.usersUpdated$.subscribe(() => {
+        if (this.authService.isSupportOrAdmin) {
+          this.loadRegisteredUsers();
+        }
+      })
+    );
   }
+
   ngOnDestroy(): void {
-    if (this.pollTimer) {
-      clearInterval(this.pollTimer);
-    }
+    this.wsSubs.forEach(s => s.unsubscribe());
+    this.wsService.disconnect();
   }
   openAuthModal(mode: 'login' | 'register' = 'login'): void {
     this.authMode = mode;

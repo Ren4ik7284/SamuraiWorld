@@ -229,8 +229,12 @@
     <div class="auth-alert error" *ngIf="authErrorMsg">
       {{ authErrorMsg }}
     </div>
+    <div class="auth-alert success" *ngIf="authSuccessMsg">
+      {{ authSuccessMsg }}
+    </div>
 
-    <form (ngSubmit)="submitAuth()" class="auth-form">
+    <!-- Шаг 1: Основная форма -->
+    <form (ngSubmit)="submitAuth()" class="auth-form" *ngIf="emailStep === 'form'">
       <div class="auth-field">
         <label>Никнейм на сервере *</label>
         <input 
@@ -246,7 +250,7 @@
       </div>
 
       <div class="auth-field" *ngIf="authMode === 'register'">
-        <label>Email (необязательно)</label>
+        <label>Email * <span style="font-size:0.78em;color:#94a3b8;font-weight:400">(обязателен — придёт код подтверждения)</span></label>
         <input 
           type="email" 
           class="auth-input" 
@@ -254,6 +258,7 @@
           [(ngModel)]="authEmailInput" 
           name="authEmail"
           maxlength="100"
+          required
         />
       </div>
 
@@ -273,11 +278,43 @@
 
       <div class="auth-modal-actions">
         <button type="button" class="btn-cancel" (click)="closeAuthModal()">Отмена</button>
-        <button type="submit" class="btn-submit" [disabled]="isAuthSubmitting">
-          {{ isAuthSubmitting ? 'Обработка...' : (authMode === 'login' ? 'Войти' : 'Зарегистрироваться') }}
+        <button type="submit" class="btn-submit" [disabled]="isAuthSubmitting || isSendingCode">
+          <ng-container *ngIf="!isSendingCode && !isAuthSubmitting">
+            {{ authMode === 'login' ? 'Войти' : 'Далее →' }}
+          </ng-container>
+          <ng-container *ngIf="isSendingCode">Отправка кода...</ng-container>
+          <ng-container *ngIf="isAuthSubmitting">Обработка...</ng-container>
         </button>
       </div>
     </form>
+
+    <!-- Шаг 2: Ввод кода из письма -->
+    <div class="auth-form" *ngIf="emailStep === 'code'">
+      <div class="auth-field">
+        <label>Код из письма *</label>
+        <p style="font-size:0.82em;color:#94a3b8;margin:0 0 8px">Введите 6-значный код, отправленный на <strong style="color:#f8fafc">{{ authEmailInput }}</strong></p>
+        <input 
+          type="text" 
+          class="auth-input" 
+          placeholder="000000"
+          [(ngModel)]="verificationCodeInput"
+          name="verifyCode"
+          maxlength="6"
+          minlength="6"
+          style="letter-spacing:0.3em;font-size:1.4rem;text-align:center"
+          autofocus
+        />
+      </div>
+      <div class="auth-modal-actions">
+        <button type="button" class="btn-cancel" (click)="emailStep = 'form'; authSuccessMsg = ''">← Назад</button>
+        <button type="button" class="btn-submit" (click)="submitAuth()" [disabled]="isAuthSubmitting">
+          {{ isAuthSubmitting ? 'Регистрация...' : 'Подтвердить и создать аккаунт' }}
+        </button>
+      </div>
+      <p style="font-size:0.78em;color:#64748b;text-align:center;margin-top:12px">
+        Не пришло письмо? <button type="button" style="background:none;border:none;color:#6366f1;cursor:pointer;font-size:inherit;padding:0" (click)="emailStep = 'form'">Изменить email</button>
+      </p>
+    </div>
   </div>
 </div>
 
