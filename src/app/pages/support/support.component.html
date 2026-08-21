@@ -220,7 +220,7 @@
         </div>
         <div class="tickets-grid" *ngIf="!isLoadingTickets && filteredTickets.length > 0; else noTicketsUserOrLoading">
           <div 
-            *ngFor="let ticket of filteredTickets" 
+            *ngFor="let ticket of filteredTickets; trackBy: trackByTicket" 
             class="ticket-card card"
             (click)="openTicketDetails(ticket)"
           >
@@ -298,23 +298,40 @@
               <p style="font-size: 0.78rem; color: #888; margin: 2px 0 0 0;">Зарегистрированные пользователи, их роли и время последнего входа</p>
             </div>
           </div>
-          <div class="search-box" style="margin: 0; width: 220px;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input 
-              type="text" 
-              class="search-input" 
-              placeholder="Поиск игрока..." 
-              [(ngModel)]="userSearchQuery" 
-            />
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button 
+              type="button" 
+              class="btn btn-ghost btn-sm" 
+              (click)="loadRegisteredUsers()" 
+              [disabled]="isLoadingUsers" 
+              style="padding: 6px 12px; font-size: 0.78rem; gap: 6px; display: inline-flex; align-items: center;"
+              title="Обновить список пользователей сейчас"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 13px; height: 13px;" [style.animation]="isLoadingUsers ? 'spin 1s linear infinite' : 'none'">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+              <span>{{ isLoadingUsers ? 'Обновление...' : 'Обновить' }}</span>
+            </button>
+            <div class="search-box" style="margin: 0; width: 200px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input 
+                type="text" 
+                class="search-input" 
+                placeholder="Поиск игрока..." 
+                [(ngModel)]="userSearchQuery" 
+              />
+            </div>
           </div>
         </div>
-        <div *ngIf="isLoadingUsers" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 24px; color: var(--gold-primary); font-size: 0.88rem;">
+        <div *ngIf="isLoadingUsers && registeredUsers.length === 0" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 24px; color: var(--gold-primary); font-size: 0.88rem;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px; animation: spin 1s linear infinite;"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle><path d="M12 2a10 10 0 0 1 10 10"></path></svg>
           <span>Загрузка списка пользователей...</span>
         </div>
-        <div class="users-grid" *ngIf="!isLoadingUsers" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; max-height: 320px; overflow-y: auto; padding-right: 6px;">
+        <div class="users-grid" *ngIf="registeredUsers.length > 0" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; max-height: 320px; overflow-y: auto; padding-right: 6px;">
           <div 
-            *ngFor="let u of filteredRegisteredUsers" 
+            *ngFor="let u of filteredRegisteredUsers; trackBy: trackByUser" 
             class="user-card-mini" 
             style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; transition: all 0.2s ease;"
           >
@@ -422,7 +439,7 @@
         </div>
         <div class="admin-tickets-list" *ngIf="!isLoadingTickets && filteredTickets.length > 0; else noTicketsAdminOrLoading">
           <div 
-            *ngFor="let ticket of filteredTickets" 
+            *ngFor="let ticket of filteredTickets; trackBy: trackByTicket" 
             class="admin-ticket-row card"
             (click)="openTicketDetails(ticket)"
           >

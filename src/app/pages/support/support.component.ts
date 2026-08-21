@@ -106,12 +106,21 @@ export class SupportComponent implements OnInit, OnDestroy {
   isReplying = false;
   private wsSubs: Subscription[] = [];
   private livePollTimer: any = null;
+  private usersPollTimer: any = null;
 
   constructor(
     private http: HttpClient,
     public authService: AuthService,
     private wsService: WebSocketService,
   ) {}
+
+  trackByUser(index: number, user: User & { lastLogin?: string }): string {
+    return user.id || user.nickname;
+  }
+
+  trackByTicket(index: number, ticket: Ticket): string {
+    return ticket.id || ticket.ticketNumber;
+  }
 
   ngOnInit(): void {
     // Подключаем WebSocket для real-time (если поддерживается сервером)
@@ -134,13 +143,18 @@ export class SupportComponent implements OnInit, OnDestroy {
       this.loadRegisteredUsers();
     });
 
-    // 🔴 Real-time Live Poller: опрашивает сервер каждые 2.5 секунды для мгновенной доставки тикетов и ответов
+    // 🔴 Real-time Live Poller: опрашивает новые тикеты раз в 4 секунды
     this.livePollTimer = setInterval(() => {
       this.loadTickets(true);
+    }, 4000);
+
+    // 🟢 Фоновое обновление зарегистрированных пользователей — раз в 35 секунд
+    // (чтобы админ мог спокойно просматривать профили, менять роли и искать пользователей без перебивания UI)
+    this.usersPollTimer = setInterval(() => {
       if (this.authService.isSupportOrAdmin) {
         this.loadRegisteredUsers();
       }
-    }, 2500);
+    }, 35000);
 
     // 🔴 WebSocket: новый тикет — добавляем в список плавно
     this.wsSubs.push(
@@ -203,6 +217,9 @@ export class SupportComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.livePollTimer) {
       clearInterval(this.livePollTimer);
+    }
+    if (this.usersPollTimer) {
+      clearInterval(this.usersPollTimer);
     }
     this.wsSubs.forEach(s => s.unsubscribe());
     this.wsService.disconnect();
