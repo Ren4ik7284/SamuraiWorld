@@ -1,0 +1,18 @@
+# ==============================
+# Секреты — НИКОГДА не в гит!
+# ==============================
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+dist/
+tmp/
+
+# Docker
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,84 @@
+services:
+  # ===== POSTGRESQL DATABASE =====
+  postgres:
+    image: postgres:16-alpine
+    container_name: samuraiworld_postgres
+    restart: unless-stopped
+    # ports: убраны — БД доступна только внутри Docker-сети samuraiworld_net
+    environment:
+      POSTGRES_DB: samuraiworld_db
+      POSTGRES_USER: ${POSTGRES_USER:-samurai_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - samuraiworld_net
+
+  # ===== RABBITMQ MESSAGE BROKER =====
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: samuraiworld_rabbitmq
+    restart: unless-stopped
+    # ports: убраны — RabbitMQ доступен только внутри Docker-сети
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-samurai_mq}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:?RABBITMQ_PASS must be set in .env}
+    networks:
+      - samuraiworld_net
+
+  # ===== BACKEND MICROSERVICES =====
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: samuraiworld_backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER:-samurai_user}
+      - DB_PASS=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      - DB_NAME=samuraiworld_db
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-samurai_mq}:${RABBITMQ_PASS}@rabbitmq:5672
+      - MINECRAFT_RCON_HOST=${MINECRAFT_RCON_HOST:-qwertyx.host}
+      - MINECRAFT_RCON_PORT=${MINECRAFT_RCON_PORT:-25575}
+      - MINECRAFT_RCON_PASSWORD=${MINECRAFT_RCON_PASSWORD:-Samurai2026Vip}
+      - PTERODACTYL_URL=${PTERODACTYL_URL:-https://qwertyx.host}
+      - PTERODACTYL_API_KEY=${PTERODACTYL_API_KEY:-}
+      - PTERODACTYL_SERVER_ID=${PTERODACTYL_SERVER_ID:-451a0a34}
+      - YOOMONEY_CLIENT_ID=${YOOMONEY_CLIENT_ID:-}
+      - YOOMONEY_WALLET=${YOOMONEY_WALLET:-}
+      - YOOMONEY_SECRET_KEY=${YOOMONEY_SECRET_KEY:-}
+      - YOOMONEY_ACCESS_TOKEN=${YOOMONEY_ACCESS_TOKEN:-}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set in .env}
+      - REFRESH_SECRET=${REFRESH_SECRET:?REFRESH_SECRET must be set in .env}
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - samuraiworld_net
+
+  # ===== FRONTEND ANGULAR + NGINX =====
+  frontend:
+    build:
+      context: ./minecraft-site
+      dockerfile: Dockerfile
+    container_name: samuraiworld_frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - samuraiworld_net
+
+networks:
+  samuraiworld_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
