@@ -32,7 +32,7 @@ export default async function handler(req, res) {
     }
     let amount = 50;
     const cleanPromo = (promoCode || '').trim().toUpperCase();
-    if (cleanPromo === 'SAMURAI' || cleanPromo === 'ROLLY') {
+    if (cleanPromo === 'SAMURAI') {
       amount = 45;
     } else if (cleanPromo === 'START') {
       amount = 40;

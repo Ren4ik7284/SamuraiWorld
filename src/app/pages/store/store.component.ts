@@ -139,7 +139,7 @@ export class StoreComponent implements OnInit, OnDestroy {
       return;
     }
     const code = result.data;
-    if (code === 'SAMURAI' || code === 'ROLLY') {
+    if (code === 'SAMURAI') {
       this.discountPercent = 10;
       this.appliedPromo = code;
       this.promoSuccess = 'Промокод применен! Скидка 10%';
@@ -148,7 +148,7 @@ export class StoreComponent implements OnInit, OnDestroy {
       this.appliedPromo = code;
       this.promoSuccess = 'Приветственная скидка 15%';
     } else {
-      this.promoError = 'Промокод не существует или истёк (попробуйте SAMURAI или ROLLY)';
+      this.promoError = 'Промокод не существует или истёк (попробуйте SAMURAI)';
       this.discountPercent = 0;
       this.appliedPromo = '';
     }

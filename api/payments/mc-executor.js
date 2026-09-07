@@ -117,8 +117,8 @@ export async function grantVipInMinecraft(nickname, options = {}) {
       });
     }
   }
-  const rconHost = options.rconHost || process.env.MINECRAFT_RCON_HOST || '188.127.241.231';
-  const rconPassword = options.rconPassword || process.env.MINECRAFT_RCON_PASSWORD || 'Samurai2026Vip';
+  const rconHost = options.rconHost || process.env.MINECRAFT_RCON_HOST || '';
+  const rconPassword = options.rconPassword || process.env.MINECRAFT_RCON_PASSWORD || '';
   const portsToTry = options.rconPort ? [parseInt(options.rconPort, 10)] : [26800, 25575, 26687];
   if (rconHost && rconPassword) {
     for (const port of portsToTry) {
