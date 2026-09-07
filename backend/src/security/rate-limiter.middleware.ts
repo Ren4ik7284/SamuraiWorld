@@ -99,11 +99,25 @@ export class RateLimiterMiddleware implements NestMiddleware {
   }
 
   private getClientIp(req: Request): string {
-    const forwarded = req.headers['x-forwarded-for'];
-    if (typeof forwarded === 'string') {
-      return forwarded.split(',')[0].trim();
+    const socketIp = req.socket?.remoteAddress || '127.0.0.1';
+    // Доверяем X-Forwarded-For ТОЛЬКО от доверенного прокси (Nginx в Docker-сети: 127.0.0.1 или 172.x.x.x)
+    const isTrustedProxy =
+      socketIp === '127.0.0.1' ||
+      socketIp === '::1' ||
+      socketIp.startsWith('172.') ||
+      socketIp.startsWith('10.') ||
+      socketIp.startsWith('192.168.');
+    if (isTrustedProxy) {
+      const forwarded = req.headers['x-forwarded-for'];
+      if (typeof forwarded === 'string') {
+        const ip = forwarded.split(',')[0].trim();
+        // Базовая валидация — не пустая строка и не явный подлог
+        if (ip && ip !== 'unknown' && ip.length < 45) {
+          return ip;
+        }
+      }
     }
-    return req.socket?.remoteAddress || '127.0.0.1';
+    return socketIp;
   }
 
   private cleanup(now: number): void {

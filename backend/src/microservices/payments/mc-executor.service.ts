@@ -128,7 +128,7 @@ export class McExecutorService {
     ];
     const pteroUrl = options.pteroUrl || process.env.PTERODACTYL_URL || 'https://qwertyx.host';
     const pteroKey = options.pteroKey || process.env.PTERODACTYL_API_KEY || '';
-    const pteroServerId = options.pteroServerId || process.env.PTERODACTYL_SERVER_ID || '451a0a34';
+    const pteroServerId = options.pteroServerId || process.env.PTERODACTYL_SERVER_ID || '';
     if (pteroKey && pteroServerId) {
       try {
         for (const cmd of commands) {
@@ -148,7 +148,15 @@ export class McExecutorService {
         });
       }
     }
-    const rconPassword = options.rconPassword || process.env.MINECRAFT_RCON_PASSWORD || 'Samurai2026Vip';
+    const rconPassword = options.rconPassword || process.env.MINECRAFT_RCON_PASSWORD;
+    if (!rconPassword) {
+      results.push({
+        driver: 'RCON',
+        success: false,
+        error: 'MINECRAFT_RCON_PASSWORD не задан в .env — RCON отключён из соображений безопасности',
+      });
+      return { nickname: nick, executedAt: new Date().toISOString(), driversExecuted: results.length, results };
+    }
     const hostsToTry: string[] = [];
     if (options.rconHost) hostsToTry.push(options.rconHost);
     if (process.env.MINECRAFT_RCON_HOST) hostsToTry.push(process.env.MINECRAFT_RCON_HOST);

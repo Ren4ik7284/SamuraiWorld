@@ -63,8 +63,8 @@ export class PaymentsService implements OnModuleInit, OnModuleDestroy {
   verifyYooMoneyNotification(params: Record<string, string>): boolean {
     const secret = this.secretKey;
     if (!secret) {
-      this.logger.warn('[YooMoney] YOOMONEY_SECRET_KEY не задан — верификация пропущена');
-      return true;
+      this.logger.error('[YooMoney] ⛔ YOOMONEY_SECRET_KEY не задан — все webhook-уведомления ОТКЛОНЕНЫ в целях безопасности');
+      return false;
     }
     const receivedSign = params['sign'];
     if (receivedSign) {
@@ -300,7 +300,7 @@ export class PaymentsService implements OnModuleInit, OnModuleDestroy {
     }
     let amount = 200;
     const cleanPromo = (body.promoCode || '').trim().toUpperCase();
-    if (cleanPromo === 'SAMURAI' || cleanPromo === 'ROLLY') {
+    if (cleanPromo === 'SAMURAI') {
       amount = 180;
     } else if (cleanPromo === 'START') {
       amount = 170;
@@ -453,6 +453,12 @@ export class PaymentsService implements OnModuleInit, OnModuleDestroy {
     }
     const orderId = (params['label'] || '').trim();
     const amount = parseFloat(params['amount'] || '0');
+    // Проверка минимальной суммы — защита от мошеннических платежей на 1 рубль
+    const MIN_PAYMENT_AMOUNT = 100;
+    if (amount < MIN_PAYMENT_AMOUNT) {
+      this.logger.warn(`[YooMoney Webhook] ⚠️ Сумма платежа слишком мала: ${amount} руб. (минимум ${MIN_PAYMENT_AMOUNT} руб.) — отклонено`);
+      return { status: 'IGNORED', message: `Сумма платежа ${amount} руб. меньше минимальной (${MIN_PAYMENT_AMOUNT} руб.)` };
+    }
     if (!orderId) {
       this.logger.warn('[YooMoney Webhook] Поле label отсутствует — невозможно идентифицировать заказ');
       return { status: 'IGNORED', message: 'Отсутствует label — невозможно идентифицировать заказ' };

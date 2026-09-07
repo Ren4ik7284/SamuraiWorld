@@ -67,21 +67,25 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix('api');
   app.enableShutdownHooks();
 
-  const config = new DocumentBuilder()
-    .setTitle('SamuraiWorld Microservice API Gateway')
-    .setDescription('REST API & Microservices Gateway для политического Minecraft сервера SamuraiWorld')
-    .setVersion('2.0')
-    .addTag('server', 'Мониторинг сервера и Live Онлайн (Ping Service)')
-    .addTag('content', 'Новости и Правила/Конституция (Content Service)')
-    .addTag('government', 'Политическая система, Паспорта, Законы и Выборы (Government Service)')
-    .addTag('payments', 'Оплата и авто-выдача привилегий на майнкрафт сервере (RCON / Pterodactyl)')
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  // Swagger/OpenAPI — только в development! В production закрыт из соображений безопасности.
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('SamuraiWorld Microservice API Gateway')
+      .setDescription('REST API & Microservices Gateway для политического Minecraft сервера SamuraiWorld')
+      .setVersion('2.0')
+      .addBearerAuth()
+      .addTag('server', 'Мониторинг сервера и Live Онлайн (Ping Service)')
+      .addTag('content', 'Новости и Правила/Конституция (Content Service)')
+      .addTag('government', 'Политическая система, Паспорта, Законы и Выборы (Government Service)')
+      .addTag('payments', 'Оплата и авто-выдача привилегий на майнкрафт сервере (RCON / Pterodactyl)')
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+    console.log(`📖 Swagger API Документация: http://localhost:${process.env.PORT ?? 3000}/api/docs\n`);
+  }
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port, '0.0.0.0');
   console.log(`\n🏯 SamuraiWorld Microservice Gateway запущен на: http://localhost:${port}/api`);
-  console.log(`📖 Swagger API Документация: http://localhost:${port}/api/docs\n`);
 }
 bootstrap();

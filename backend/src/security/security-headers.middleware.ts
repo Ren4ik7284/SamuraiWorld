@@ -25,7 +25,17 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
     // Content Security Policy
     res.setHeader(
       'Content-Security-Policy',
-      "default-src 'self' data: https: blob:; img-src 'self' data: https: blob:; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https: wss:;",
+      [
+        "default-src 'self'",
+        "img-src 'self' data: https: blob:",
+        "style-src 'self' 'unsafe-inline' https:",   // unsafe-inline нужен для Angular/CSS-in-JS
+        "script-src 'self'",                          // убрали unsafe-inline и unsafe-eval
+        "connect-src 'self' https: wss:",
+        "font-src 'self' https: data:",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+      ].join('; '),
     );
 
     // Permissions policy

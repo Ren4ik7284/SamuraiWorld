@@ -33,8 +33,10 @@ services:
       dockerfile: Dockerfile
     container_name: samuraiworld_backend
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    # Порт 3000 НЕ выставлен наружу — бэкенд доступен только через Nginx (порт 8080)
+    # Это предотвращает прямой доступ к API в обход rate-limiter и security headers
+    # ports:
+    #   - "3000:3000"  # ← НЕ раскомментировать в production!
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -44,9 +46,9 @@ services:
       - DB_PASS=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
       - DB_NAME=samuraiworld_db
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-samurai_mq}:${RABBITMQ_PASS}@rabbitmq:5672
-      - MINECRAFT_RCON_HOST=${MINECRAFT_RCON_HOST:-qwertyx.host}
+      - MINECRAFT_RCON_HOST=${MINECRAFT_RCON_HOST}
       - MINECRAFT_RCON_PORT=${MINECRAFT_RCON_PORT:-25575}
-      - MINECRAFT_RCON_PASSWORD=${MINECRAFT_RCON_PASSWORD:-Samurai2026Vip}
+      - MINECRAFT_RCON_PASSWORD=${MINECRAFT_RCON_PASSWORD:?MINECRAFT_RCON_PASSWORD must be set in .env}
       - PTERODACTYL_URL=${PTERODACTYL_URL:-https://qwertyx.host}
       - PTERODACTYL_API_KEY=${PTERODACTYL_API_KEY:-}
       - PTERODACTYL_SERVER_ID=${PTERODACTYL_SERVER_ID:-451a0a34}
