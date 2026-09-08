@@ -156,7 +156,7 @@ function loadPersistedTickets() {
   );
 }
 
-function savePersistedTickets() {
+async function savePersistedTickets() {
   try {
     const payload = {
       tickets: globalTickets.filter(
@@ -166,7 +166,7 @@ function savePersistedTickets() {
     };
     fs.writeFileSync(TMP_TICKETS_FILE, JSON.stringify(payload, null, 2), 'utf8');
   } catch (e) {}
-  saveCloudTickets().catch(() => {});
+  await saveCloudTickets();
 }
 
 loadPersistedTickets();
@@ -332,7 +332,7 @@ export default async function handler(req, res) {
         }
       }
     }
-    savePersistedTickets();
+    await savePersistedTickets();
     const result = globalTickets.filter(
       (t) => !globalDeletedTicketIds.has(t.id) && (!t.ticketNumber || !globalDeletedTicketIds.has(t.ticketNumber))
     );
@@ -388,7 +388,7 @@ export default async function handler(req, res) {
       ],
     };
     globalTickets.unshift(newTicket);
-    savePersistedTickets();
+    await savePersistedTickets();
     return res.status(201).json(newTicket);
   }
 
@@ -429,7 +429,7 @@ export default async function handler(req, res) {
     ticket.messages.push(newMsg);
     ticket.updatedAt = now;
     ticket.status = senderRole === 'support' ? 'В обработке' : 'Ожидает ответа';
-    savePersistedTickets();
+    await savePersistedTickets();
     return res.status(200).json(ticket);
   }
 
@@ -465,7 +465,7 @@ export default async function handler(req, res) {
       text: `Статус тикета изменён на: "${newStatus}" сотрудником ${user.nickname}`,
       timestamp: now,
     });
-    savePersistedTickets();
+    await savePersistedTickets();
     return res.status(200).json(ticket);
   }
 
@@ -487,7 +487,7 @@ export default async function handler(req, res) {
       globalTickets = globalTickets.filter(
         (t) => t.id !== id && (!t.ticketNumber || t.ticketNumber.toLowerCase() !== String(id).toLowerCase())
       );
-      savePersistedTickets();
+      await savePersistedTickets();
     }
     return res.status(200).json({ success: true, id });
   }

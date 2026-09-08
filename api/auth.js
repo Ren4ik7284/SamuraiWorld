@@ -255,11 +255,11 @@ function loadPersistedUsers() {
   });
 }
 
-function savePersistedUsers() {
+async function savePersistedUsers() {
   try {
     fs.writeFileSync(TMP_USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
   } catch (e) {}
-  saveCloudUsers().catch(() => {});
+  await saveCloudUsers();
 }
 
 loadPersistedUsers();
@@ -513,7 +513,7 @@ export default async function handler(req, res) {
       lastLogin: new Date().toISOString(),
     };
     users.push(newUser);
-    savePersistedUsers();
+    await savePersistedUsers();
     const tokens = generateTokens(newUser);
     const { passwordHash: _ph, ...safeUser } = newUser;
     return res.status(201).json({ user: safeUser, tokens });
@@ -548,7 +548,7 @@ export default async function handler(req, res) {
       user.role = 'admin';
     }
     user.lastLogin = new Date().toISOString();
-    savePersistedUsers();
+    await savePersistedUsers();
     const tokens = generateTokens(user);
     const { passwordHash: _p, ...safeUser } = user;
     return res.status(200).json({ user: safeUser, tokens });
@@ -581,13 +581,13 @@ export default async function handler(req, res) {
         lastLogin: new Date().toISOString(),
       };
       users.push(user);
-      savePersistedUsers();
+      await savePersistedUsers();
     } else {
       if (getMasterAdmins().includes(user.nickname.toLowerCase())) {
         user.role = 'admin';
       }
       user.lastLogin = new Date().toISOString();
-      savePersistedUsers();
+      await savePersistedUsers();
     }
     const tokens = generateTokens(user);
     return res.status(200).json(tokens);
@@ -613,7 +613,7 @@ export default async function handler(req, res) {
         lastLogin: new Date().toISOString(),
       };
       users.push(user);
-      savePersistedUsers();
+      await savePersistedUsers();
     } else {
       if (getMasterAdmins().includes(user.nickname.toLowerCase())) {
         user.role = 'admin';
@@ -673,7 +673,7 @@ export default async function handler(req, res) {
           });
         }
       }
-      savePersistedUsers();
+      await savePersistedUsers();
     }
     const safeUsers = users.map((u) => ({
       id: u.id,
@@ -700,7 +700,7 @@ export default async function handler(req, res) {
       const allowedRoles = ['user', 'support', 'admin'];
       if (body?.role && allowedRoles.includes(body.role)) {
         user.role = body.role;
-        savePersistedUsers();
+        await savePersistedUsers();
       }
       const { passwordHash: _p, ...safeUser } = user;
       return res.status(200).json(safeUser);
@@ -723,7 +723,7 @@ export default async function handler(req, res) {
         return res.status(403).json({ message: 'Нельзя удалить главного администратора' });
       }
       users.splice(userIndex, 1);
-      savePersistedUsers();
+      await savePersistedUsers();
       purgeUserTickets(deletedUser.id, deletedUser.nickname).catch(() => {});
       return res.status(200).json({ success: true, message: `Пользователь ${deletedUser.nickname} успешно удален` });
     }
@@ -756,7 +756,7 @@ export default async function handler(req, res) {
     const targetUser = users.find((u) => u.nickname?.toLowerCase() === targetNick);
     if (targetUser) {
       targetUser.avatarUrl = cleanUrl;
-      savePersistedUsers();
+      await savePersistedUsers();
       const { passwordHash: _p, ...safeUser } = targetUser;
       return res.status(200).json(safeUser);
     }
