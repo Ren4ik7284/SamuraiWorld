@@ -17,20 +17,23 @@ import {
   AddMessageDto,
   TicketStatus,
 } from '../microservices/support/support.service';
-import { OptionalJwtAuthGuard, JwtAuthGuard, AuthenticatedRequest } from '../modules/auth/jwt-auth.guard';
+import { JwtAuthGuard, AuthenticatedRequest } from '../modules/auth/jwt-auth.guard';
+
 @ApiTags('support')
 @Controller('support')
 export class SupportController {
   constructor(private readonly supportService: SupportService) {}
+
   @Post('tickets')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Создать обращение в техподдержку с привязкой к JWT пользователю' })
   createTicket(@Body() dto: CreateTicketDto, @Req() req: AuthenticatedRequest) {
     return this.supportService.createTicket(dto, req.user);
   }
+
   @Get('tickets')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Получить список тикетов (Обычный пользователь видит свои, Support/Admin — все)' })
   @ApiQuery({ name: 'nickname', required: false, description: 'Фильтр по нику игрока' })
@@ -44,15 +47,17 @@ export class SupportController {
   ) {
     return this.supportService.getTickets(req.user, { nickname, category, status });
   }
+
   @Get('tickets/:id')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Получить тикет и историю переписки по ID или номеру тикета' })
   getTicketById(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.supportService.getTicketById(id, req.user);
   }
+
   @Post('tickets/:id/messages')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Отправить сообщение/ответ в тикет' })
   addMessage(
@@ -62,8 +67,9 @@ export class SupportController {
   ) {
     return this.supportService.addMessage(id, dto, req.user);
   }
+
   @Patch('tickets/:id/status')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Изменить статус тикета' })
   updateStatus(
@@ -73,8 +79,9 @@ export class SupportController {
   ) {
     return this.supportService.updateStatus(id, status, req.user);
   }
+
   @Delete('tickets/:id')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Удалить тикет по ID' })
   deleteTicket(@Param('id') id: string, @Req() req: AuthenticatedRequest) {

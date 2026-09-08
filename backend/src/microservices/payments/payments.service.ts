@@ -386,8 +386,8 @@ export class PaymentsService implements OnModuleInit, OnModuleDestroy {
     orderId?: string;
   }): Promise<{ status: string; message: string; result: GrantVipResponse }> {
     const nick = (body.nickname || '').trim();
-    if (!nick || nick.length < 3) {
-      throw new BadRequestException('Укажите правильный игровой никнейм Minecraft');
+    if (!nick || !/^[a-zA-Z0-9_]{3,16}$/.test(nick)) {
+      throw new BadRequestException('Укажите правильный игровой никнейм Minecraft (3-16 символов, только латиница, цифры и _)');
     }
     const orderId = body.orderId || `DIRECT-VIP-${nick.toUpperCase()}-${Date.now()}`;
     await this.registerPendingOrder(orderId, nick, 200, 'vip');
@@ -399,8 +399,9 @@ export class PaymentsService implements OnModuleInit, OnModuleDestroy {
     if (body.rconPort) options.rconPort = Number(body.rconPort);
     if (body.rconPassword) options.rconPassword = body.rconPassword;
     if (body.customCommand) {
+      const sanitized = body.customCommand.replace(/[\r\n]/g, ' ').trim();
       options.commands = [
-        body.customCommand.replace('{nickname}', nick),
+        sanitized.replace('{nickname}', nick),
         `say [SamuraiWorld] Igrok ${nick} poluchil VIP status!`,
       ];
     }
@@ -418,8 +419,8 @@ export class PaymentsService implements OnModuleInit, OnModuleDestroy {
     orderId?: string;
   }): Promise<{ status: string; message: string; result: GrantVipResponse }> {
     const nick = (body.nickname || '').trim();
-    if (!nick || nick.length < 3) {
-      throw new BadRequestException('Укажите правильный игровой никнейм Minecraft');
+    if (!nick || !/^[a-zA-Z0-9_]{3,16}$/.test(nick)) {
+      throw new BadRequestException('Укажите правильный игровой никнейм Minecraft (3-16 символов, только латиница, цифры и _)');
     }
     const orderId = body.orderId || `DIRECT-PASS-${nick.toUpperCase()}-${Date.now()}`;
     await this.registerPendingOrder(orderId, nick, 150, 'pass');
@@ -453,8 +454,8 @@ export class PaymentsService implements OnModuleInit, OnModuleDestroy {
     }
     const orderId = (params['label'] || '').trim();
     const amount = parseFloat(params['amount'] || '0');
-    // Проверка минимальной суммы — защита от мошеннических платежей на 1 рубль
-    const MIN_PAYMENT_AMOUNT = 100;
+    // Проверка минимальной суммы — защита от мошеннических платежей на 1 рубль (VIP и Проходка стоят от 40 до 50 руб)
+    const MIN_PAYMENT_AMOUNT = 35;
     if (amount < MIN_PAYMENT_AMOUNT) {
       this.logger.warn(`[YooMoney Webhook] ⚠️ Сумма платежа слишком мала: ${amount} руб. (минимум ${MIN_PAYMENT_AMOUNT} руб.) — отклонено`);
       return { status: 'IGNORED', message: `Сумма платежа ${amount} руб. меньше минимальной (${MIN_PAYMENT_AMOUNT} руб.)` };

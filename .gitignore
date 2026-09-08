@@ -4,6 +4,9 @@
 .env
 .env.*
 !.env.example
+.initial_credentials
+*.pem
+*.key
 
 # Node
 node_modules/

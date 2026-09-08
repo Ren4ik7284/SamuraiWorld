@@ -1,12 +1,14 @@
 import { Controller, Post, Body, Headers, HttpCode, HttpStatus, Get, Query, Param, UseGuards, Req, ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, Matches } from 'class-validator';
 import { PaymentsService } from '../microservices/payments/payments.service';
 import { JwtAuthGuard, AuthenticatedRequest } from '../modules/auth/jwt-auth.guard';
-import { AuthService } from '../modules/auth/auth.service';
+import { AuthService, getMasterAdmins } from '../modules/auth/auth.service';
+
 export class GrantVipDto {
   @IsString()
   @IsNotEmpty()
+  @Matches(/^[a-zA-Z0-9_]{3,16}$/, { message: 'Никнейм должен состоять из 3-16 символов (латиница, цифры, _)' })
   nickname: string;
   @IsString()
   @IsOptional()
@@ -35,6 +37,7 @@ export class GrantVipDto {
 export class YooMoneyOrderDto {
   @IsString()
   @IsNotEmpty()
+  @Matches(/^[a-zA-Z0-9_]{3,16}$/, { message: 'Никнейм должен состоять из 3-16 символов (латиница, цифры, _)' })
   nickname: string;
   @IsString()
   @IsOptional()
@@ -43,6 +46,7 @@ export class YooMoneyOrderDto {
 export class PassOrderDto {
   @IsString()
   @IsNotEmpty()
+  @Matches(/^[a-zA-Z0-9_]{3,16}$/, { message: 'Никнейм должен состоять из 3-16 символов (латиница, цифры, _)' })
   nickname: string;
 }
 @ApiTags('payments')
@@ -56,8 +60,7 @@ export class PaymentsController {
   /** Проверяет что текущий пользователь является администратором */
   private requireAdmin(req: AuthenticatedRequest): void {
     const user = req.user;
-    const MASTER_ADMINS = ['ren4ik284', 'mydaf0n62'];
-    const isMaster = user && MASTER_ADMINS.includes(user.nickname?.toLowerCase());
+    const isMaster = user && getMasterAdmins().includes(user.nickname?.toLowerCase());
     if (!user || (!isMaster && user.role !== 'admin')) {
       throw new ForbiddenException('Доступ разрешён только администраторам');
     }

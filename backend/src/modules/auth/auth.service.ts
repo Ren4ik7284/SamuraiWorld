@@ -1,6 +1,8 @@
-import { Injectable, UnauthorizedException, BadRequestException, ConflictException, ForbiddenException, OnModuleInit } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, ConflictException, ForbiddenException, OnModuleInit, Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
+import * as fs from 'fs';
+import * as path from 'path';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserEntity, UserRole as DbUserRole } from '../database/entities/user.entity';
@@ -49,12 +51,18 @@ export interface AuthResponse {
   tokens: AuthTokens;
 }
 
-const MASTER_ADMINS = ['ren4ik284', 'mydaf0n62'];
-const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.03-4.84-2.6.03-1.61 3.22-2.4 4.84-2.4 1.61 0 4.81.79 4.84 2.4C15.8 18.97 14.03 20 12 20z"/></svg>';
+export function getMasterAdmins(): string[] {
+  const fromEnv = process.env.MASTER_ADMINS || process.env.ADMIN_NICKNAMES || '';
+  const parsed = fromEnv.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  const defaults = ['ren4ik284', 'mydaf0n62'];
+  return Array.from(new Set([...defaults, ...parsed]));
+}
 
+const DEFAULT_AVATAR = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2394a3b8"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-3.8-1.03-4.84-2.6.03-1.61 3.22-2.4 4.84-2.4 1.61 0 4.81.79 4.84 2.4C15.8 18.97 14.03 20 12 20z"/></svg>';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
+  private readonly logger = new Logger(AuthService.name);
   private readonly JWT_SECRET: string;
   private readonly REFRESH_SECRET: string;
   private readonly ACCESS_TOKEN_EXPIRY = 60 * 60;
@@ -78,8 +86,6 @@ export class AuthService implements OnModuleInit {
     await this.seedInitialUsers();
   }
 
-
-
   /** Генерирует крипто-безопасный пароль из 24 случайных символов */
   private generateSecurePassword(): string {
     return crypto.randomBytes(18).toString('base64').replace(/[+/=]/g, 'x');
@@ -102,8 +108,8 @@ export class AuthService implements OnModuleInit {
   }
 
   /**
-   * При первом запуске создаёт системных пользователей с рандомными паролями.
-   * Если пользователи уже есть в БД — пропускает.
+   * При первом запуске создаёт системных пользователей.
+   * Пароли сохраняются в локальный защищённый файл .initial_credentials (0600) и НЕ выводятся в логи.
    */
   private async seedInitialUsers(): Promise<void> {
     const count = await this.userRepo.count();
@@ -114,8 +120,8 @@ export class AuthService implements OnModuleInit {
     }
 
     const now = new Date();
-    const adminPass = this.generateSecurePassword();
-    const supportPass = this.generateSecurePassword();
+    const adminPass = process.env.INITIAL_ADMIN_PASSWORD || this.generateSecurePassword();
+    const supportPass = process.env.INITIAL_SUPPORT_PASSWORD || this.generateSecurePassword();
 
     await this.userRepo.save([
       this.userRepo.create({
@@ -142,18 +148,19 @@ export class AuthService implements OnModuleInit {
       }),
     ]);
 
-    console.log('\n' + '='.repeat(60));
-    console.log('🏯 [AuthService] ПЕРВЫЙ ЗАПУСК — НАЧАЛЬНЫЕ АККАУНТЫ');
-    console.log('='.repeat(60));
-    console.log(`  Admin_Samurai  → пароль: ${adminPass}`);
-    console.log(`  Support_Agent  → пароль: ${supportPass}`);
-    console.log('  ⚠️  Сохраните эти пароли — они больше не будут показаны!');
-    console.log('='.repeat(60) + '\n');
+    try {
+      const credsPath = path.resolve(process.cwd(), '.initial_credentials');
+      const credsContent = `# SamuraiWorld Initial System Credentials\n# Generated: ${now.toISOString()}\n# ATTENTION: Change these passwords after first login!\n\nAdmin_Samurai=${adminPass}\nSupport_Agent=${supportPass}\n`;
+      fs.writeFileSync(credsPath, credsContent, { mode: 0o600, encoding: 'utf8' });
+      this.logger.log('🏯 Первоначальные системные аккаунты созданы. Пароли сохранены в локальный защищённый файл .initial_credentials (0600).');
+    } catch {
+      this.logger.log('🏯 Первоначальные системные аккаунты созданы.');
+    }
   }
 
   /** Принудительно выставляет роль admin мастер-никам */
   private async ensureMasterAdmins(): Promise<void> {
-    for (const nick of MASTER_ADMINS) {
+    for (const nick of getMasterAdmins()) {
       await this.userRepo
         .createQueryBuilder()
         .update(UserEntity)
@@ -220,19 +227,18 @@ export class AuthService implements OnModuleInit {
     }
   }
 
-  sendVerificationCode(email: string): { success: boolean; message: string; testCode?: string } {
+  sendVerificationCode(email: string): { success: boolean; message: string } {
     const cleanEmail = (email || '').trim().toLowerCase();
     this.validateEmailString(cleanEmail);
     const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
     const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes validity
     this.verificationCodes.set(cleanEmail, { code, expiresAt });
 
-    console.log(`[EmailService] 📩 Verification code for ${cleanEmail}: ${code} (Valid for 15 mins)`);
+    this.logger.log(`[EmailService] Код верификации сгенерирован для ${cleanEmail}`);
 
     return {
       success: true,
       message: `Код подтверждения успешно отправлен на ${cleanEmail}`,
-      testCode: process.env.NODE_ENV !== 'production' ? code : undefined,
     };
   }
 
@@ -253,7 +259,7 @@ export class AuthService implements OnModuleInit {
     return true;
   }
 
-  async register(dto: { nickname: string; email?: string; password: string; avatarUrl?: string; verificationCode?: string; role?: UserRole }): Promise<AuthResponse> {
+  async register(dto: { nickname: string; email?: string; password: string; avatarUrl?: string; verificationCode?: string }): Promise<AuthResponse> {
     const nickname = (dto.nickname || '').trim();
     if (!/^[a-zA-Z0-9_]{3,16}$/.test(nickname)) {
       throw new BadRequestException('Никнейм должен содержать от 3 до 16 символов (только латиница, цифры и _)');
@@ -282,14 +288,14 @@ export class AuthService implements OnModuleInit {
       finalEmail = email;
     }
 
-    const isMaster = MASTER_ADMINS.includes(cleanNick);
+    const isMaster = getMasterAdmins().includes(cleanNick);
     const now = new Date();
     const entity = this.userRepo.create({
       id: `usr-${Date.now()}-${crypto.randomInt(1000)}`,
       nickname,
       email: finalEmail,
       passwordHash: this.hashPassword(dto.password),
-      role: isMaster ? 'admin' : (dto.role || 'user'),
+      role: isMaster ? 'admin' : 'user',
       avatarUrl: (dto.avatarUrl && !dto.avatarUrl.includes('crafatar.com')) ? dto.avatarUrl : DEFAULT_AVATAR,
       createdAt: now,
       lastLogin: now,
@@ -297,7 +303,7 @@ export class AuthService implements OnModuleInit {
     });
     const saved = await this.userRepo.save(entity);
     const user = this.entityToUser(saved);
-    console.log(`[AuthService] Registered new user: ${user.nickname} (${user.role})`);
+    this.logger.log(`[AuthService] Registered new user: ${user.nickname} (${user.role})`);
     const tokens = this.generateTokens(user);
     return { user: this.sanitizeUser(user), tokens };
   }
@@ -325,12 +331,12 @@ export class AuthService implements OnModuleInit {
       entity.passwordHash = this.hashPassword(dto.password);
     }
     entity.lastLogin = new Date();
-    if (MASTER_ADMINS.includes(cleanNick)) {
+    if (getMasterAdmins().includes(cleanNick)) {
       entity.role = 'admin';
     }
     await this.userRepo.save(entity);
 
-    console.log(`[AuthService] User logged in: ${entity.nickname}`);
+    this.logger.log(`[AuthService] User logged in: ${entity.nickname}`);
     const user = this.entityToUser(entity);
     const tokens = this.generateTokens(user);
     return { user: this.sanitizeUser(user), tokens };
@@ -339,7 +345,7 @@ export class AuthService implements OnModuleInit {
   async deleteUser(idOrNick: string): Promise<{ success: boolean; message: string }> {
     const target = (idOrNick || '').trim().toLowerCase();
     if (!target) throw new BadRequestException('Укажите ID или никнейм пользователя');
-    if (MASTER_ADMINS.includes(target)) {
+    if (getMasterAdmins().includes(target)) {
       throw new ForbiddenException('Нельзя удалить главного администратора');
     }
     const entity = await this.userRepo
@@ -347,11 +353,11 @@ export class AuthService implements OnModuleInit {
       .where('u.id = :id OR LOWER(u.nickname) = :nick', { id: idOrNick, nick: target })
       .getOne();
     if (!entity) throw new BadRequestException('Пользователь не найден');
-    if (MASTER_ADMINS.includes(entity.nickname.toLowerCase())) {
+    if (getMasterAdmins().includes(entity.nickname.toLowerCase())) {
       throw new ForbiddenException('Нельзя удалить главного администратора');
     }
     await this.userRepo.remove(entity);
-    console.log(`[AuthService] Deleted user: ${idOrNick}`);
+    this.logger.log(`[AuthService] Deleted user: ${idOrNick}`);
     return { success: true, message: `Пользователь ${idOrNick} успешно удален` };
   }
 
@@ -362,7 +368,7 @@ export class AuthService implements OnModuleInit {
       .where('u.id = :id OR LOWER(u.nickname) = :nick', { id: idOrNick, nick: target })
       .getOne();
     if (!entity) throw new BadRequestException('Пользователь не найден');
-    entity.role = MASTER_ADMINS.includes(entity.nickname.toLowerCase()) ? 'admin' : role;
+    entity.role = getMasterAdmins().includes(entity.nickname.toLowerCase()) ? 'admin' : role;
     await this.userRepo.save(entity);
     return this.sanitizeUser(this.entityToUser(entity));
   }
@@ -389,14 +395,15 @@ export class AuthService implements OnModuleInit {
           .where('LOWER(u.nickname) = :nick', { nick: nickKey })
           .getOne();
         if (!existing) {
-          const isMaster = MASTER_ADMINS.includes(nickKey);
+          const isMaster = getMasterAdmins().includes(nickKey);
           const avatarToUse = (inc.avatarUrl && !inc.avatarUrl.includes('crafatar.com')) ? inc.avatarUrl : DEFAULT_AVATAR;
+          const assignedRole = isMaster ? 'admin' : (inc.role === 'admin' ? 'user' : (inc.role || 'user'));
           await this.userRepo.save(this.userRepo.create({
             id: inc.id || `usr-${Date.now()}-${crypto.randomInt(1000)}`,
             nickname: inc.nickname.trim(),
             email: inc.email || `${nickKey}@samuraiworld.local`,
-            passwordHash: inc.passwordHash || this.hashPassword('synced_user_2026'),
-            role: isMaster ? 'admin' : (inc.role || 'user'),
+            passwordHash: inc.passwordHash || this.hashPassword(this.generateSecurePassword()),
+            role: assignedRole,
             avatarUrl: avatarToUse,
             createdAt: inc.createdAt ? new Date(inc.createdAt) : new Date(),
             lastLogin: inc.lastLogin ? new Date(inc.lastLogin) : new Date(),

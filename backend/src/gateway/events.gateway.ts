@@ -70,18 +70,24 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const user = this.validateJwt(token);
     if (user) {
-      // Авторизованный пользователь — сохраняем данные в данных сокета
+      // Авторизованный пользователь — сохраняем данные и подписываем на изолированные комнаты
       (client as any).authenticatedUser = user;
-      console.log(`[WS] Authenticated client connected: ${client.id} (user: ${user['nickname'] ?? user['sub']})`);
+      if (user['sub']) {
+        client.join(`user:${user['sub']}`);
+      }
+      if (user['nickname']) {
+        client.join(`nick:${String(user['nickname']).toLowerCase()}`);
+      }
+      if (user['role'] === 'admin' || user['role'] === 'support') {
+        client.join('staff_room');
+      }
     } else {
-      // Неавторизованный — помечаем как гостя (публичные события доступны)
       (client as any).authenticatedUser = null;
-      console.log(`[WS] Guest client connected: ${client.id}`);
     }
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`[WS] Client disconnected: ${client.id}`);
+    // disconnected
   }
 
   /** Клиент подписывается на события конкретного тикета — требует аутентификации */
@@ -109,25 +115,37 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // ─── Методы для отправки событий из сервисов ───────────────────────────────
 
-  /** Оповестить всех о новом тикете */
+  /** Оповестить о новом тикете — только персонал и автора тикета */
   emitTicketCreated(ticket: any) {
-    this.server.emit('ticket:created', ticket);
+    this.server.to('staff_room').emit('ticket:created', ticket);
+    if (ticket.userId) {
+      this.server.to(`user:${ticket.userId}`).emit('ticket:created', ticket);
+    }
+    if (ticket.nickname) {
+      this.server.to(`nick:${String(ticket.nickname).toLowerCase()}`).emit('ticket:created', ticket);
+    }
   }
 
-  /** Оповестить всех об обновлении тикета (новое сообщение / смена статуса) */
+  /** Оповестить об обновлении тикета — только комнату тикета, персонал и автора */
   emitTicketUpdated(ticket: any) {
-    this.server.emit('ticket:updated', ticket);
-    // Также шлём в комнату конкретного тикета
     this.server.to(`ticket:${ticket.id}`).emit('ticket:updated', ticket);
+    this.server.to('staff_room').emit('ticket:updated', ticket);
+    if (ticket.userId) {
+      this.server.to(`user:${ticket.userId}`).emit('ticket:updated', ticket);
+    }
+    if (ticket.nickname) {
+      this.server.to(`nick:${String(ticket.nickname).toLowerCase()}`).emit('ticket:updated', ticket);
+    }
   }
 
-  /** Оповестить всех об удалении тикета */
+  /** Оповестить об удалении тикета — комнату тикета и персонал */
   emitTicketDeleted(ticketId: string) {
-    this.server.emit('ticket:deleted', { id: ticketId });
+    this.server.to(`ticket:${ticketId}`).emit('ticket:deleted', { id: ticketId });
+    this.server.to('staff_room').emit('ticket:deleted', { id: ticketId });
   }
 
-  /** Оповестить всех об изменении пользователей (роль, удаление) */
+  /** Оповестить об изменении пользователей — только персонал */
   emitUsersUpdated() {
-    this.server.emit('users:updated');
+    this.server.to('staff_room').emit('users:updated');
   }
 }

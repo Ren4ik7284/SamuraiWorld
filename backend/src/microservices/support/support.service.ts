@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, UnauthorizedException, Logger, Inject, forwardRef } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { JwtPayload } from '../../modules/auth/auth.service';
 import { EventsGateway } from '../../gateway/events.gateway';
@@ -84,6 +84,7 @@ export class AddMessageDto {
 
 @Injectable()
 export class SupportService {
+  private readonly logger = new Logger(SupportService.name);
   private tickets: Ticket[] = [];
   private deletedTicketIds = new Set<string>();
   private ticketCounter = 1001;
@@ -100,7 +101,7 @@ export class SupportService {
     const ticketId = `t-${Date.now()}`;
     const ticketNumber = `TK-${this.ticketCounter++}`;
     const nickname = currentUser?.nickname || dto.nickname;
-    const userId = currentUser?.sub || dto.userId;
+    const userId = currentUser?.sub || dto.userId || 'guest';
     const newTicket: Ticket = {
       id: ticketId,
       ticketNumber,
@@ -132,29 +133,32 @@ export class SupportService {
       ],
     };
     this.tickets.unshift(newTicket);
-    console.log(`[SupportService] Ticket created: ${ticketNumber} by ${nickname} (userId: ${userId || 'anon'})`);
+    this.logger.log(`[SupportService] Ticket created: ${ticketNumber} by ${nickname}`);
 
-    // 🔴 Real-time: оповестить всех подключённых клиентов
+    // 🔴 Real-time: оповестить только стафф и автора
     try { this.eventsGateway.emitTicketCreated(newTicket); } catch {}
 
     return newTicket;
   }
 
   getTickets(currentUser?: JwtPayload, query?: { nickname?: string; category?: string; status?: string }): Ticket[] {
+    if (!currentUser) {
+      return [];
+    }
     let result = [...this.tickets];
-    if (currentUser) {
-      if (currentUser.role === 'admin' || currentUser.role === 'support') {
-        // admin/support видит всё
-      } else {
+    if (currentUser.role === 'admin' || currentUser.role === 'support') {
+      // admin/support видит все тикеты
+      if (query?.nickname) {
         result = result.filter(
-          (t) =>
-            t.userId === currentUser.sub ||
-            t.nickname.toLowerCase() === currentUser.nickname.toLowerCase(),
+          (t) => t.nickname.toLowerCase() === query.nickname!.toLowerCase(),
         );
       }
-    } else if (query?.nickname) {
+    } else {
+      // обычный пользователь видит ИСКЛЮЧИТЕЛЬНО свои тикеты
       result = result.filter(
-        (t) => t.nickname.toLowerCase() === query.nickname!.toLowerCase(),
+        (t) =>
+          t.userId === currentUser.sub ||
+          t.nickname.toLowerCase() === currentUser.nickname.toLowerCase(),
       );
     }
     if (query?.category) {
@@ -173,23 +177,28 @@ export class SupportService {
     if (!ticket) {
       throw new NotFoundException(`Тикет ${id} не найден`);
     }
-    if (currentUser && currentUser.role === 'user') {
-      const isOwner =
-        ticket.userId === currentUser.sub ||
-        ticket.nickname.toLowerCase() === currentUser.nickname.toLowerCase();
-      if (!isOwner) {
-        throw new ForbiddenException('У вас нет доступа к просмотру чужого тикета');
-      }
+    if (!currentUser) {
+      throw new UnauthorizedException('Требуется авторизация для просмотра тикета');
+    }
+    const isStaff = currentUser.role === 'admin' || currentUser.role === 'support';
+    const isOwner =
+      ticket.userId === currentUser.sub ||
+      ticket.nickname.toLowerCase() === currentUser.nickname.toLowerCase();
+    if (!isStaff && !isOwner) {
+      throw new ForbiddenException('У вас нет доступа к просмотру чужого тикета');
     }
     return ticket;
   }
 
   addMessage(ticketId: string, dto: AddMessageDto, currentUser?: JwtPayload): Ticket {
+    if (!currentUser) {
+      throw new UnauthorizedException('Требуется авторизация для отправки сообщений');
+    }
     const ticket = this.getTicketById(ticketId, currentUser);
     const now = new Date().toISOString();
-    const isStaff = currentUser?.role === 'admin' || currentUser?.role === 'support';
-    const senderRole = dto.role || (isStaff ? 'support' : 'user');
-    const senderName = currentUser?.nickname || dto.sender;
+    const isStaff = currentUser.role === 'admin' || currentUser.role === 'support';
+    const senderRole = isStaff ? 'support' : 'user';
+    const senderName = currentUser.nickname;
     const newMessage: TicketMessage = {
       id: uuidv4(),
       sender: senderName,
@@ -204,17 +213,20 @@ export class SupportService {
     } else {
       ticket.status = 'Ожидает ответа';
     }
-    console.log(`[SupportService] Message added to ${ticket.ticketNumber} by ${senderName} (${senderRole})`);
+    this.logger.log(`[SupportService] Message added to ${ticket.ticketNumber} by ${senderName} (${senderRole})`);
 
-    // 🔴 Real-time
+    // 🔴 Real-time: только участникам тикета и персоналу
     try { this.eventsGateway.emitTicketUpdated(ticket); } catch {}
 
     return ticket;
   }
 
   updateStatus(ticketId: string, status: TicketStatus, currentUser?: JwtPayload): Ticket {
+    if (!currentUser) {
+      throw new UnauthorizedException('Требуется авторизация для изменения статуса');
+    }
     const ticket = this.getTicketById(ticketId, currentUser);
-    if (currentUser && currentUser.role === 'user') {
+    if (currentUser.role === 'user') {
       if (status !== 'Закрыто') {
         throw new ForbiddenException('Игрок может только закрыть свое обращение');
       }
@@ -229,23 +241,25 @@ export class SupportService {
       text: `Статус тикета изменён на: "${status}"`,
       timestamp: now,
     });
-    console.log(`[SupportService] Status updated for ${ticket.ticketNumber} -> ${status}`);
+    this.logger.log(`[SupportService] Status updated for ${ticket.ticketNumber} -> ${status}`);
 
-    // 🔴 Real-time
+    // 🔴 Real-time: только участникам тикета и персоналу
     try { this.eventsGateway.emitTicketUpdated(ticket); } catch {}
 
     return ticket;
   }
 
   deleteTicket(id: string, currentUser?: JwtPayload): { success: boolean; id: string } {
+    if (!currentUser) {
+      throw new UnauthorizedException('Требуется авторизация для удаления тикета');
+    }
     const ticket = this.getTicketById(id, currentUser);
-    if (currentUser && currentUser.role === 'user') {
-      const isOwner =
-        ticket.userId === currentUser.sub ||
-        ticket.nickname.toLowerCase() === currentUser.nickname.toLowerCase();
-      if (!isOwner) {
-        throw new ForbiddenException('Вы не можете удалить чужой тикет');
-      }
+    const isStaff = currentUser.role === 'admin' || currentUser.role === 'support';
+    const isOwner =
+      ticket.userId === currentUser.sub ||
+      ticket.nickname.toLowerCase() === currentUser.nickname.toLowerCase();
+    if (!isStaff && !isOwner) {
+      throw new ForbiddenException('Вы не можете удалить чужой тикет');
     }
     this.deletedTicketIds.add(id);
     if (ticket.id) this.deletedTicketIds.add(ticket.id);
@@ -254,9 +268,9 @@ export class SupportService {
     if (index !== -1) {
       this.tickets.splice(index, 1);
     }
-    console.log(`[SupportService] Ticket deleted: ${id}`);
+    this.logger.log(`[SupportService] Ticket deleted: ${id}`);
 
-    // 🔴 Real-time
+    // 🔴 Real-time: только участникам тикета и персоналу
     try { this.eventsGateway.emitTicketDeleted(id); } catch {}
 
     return { success: true, id };

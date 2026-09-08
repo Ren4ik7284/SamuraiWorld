@@ -12,7 +12,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { AuthService, UserRole } from '../modules/auth/auth.service';
+import { AuthService, UserRole, getMasterAdmins } from '../modules/auth/auth.service';
 import { JwtAuthGuard, OptionalJwtAuthGuard, AuthenticatedRequest } from '../modules/auth/jwt-auth.guard';
 import { IsString, IsNotEmpty, IsOptional, IsEmail, IsArray, MinLength, MaxLength, Matches } from 'class-validator';
 
@@ -41,10 +41,6 @@ export class RegisterDto {
   @MinLength(6)
   @MaxLength(6)
   verificationCode?: string;
-
-  @IsString()
-  @IsOptional()
-  role?: UserRole;
 }
 
 export class LoginDto {
@@ -59,9 +55,6 @@ export class LoginDto {
   @MinLength(6)
   @MaxLength(64)
   password: string;
-
-  @IsOptional()
-  clientUser?: any;
 }
 
 export class SendVerificationCodeDto {
@@ -169,7 +162,7 @@ export class AuthController {
 
   private checkIsAdminOrSupport(req: AuthenticatedRequest): void {
     const user = req.user;
-    const isMaster = user && ['ren4ik284', 'mydaf0n62'].includes(user.nickname?.toLowerCase());
+    const isMaster = user && getMasterAdmins().includes(user.nickname?.toLowerCase());
     if (!user || (!isMaster && user.role !== 'admin' && user.role !== 'support')) {
       throw new ForbiddenException('Доступ разрешен только администраторам и службе поддержки');
     }
@@ -177,14 +170,14 @@ export class AuthController {
 
   private checkIsAdminOnly(req: AuthenticatedRequest): void {
     const user = req.user;
-    const isMaster = user && ['ren4ik284', 'mydaf0n62'].includes(user.nickname?.toLowerCase());
+    const isMaster = user && getMasterAdmins().includes(user.nickname?.toLowerCase());
     if (!user || (!isMaster && user.role !== 'admin')) {
       throw new ForbiddenException('Доступ разрешен только главному администратору');
     }
   }
 
   @Get('users')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Получить список всех зарегистрированных пользователей (Админ/Поддержка)' })
   getAllUsers(@Req() req: AuthenticatedRequest) {
@@ -193,7 +186,7 @@ export class AuthController {
   }
 
   @Delete('users/:id')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Удалить пользователя по ID или никнейму (Только Админ)' })
   deleteUser(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
@@ -202,7 +195,7 @@ export class AuthController {
   }
 
   @Patch('users/:id/role')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Изменить роль пользователя (Только Админ)' })
   updateRole(@Param('id') id: string, @Body() dto: UpdateRoleDto, @Req() req: AuthenticatedRequest) {
@@ -211,7 +204,7 @@ export class AuthController {
   }
 
   @Post('sync_users')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Синхронизировать список пользователей (Только Админ)' })
   syncUsers(@Body() dto: SyncUsersDto, @Req() req: AuthenticatedRequest) {
@@ -220,17 +213,17 @@ export class AuthController {
   }
 
   @Patch('avatar')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Обновить аватар пользователя' })
   updateAvatar(@Body() dto: UpdateAvatarDto, @Req() req: AuthenticatedRequest) {
-    // Пользователь может менять только свой аватар, либо он должен быть admin
     const currentUser = req.user;
-    if (currentUser) {
-      const isMaster = ['ren4ik284', 'mydaf0n62'].includes(currentUser.nickname?.toLowerCase());
-      if (currentUser.role !== 'admin' && !isMaster && currentUser.nickname.toLowerCase() !== dto.nickname.toLowerCase()) {
-        throw new ForbiddenException('Вы можете менять только свой аватар');
-      }
+    if (!currentUser) {
+      throw new UnauthorizedException('Пользователь не авторизован');
+    }
+    const isMaster = getMasterAdmins().includes(currentUser.nickname?.toLowerCase());
+    if (currentUser.role !== 'admin' && !isMaster && currentUser.nickname.toLowerCase() !== dto.nickname.toLowerCase()) {
+      throw new ForbiddenException('Вы можете менять только свой аватар');
     }
     return this.authService.updateAvatar(dto.nickname, dto.avatarUrl);
   }
