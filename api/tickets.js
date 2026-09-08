@@ -102,6 +102,8 @@ async function saveCloudTickets() {
       deletedTicketIds: Array.from(globalDeletedTicketIds),
     };
     const encrypted = encryptPayload(dataToEncrypt, JWT_SECRET);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
 
     await fetch(CLOUD_TICKETS_DB_URL, {
       method: 'PUT',
@@ -110,10 +112,14 @@ async function saveCloudTickets() {
         name: 'samurai_tickets_db',
         data: {
           encryptedPayload: encrypted,
+          tickets: safeTickets,
+          deletedTicketIds: Array.from(globalDeletedTicketIds),
           updatedAt: new Date().toISOString(),
         },
       }),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
   } catch (e) {}
 }
 

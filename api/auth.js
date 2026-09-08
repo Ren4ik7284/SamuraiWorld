@@ -184,6 +184,8 @@ async function saveCloudUsers() {
       lastLogin: u.lastLogin,
     }));
     const encrypted = encryptPayload(safeToStore, JWT_SECRET);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
     await fetch(CLOUD_DB_URL, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -191,10 +193,13 @@ async function saveCloudUsers() {
         name: 'samurai_users_db',
         data: {
           encryptedPayload: encrypted,
+          users: safeToStore,
           updatedAt: new Date().toISOString(),
         },
       }),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
   } catch (e) {}
 }
 
