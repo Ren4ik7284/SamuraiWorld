@@ -8,6 +8,9 @@
     { "source": "/api/info", "destination": "/api/info.js" },
     { "source": "/api/news", "destination": "/api/news.js" },
 
+    { "source": "/api/payments/check-payment/:orderId", "destination": "/api/payments/check-payment.js?orderId=:orderId" },
+    { "source": "/api/payments/check-payment", "destination": "/api/payments/check-payment.js" },
+    { "source": "/api/payments/webhook", "destination": "/api/payments/webhook.js" },
     { "source": "/api/support/tickets/:path*", "destination": "/api/tickets.js" },
     { "source": "/api/support/tickets", "destination": "/api/tickets.js" },
     { "source": "/api/tickets/:path*", "destination": "/api/tickets.js" },

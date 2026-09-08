@@ -1,14 +1,18 @@
 import net from 'net';
+
 export function sendRconCommand(host, port, password, command) {
   return new Promise((resolve, reject) => {
     const socket = new net.Socket();
     let authenticated = false;
     let responseData = '';
     const reqId = Math.floor(Math.random() * 100000) + 1;
+
     socket.setTimeout(6000);
+
     socket.on('connect', () => {
       sendPacket(socket, reqId, 3, password);
     });
+
     socket.on('data', (data) => {
       let offset = 0;
       while (offset < data.length) {
@@ -18,10 +22,11 @@ export function sendRconCommand(host, port, password, command) {
         const type = data.readInt32LE(offset + 8);
         const body = data.toString('utf8', offset + 12, offset + 4 + length - 2);
         offset += 4 + length;
+
         if (!authenticated) {
           if (id === -1) {
             socket.destroy();
-            return reject(new Error('RCON Authentication Failed (Неверный пароль RCON в server.properties)'));
+            return reject(new Error('RCON Authentication Failed (Неверный пароль RCON)'));
           }
           if (type === 2 || type === 0) {
             authenticated = true;
@@ -33,34 +38,43 @@ export function sendRconCommand(host, port, password, command) {
         }
       }
     });
+
     socket.on('end', () => {
       resolve(responseData.trim());
     });
+
     socket.on('timeout', () => {
       socket.destroy();
       reject(new Error(`RCON Таймаут соединения (${host}:${port})`));
     });
+
     socket.on('error', (err) => {
       reject(new Error(`RCON Ошибка сети: ${err.message}`));
     });
+
     socket.connect(port, host);
   });
 }
+
 function sendPacket(socket, id, type, body) {
   const bodyBuf = Buffer.from(body, 'utf8');
   const length = 4 + 4 + bodyBuf.length + 2;
   const buffer = Buffer.alloc(4 + length);
+
   buffer.writeInt32LE(length, 0);
   buffer.writeInt32LE(id, 4);
   buffer.writeInt32LE(type, 8);
   bodyBuf.copy(buffer, 12);
   buffer.writeInt8(0, 12 + bodyBuf.length);
   buffer.writeInt8(0, 12 + bodyBuf.length + 1);
+
   socket.write(buffer);
 }
+
 export async function sendPterodactylCommand(panelUrl, apiKey, serverId, command) {
   const cleanUrl = panelUrl.replace(/\/+$/, '');
   const url = `${cleanUrl}/api/client/servers/${serverId}/command`;
+
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -70,14 +84,20 @@ export async function sendPterodactylCommand(panelUrl, apiKey, serverId, command
     },
     body: JSON.stringify({ command })
   });
+
   if (!response.ok) {
     const text = await response.text();
     throw new Error(`Pterodactyl API error (${response.status}): ${text}`);
   }
   return true;
 }
+
 export async function grantVipInMinecraft(nickname, options = {}) {
-  const nick = nickname.trim();
+  const nick = (nickname || '').trim();
+  if (!/^[a-zA-Z0-9_]{3,16}$/.test(nick)) {
+    throw new Error('Некорректный никнейм Minecraft (допустимы только буквы, цифры и _, от 3 до 16 символов)');
+  }
+
   const results = [];
   const rawCommands = options.commands || [
     `lp user ${nick} parent addtemp vip 30d`,
@@ -85,19 +105,25 @@ export async function grantVipInMinecraft(nickname, options = {}) {
     `say 🎉 [SamuraiWorld] Игрок ${nick} получил VIP статус на 30 дней! Спасибо за поддержку сервера!`,
     `title ${nick} title {"text":"VIP 30 ДНЕЙ АКТИВИРОВАН!","color":"gold"}`
   ];
-  const commands = rawCommands.map(cmd => 
-    cmd.replace(/\{player\}/gi, nick)
-       .replace(/%player%/gi, nick)
-       .replace(/\{nickname\}/gi, nick)
-  );
-  const pteroUrl = options.pteroUrl || process.env.PTERODACTYL_URL || 'https://qwertyx.host';
-  const pteroKey = options.pteroKey || process.env.PTERODACTYL_API_KEY || '';
-  const pteroServerId = options.pteroServerId || process.env.PTERODACTYL_SERVER_ID || '451a0a34';
+
+  const commands = rawCommands
+    .map(cmd => String(cmd).replace(/[\r\n]/g, ' ').trim())
+    .filter(Boolean)
+    .map(cmd =>
+      cmd.replace(/\{player\}/gi, nick)
+         .replace(/%player%/gi, nick)
+         .replace(/\{nickname\}/gi, nick)
+    );
+
+  const pteroUrl = process.env.PTERODACTYL_URL || options.pteroUrl || 'https://qwertyx.host';
+  const pteroKey = process.env.PTERODACTYL_API_KEY || '';
+  const pteroServerId = process.env.PTERODACTYL_SERVER_ID || options.pteroServerId || '451a0a34';
+
   if (!pteroKey) {
     results.push({
       driver: 'Pterodactyl API (qwertyx.host)',
       success: false,
-      error: 'Ключ PTERODACTYL_API_KEY не добавлен в Vercel Environment Variables! Зайдите в Vercel -> Settings -> Environment Variables и добавьте PTERODACTYL_API_KEY'
+      error: 'Ключ PTERODACTYL_API_KEY не добавлен в переменные окружения!'
     });
   } else {
     try {
@@ -107,7 +133,7 @@ export async function grantVipInMinecraft(nickname, options = {}) {
       results.push({
         driver: 'Pterodactyl API (qwertyx.host)',
         success: true,
-        message: `Команда выполнена в консоли qwertyx.host для игрока ${nick}!`
+        message: `Команда выполнена в консоли сервера для игрока ${nick}!`
       });
     } catch (err) {
       results.push({
@@ -117,9 +143,11 @@ export async function grantVipInMinecraft(nickname, options = {}) {
       });
     }
   }
-  const rconHost = options.rconHost || process.env.MINECRAFT_RCON_HOST || '';
-  const rconPassword = options.rconPassword || process.env.MINECRAFT_RCON_PASSWORD || '';
-  const portsToTry = options.rconPort ? [parseInt(options.rconPort, 10)] : [26800, 25575, 26687];
+
+  const rconHost = process.env.MINECRAFT_RCON_HOST || '';
+  const rconPassword = process.env.MINECRAFT_RCON_PASSWORD || '';
+  const portsToTry = process.env.MINECRAFT_RCON_PORT ? [parseInt(process.env.MINECRAFT_RCON_PORT, 10)] : [26800, 25575, 26687];
+
   if (rconHost && rconPassword) {
     for (const port of portsToTry) {
       try {
@@ -144,6 +172,7 @@ export async function grantVipInMinecraft(nickname, options = {}) {
       }
     }
   }
+
   return {
     nickname: nick,
     executedAt: new Date().toISOString(),
@@ -151,8 +180,12 @@ export async function grantVipInMinecraft(nickname, options = {}) {
     results
   };
 }
+
 export async function grantPassInMinecraft(nickname, options = {}) {
-  const nick = nickname.trim();
+  const nick = (nickname || '').trim();
+  if (!/^[a-zA-Z0-9_]{3,16}$/.test(nick)) {
+    throw new Error('Некорректный никнейм Minecraft (допустимы только буквы, цифры и _, от 3 до 16 символов)');
+  }
   const rawCommands = options.commands || [
     `swl add ${nick}`,
     `simplewhitelist add ${nick}`,

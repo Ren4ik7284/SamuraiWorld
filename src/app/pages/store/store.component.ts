@@ -75,15 +75,15 @@ export class StoreComponent implements OnInit, OnDestroy {
       if (params['payment'] === 'success') {
         const nick = params['nickname'] || 'Игрок';
         const type = params['type'] === 'pass' ? 'pass' : 'vip';
-        this.lastOrderId = params['order'] || 'ROLLY-SUCCESS';
+        this.lastOrderId = params['order'] || '';
         this.nicknameInput = nick;
         this.modalType = type;
         this.showBuyModal = true;
         this.checkoutStep = 2;
-        if (type === 'pass') {
-          this.triggerInstantGrantPass();
+        if (this.lastOrderId) {
+          this.checkPaymentStatus();
         } else {
-          this.triggerInstantGrant();
+          this.grantStatusMessage = 'Платёж принят в обработку. Выдача на сервере произойдёт автоматически в течение 10–20 секунд.';
         }
       }
     });
@@ -215,41 +215,25 @@ export class StoreComponent implements OnInit, OnDestroy {
   }
   grantStatusMessage = '';
   isGranting = false;
-  triggerInstantGrant(): void {
-    const nick = (this.nicknameInput || '').trim();
-    if (!nick) {
-      this.grantStatusMessage = 'Укажите никнейм!';
+  checkPaymentStatus(): void {
+    if (!this.lastOrderId) {
+      this.grantStatusMessage = 'Номер заказа не указан.';
       return;
     }
     this.isGranting = true;
-    this.grantStatusMessage = 'Отправка команды на сервер...';
-    this.http.post<any>('/api/payments/grant-vip', { nickname: nick }).subscribe({
+    this.grantStatusMessage = 'Проверка статуса оплаты через сервер...';
+    this.http.get<any>(`/api/payments/check-payment/${encodeURIComponent(this.lastOrderId)}`).subscribe({
       next: (res) => {
         this.isGranting = false;
-        this.grantStatusMessage = res.message || 'VIP статус выдан!';
+        if (res.isPaid) {
+          this.grantStatusMessage = '✅ ' + (res.message || 'Платёж подтверждён! Привилегия успешно активирована в игре.');
+        } else {
+          this.grantStatusMessage = '⏳ Платёж обрабатывается ЮMoney. Подождите несколько секунд и проверьте снова.';
+        }
       },
-      error: (err) => {
+      error: () => {
         this.isGranting = false;
-        this.grantStatusMessage = err.error?.message || err.error?.error || 'Не удалось отправить команду на сервер';
-      }
-    });
-  }
-  triggerInstantGrantPass(): void {
-    const nick = (this.nicknameInput || '').trim();
-    if (!nick) {
-      this.grantStatusMessage = 'Укажите никнейм!';
-      return;
-    }
-    this.isGranting = true;
-    this.grantStatusMessage = 'Активация Проходки на сервере...';
-    this.http.post<any>('/api/payments/grant-pass', { nickname: nick }).subscribe({
-      next: (res) => {
-        this.isGranting = false;
-        this.grantStatusMessage = res.message || 'Проходка активирована!';
-      },
-      error: (err) => {
-        this.isGranting = false;
-        this.grantStatusMessage = err.error?.message || err.error?.error || 'Не удалось отправить команду на сервер';
+        this.grantStatusMessage = '⏳ Заказ обрабатывается. Выдача на сервере происходит автоматически в течение 10–20 секунд.';
       }
     });
   }

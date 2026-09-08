@@ -662,13 +662,27 @@ export class SupportComponent implements OnInit, OnDestroy {
         (t) => t.id === this.selectedTicket?.id || t.ticketNumber === this.selectedTicket?.ticketNumber
       );
       if (updated) {
+        const prevMsgCount = this.selectedTicket.messages?.length || 0;
         this.selectedTicket = {
           ...updated,
           messages: [...updated.messages],
         };
-      } else {
-        this.closeTicketDetails();
+        if ((updated.messages?.length || 0) > prevMsgCount) {
+          this.scrollChatToBottom();
+        }
       }
+    }
+  }
+  private scrollChatToBottom(): void {
+    if (typeof setTimeout !== 'undefined') {
+      setTimeout(() => {
+        try {
+          const chat = document.querySelector('.chat-container');
+          if (chat) {
+            chat.scrollTop = chat.scrollHeight;
+          }
+        } catch {}
+      }, 50);
     }
   }
   canUserReply(ticket: Ticket | null): boolean {
@@ -735,7 +749,22 @@ export class SupportComponent implements OnInit, OnDestroy {
         list = list.filter((t) => guestIds.includes(t.id));
       }
     } else if (this.viewMode === 'admin' && this.adminFilterStatus !== 'ВСЕ') {
-      list = list.filter((t) => t.status === this.adminFilterStatus);
+      if (this.adminFilterStatus === 'Нерешенные') {
+        list = list.filter((t) => t.status === 'Нерешенные' || t.status === 'Ожидает ответа');
+      } else if (this.adminFilterStatus === 'В работе') {
+        list = list.filter((t) => t.status === 'В работе' || t.status === 'В обработке');
+      } else if (this.adminFilterStatus === 'Выполненные') {
+        list = list.filter(
+          (t) =>
+            t.status === 'Выполненные' ||
+            t.status === 'Решено' ||
+            (t.status as string) === 'Решен' ||
+            t.status === 'Закрыто' ||
+            (t.status as string) === 'Закрыт'
+        );
+      } else {
+        list = list.filter((t) => t.status === this.adminFilterStatus);
+      }
     }
     if (this.searchQuery) {
       const q = this.searchQuery.toLowerCase();
@@ -753,6 +782,7 @@ export class SupportComponent implements OnInit, OnDestroy {
     if (typeof document !== 'undefined') {
       document.body.classList.add('ticket-modal-open');
     }
+    this.scrollChatToBottom();
   }
   closeTicketDetails(): void {
     this.selectedTicket = null;
@@ -786,6 +816,7 @@ export class SupportComponent implements OnInit, OnDestroy {
           this.ticketsList.unshift(updated);
         }
         this.saveLocalTicketsCache(this.ticketsList);
+        this.scrollChatToBottom();
       },
       error: (err) => {
         this.isReplying = false;

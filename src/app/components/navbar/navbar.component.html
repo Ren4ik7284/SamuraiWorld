@@ -292,16 +292,17 @@
     <div class="auth-form" *ngIf="emailStep === 'code'">
       <div class="auth-code-box">
         <div class="auth-code-header">
-          <span class="auth-code-title">Ваш код подтверждения:</span>
+          <span class="auth-code-title">Подтверждение почты</span>
         </div>
-        <div class="auth-code-badge">{{ generatedCodeDisplay || verificationCodeInput || '000000' }}</div>
+        <div *ngIf="generatedCodeDisplay" class="auth-code-badge">{{ generatedCodeDisplay }}</div>
         <div class="auth-code-notice">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="auth-code-notice-icon">
             <circle cx="12" cy="12" r="10"/>
             <line x1="12" y1="16" x2="12" y2="12"/>
             <line x1="12" y1="8" x2="12.01" y2="8"/>
           </svg>
-          <span>В связи с политикой безопасности хостинга код подтверждения сгенерирован прямо здесь. Введите эти 6 цифр ниже для завершения регистрации.</span>
+          <span *ngIf="!generatedCodeDisplay">На указанную почту отправлен 6-значный код подтверждения (проверьте папку «Входящие» или «Спам»). Введите его ниже:</span>
+          <span *ngIf="generatedCodeDisplay">Код подтверждения сгенерирован выше. Введите эти 6 цифр ниже для завершения регистрации:</span>
         </div>
       </div>
 

@@ -52,6 +52,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   emailStep: 'form' | 'code' = 'form';
   verificationCodeInput = '';
   generatedCodeDisplay = '';
+  verificationToken = '';
   isSendingCode = false;
 
   navGroups: NavGroup[] = [
@@ -247,7 +248,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.authErrorMsg = '';
     this.authSuccessMsg = '';
 
-    this.http.post<{ success: boolean; message: string; testCode?: string }>(
+    this.http.post<{ success: boolean; message: string; testCode?: string; verificationToken?: string }>(
       '/api/auth/send_code',
       { email: rawEmail }
     ).subscribe({
@@ -256,7 +257,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.emailStep = 'code';
         this.generatedCodeDisplay = res.testCode || '';
         this.verificationCodeInput = res.testCode || '';
-        this.authSuccessMsg = '';
+        this.verificationToken = res.verificationToken || '';
+        this.authSuccessMsg = res.testCode ? 'Код подтверждения сгенерирован ниже:' : 'Код подтверждения отправлен на вашу почту!';
       },
       error: (err) => {
         this.isSendingCode = false;
@@ -318,7 +320,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
     this.http.post<any>(
       '/api/auth/register',
-      { nickname: rawNick, email: rawEmail, password: rawPass, verificationCode: code }
+      {
+        nickname: rawNick,
+        email: rawEmail,
+        password: rawPass,
+        verificationCode: code,
+        verificationToken: this.verificationToken || undefined,
+      }
     ).subscribe({
       next: (res) => {
         this.isAuthSubmitting = false;
@@ -328,6 +336,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
         this.authNicknameInput = '';
         this.authPasswordInput = '';
         this.authEmailInput = '';
+        this.verificationToken = '';
       },
       error: (err) => {
         this.isAuthSubmitting = false;

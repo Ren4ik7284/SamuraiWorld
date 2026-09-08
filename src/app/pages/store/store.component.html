@@ -237,19 +237,12 @@
             Автоматическая активация
           </h4>
           <p class="grant-box__desc">Если вы уже совершили оплату или хотите проверить выдачу в игре:</p>
-          <button *ngIf="modalType === 'vip'" type="button" class="btn-grant btn-grant--vip" (click)="triggerInstantGrant()" [disabled]="isGranting">
+          <button type="button" class="btn-grant btn-grant--vip" (click)="checkPaymentStatus()" [disabled]="isGranting">
             <span *ngIf="!isGranting" class="btn-grant__content">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-              <span>Активировать / Проверить VIP в игре сейчас</span>
+              <span>Проверить статус зачисления в игре</span>
             </span>
-            <span *ngIf="isGranting">Отправка команды на сервер...</span>
-          </button>
-          <button *ngIf="modalType === 'pass'" type="button" class="btn-grant btn-grant--pass" (click)="triggerInstantGrantPass()" [disabled]="isGranting">
-            <span *ngIf="!isGranting" class="btn-grant__content">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 9a1 1 0 0 1 0-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a1 1 0 0 1 0 2v6a1 1 0 0 1 0 2v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2a1 1 0 0 1 0-2V9z"/><line x1="9" y1="5" x2="9" y2="19" stroke-dasharray="2 2"/></svg>
-              <span>Активировать Проходку в игре сейчас</span>
-            </span>
-            <span *ngIf="isGranting">Активация Проходки...</span>
+            <span *ngIf="isGranting">Проверка статуса оплаты...</span>
           </button>
           <div *ngIf="grantStatusMessage" class="grant-status-msg">
             {{ grantStatusMessage }}

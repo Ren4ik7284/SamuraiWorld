@@ -1,7 +1,8 @@
 const ipRequestStore = new Map();
 const ipMutationStore = new Map();
 export function getClientIp(req) {
-  const forwarded = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.headers['cf-connecting-ip'];
+  const headers = req.headers || {};
+  const forwarded = headers['x-forwarded-for'] || headers['x-real-ip'] || headers['cf-connecting-ip'];
   if (forwarded) {
     return String(forwarded).split(',')[0].trim();
   }
@@ -20,7 +21,8 @@ export function applySecurityHeaders(res) {
 }
 export function checkRateLimit(req, res, isMutation = false) {
   applySecurityHeaders(res);
-  const contentLength = parseInt(req.headers['content-length'] || '0', 10);
+  const headers = req.headers || {};
+  const contentLength = parseInt(headers['content-length'] || '0', 10);
   if (contentLength > 512 * 1024) {
     res.status(413).json({ error: 'Payload Too Large', message: 'Размер запроса превышает допустимый лимит (500 KB).' });
     return false;
