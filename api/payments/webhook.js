@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { grantVipInMinecraft, grantPassInMinecraft } from './mc-executor.js';
+import { applySecurityHeaders } from '../security.js';
 
 const YOOMONEY_SECRET_KEY = process.env.YOOMONEY_SECRET_KEY;
 
@@ -33,6 +34,7 @@ function verifyYooMoneySignature(params) {
 }
 
 export default async function handler(req, res) {
+  applySecurityHeaders(res);
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');

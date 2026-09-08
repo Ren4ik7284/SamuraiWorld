@@ -2,7 +2,14 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import nodemailer from 'nodemailer';
-import { checkRateLimit } from './security.js';
+import {
+  checkRateLimit,
+  checkLoginLockout,
+  recordFailedLogin,
+  clearFailedLogin,
+  encryptPayload,
+  decryptPayload,
+} from './security.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const REFRESH_SECRET = process.env.REFRESH_SECRET;
@@ -118,9 +125,21 @@ async function fetchCloudUsers() {
     clearTimeout(timeout);
     if (resp.ok) {
       const json = await resp.json();
-      if (json && json.data && Array.isArray(json.data.users)) {
+      let usersList = null;
+      if (json && json.data) {
+        if (json.data.encryptedPayload) {
+          const decrypted = decryptPayload(json.data.encryptedPayload, JWT_SECRET);
+          if (Array.isArray(decrypted)) {
+            usersList = decrypted;
+          }
+        } else if (Array.isArray(json.data.users)) {
+          usersList = json.data.users;
+        }
+      }
+
+      if (Array.isArray(usersList)) {
         const masters = getMasterAdmins();
-        for (const u of json.data.users) {
+        for (const u of usersList) {
           if (!u || !u.nickname) continue;
           const cleanNick = u.nickname.toLowerCase();
           if (['admin_samurai', 'support_agent', 'playerone'].includes(cleanNick)) continue;
@@ -129,6 +148,7 @@ async function fetchCloudUsers() {
           if (existing) {
             if (u.lastLogin) existing.lastLogin = u.lastLogin;
             if (u.role) existing.role = masters.includes(cleanNick) ? 'admin' : u.role;
+            if (u.tokenVersion) existing.tokenVersion = Math.max(existing.tokenVersion || 1, u.tokenVersion);
             if (resolvedHash) existing.passwordHash = resolvedHash;
           } else {
             users.push({
@@ -137,6 +157,7 @@ async function fetchCloudUsers() {
               email: u.email,
               role: masters.includes(cleanNick) ? 'admin' : u.role || 'user',
               passwordHash: resolvedHash || crypto.randomBytes(32).toString('hex'),
+              tokenVersion: u.tokenVersion || 1,
               avatarUrl: u.avatarUrl || DEFAULT_AVATAR,
               createdAt: u.createdAt,
               lastLogin: u.lastLogin,
@@ -156,15 +177,23 @@ async function saveCloudUsers() {
       nickname: u.nickname,
       email: u.email,
       passwordHash: u.passwordHash,
+      tokenVersion: u.tokenVersion || 1,
       role: masters.includes(u.nickname?.toLowerCase()) ? 'admin' : u.role || 'user',
       avatarUrl: u.avatarUrl || DEFAULT_AVATAR,
       createdAt: u.createdAt,
       lastLogin: u.lastLogin,
     }));
+    const encrypted = encryptPayload(safeToStore, JWT_SECRET);
     await fetch(CLOUD_DB_URL, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'samurai_users_db', data: { users: safeToStore } }),
+      body: JSON.stringify({
+        name: 'samurai_users_db',
+        data: {
+          encryptedPayload: encrypted,
+          updatedAt: new Date().toISOString(),
+        },
+      }),
     });
   } catch (e) {}
 }
@@ -267,6 +296,7 @@ function generateTokens(user) {
   const now = Math.floor(Date.now() / 1000);
   const THIRTY_DAYS = 30 * 86400;
   const ONE_YEAR = 365 * 86400;
+  const tokenVersion = user.tokenVersion || 1;
   const accessPayload = {
     sub: user.id,
     nickname: user.nickname,
@@ -274,6 +304,7 @@ function generateTokens(user) {
     role: user.role,
     avatarUrl: user.avatarUrl,
     createdAt: user.createdAt,
+    tv: tokenVersion,
     type: 'access',
     iat: now,
     exp: now + THIRTY_DAYS,
@@ -285,6 +316,7 @@ function generateTokens(user) {
     role: user.role,
     avatarUrl: user.avatarUrl,
     createdAt: user.createdAt,
+    tv: tokenVersion,
     type: 'refresh',
     iat: now,
     exp: now + ONE_YEAR,
@@ -304,6 +336,14 @@ function getAuthUser(headers) {
   if (parts.length !== 2 || parts[0] !== 'Bearer') return null;
   const payload = verifyToken(parts[1], JWT_SECRET);
   if (!payload || payload.type !== 'access') return null;
+
+  // Проверка отзыва токена (Token Revocation / Session Invalidation)
+  const user = users.find(
+    (u) => u.id === payload.sub || u.nickname?.toLowerCase() === (payload.nickname || '').toLowerCase()
+  );
+  if (user && user.tokenVersion && (payload.tv || 1) < user.tokenVersion) {
+    return null;
+  }
   return payload;
 }
 
@@ -315,13 +355,6 @@ function isAdmin(userPayload) {
 
 export default async function handler(req, res) {
   if (!checkRateLimit(req, res, true)) return;
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
-  );
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
@@ -493,10 +526,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Введите никнейм и пароль' });
     }
     const cleanNick = nickname.trim().toLowerCase();
+    const lockoutMsg = checkLoginLockout(cleanNick);
+    if (lockoutMsg) {
+      return res.status(429).json({ message: lockoutMsg });
+    }
+
     const user = users.find((u) => u.nickname.toLowerCase() === cleanNick);
     if (!user || !verifyPassword(password, user.passwordHash)) {
+      recordFailedLogin(cleanNick);
       return res.status(401).json({ message: 'Неверный никнейм или пароль' });
     }
+
+    clearFailedLogin(cleanNick);
+
     // Автоматический апгрейд хеша до современного 10000 PBKDF2
     const currentHash = hashPassword(password);
     if (user.passwordHash !== currentHash) {
@@ -523,6 +565,9 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: 'Невалидный или истекший Refresh Token' });
     }
     let user = users.find((u) => u.id === payload.sub || u.nickname.toLowerCase() === (payload.nickname || '').toLowerCase());
+    if (user && user.tokenVersion && (payload.tv || 1) < user.tokenVersion) {
+      return res.status(401).json({ message: 'Сессия была завершена или сброшена. Авторизуйтесь снова.' });
+    }
     if (!user) {
       // Восстанавливаем пользователя из валидного токена
       const masters = getMasterAdmins();
@@ -692,8 +737,17 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: 'Необходима авторизация' });
     }
     const { avatarUrl, nickname } = body || {};
-    if (!avatarUrl || typeof avatarUrl !== 'string' || avatarUrl.trim().length > 1000) {
+    if (!avatarUrl || typeof avatarUrl !== 'string') {
       return res.status(400).json({ message: 'Укажите верную ссылку на аватарку' });
+    }
+    const cleanUrl = avatarUrl.trim();
+    const isAllowedScheme =
+      /^https?:\/\//i.test(cleanUrl) ||
+      /^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);(?:base64,|utf8,)/i.test(cleanUrl);
+    if (!isAllowedScheme || cleanUrl.toLowerCase().includes('javascript:') || cleanUrl.length > 2048) {
+      return res.status(400).json({
+        message: 'Недопустимый формат URL аватарки. Разрешены только защищенные ссылки https:// или data:image base64',
+      });
     }
     const targetNick = (nickname || authUser.nickname || '').toLowerCase();
     if (targetNick !== authUser.nickname.toLowerCase() && !isAdmin(authUser)) {
@@ -701,7 +755,7 @@ export default async function handler(req, res) {
     }
     const targetUser = users.find((u) => u.nickname?.toLowerCase() === targetNick);
     if (targetUser) {
-      targetUser.avatarUrl = avatarUrl.trim();
+      targetUser.avatarUrl = cleanUrl;
       savePersistedUsers();
       const { passwordHash: _p, ...safeUser } = targetUser;
       return res.status(200).json(safeUser);

@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { checkRateLimit } from './security.js';
+import { checkRateLimit, encryptPayload, decryptPayload } from './security.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
@@ -34,13 +34,30 @@ async function fetchCloudTickets() {
     clearTimeout(timeout);
     if (resp.ok) {
       const json = await resp.json();
-      if (json && json.data && Array.isArray(json.data.tickets)) {
-        if (Array.isArray(json.data.deletedTicketIds)) {
-          for (const dId of json.data.deletedTicketIds) {
-            if (dId) globalDeletedTicketIds.add(String(dId));
+      let ticketsData = null;
+      let deletedArr = null;
+
+      if (json && json.data) {
+        if (json.data.encryptedPayload) {
+          const decrypted = decryptPayload(json.data.encryptedPayload, JWT_SECRET);
+          if (decrypted && typeof decrypted === 'object') {
+            ticketsData = Array.isArray(decrypted.tickets) ? decrypted.tickets : [];
+            deletedArr = Array.isArray(decrypted.deletedTicketIds) ? decrypted.deletedTicketIds : [];
           }
+        } else if (Array.isArray(json.data.tickets)) {
+          ticketsData = json.data.tickets;
+          deletedArr = Array.isArray(json.data.deletedTicketIds) ? json.data.deletedTicketIds : [];
         }
-        for (const t of json.data.tickets) {
+      }
+
+      if (Array.isArray(deletedArr)) {
+        for (const dId of deletedArr) {
+          if (dId) globalDeletedTicketIds.add(String(dId));
+        }
+      }
+
+      if (Array.isArray(ticketsData)) {
+        for (const t of ticketsData) {
           if (!t || !t.id) continue;
           if (globalDeletedTicketIds.has(t.id) || (t.ticketNumber && globalDeletedTicketIds.has(t.ticketNumber))) {
             continue;
@@ -80,14 +97,20 @@ async function saveCloudTickets() {
     const safeTickets = globalTickets.filter(
       (t) => t && t.id && !globalDeletedTicketIds.has(t.id) && !globalDeletedTicketIds.has(t.ticketNumber)
     );
+    const dataToEncrypt = {
+      tickets: safeTickets,
+      deletedTicketIds: Array.from(globalDeletedTicketIds),
+    };
+    const encrypted = encryptPayload(dataToEncrypt, JWT_SECRET);
+
     await fetch(CLOUD_TICKETS_DB_URL, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: 'samurai_tickets_db',
         data: {
-          tickets: safeTickets,
-          deletedTicketIds: Array.from(globalDeletedTicketIds),
+          encryptedPayload: encrypted,
+          updatedAt: new Date().toISOString(),
         },
       }),
     });
@@ -214,13 +237,6 @@ function extractTicketId(req, parsedBody = {}) {
 
 export default async function handler(req, res) {
   if (!checkRateLimit(req, res, req.method !== 'GET')) return;
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
-  );
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
